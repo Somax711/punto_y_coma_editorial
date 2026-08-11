@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Panel de Control - Editorial Punto y Coma</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: '#B85C4A', secondary: '#3B2925', accent: '#D9A6A0', lightbg: '#FFF9F2', darktext: '#5B4540', cardbg: '#FFFFFF', deepest: '#FFFFFF', salvia: '#7C8B78'
+          },
+          fontFamily: {
+            sans: ['Lato', 'system-ui', 'sans-serif'], serif: ['Playfair Display', 'serif']
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body { font-family: 'Lato', sans-serif; background: #FFF9F2; color: #3B2925; }
+    .panel-card { background: #FFFFFF; border: 1px solid rgba(184,92,74,.18); box-shadow: 0 8px 24px rgba(59,41,37,.06); }
+    .panel-input { background: #FFF9F2; color: #3B2925; border-color: rgba(184,92,74,.28) !important; }
+    .panel-input::placeholder { color: rgba(91,69,64,.62); }
+    .panel-input:focus { --tw-ring-color: #B85C4A !important; }
+    .sidebar { background: #FFFFFF; border-color: rgba(184,92,74,.16) !important; }
+    .admin-nav-link { color: #5B4540; } .admin-nav-link:hover { background: #FFF1EF; color: #B85C4A; }
+    .admin-nav-link.active { background: #B85C4A; color: #FFFFFF; }
+    #panelScreen .bg-white { background-color: #FFFFFF !important; color: #3B2925; }
+    #panelScreen input, #panelScreen select, #panelScreen textarea { background: #FFF9F2 !important; color: #3B2925 !important; border-color: rgba(184,92,74,.28) !important; }
+    #panelScreen input::placeholder, #panelScreen textarea::placeholder { color: rgba(91,69,64,.62); }
+    #panelScreen .text-secondary { color: #3B2925 !important; }
+    #panelScreen .text-darktext\/40, #panelScreen .text-darktext\/50, #panelScreen .text-darktext\/60 { color: #5B4540 !important; }
+    #panelScreen .border-lightbg { border-color: rgba(184,92,74,.16) !important; }
+    .sidebar { transition: transform 0.3s ease; }
+    @media (max-width: 768px) {
+      .sidebar.hidden-mobile { transform: translateX(-100%); }
+    }
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(42,20,22,0.55);
+      z-index: 1000;
+      overflow-y: auto;
+    }
+    .modal.active {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .image-preview-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+      gap: 10px;
+    }
+    .image-preview-item {
+      position: relative;
+      aspect-ratio: 1;
+      border-radius: 8px;
+      overflow: hidden;
+      border: 2px solid #DCC3AA;
+    }
+    .image-preview-item img { width: 100%; height: 100%; object-fit: cover; }
+    .image-preview-item .remove-btn {
+      position: absolute; top: 4px; right: 4px;
+      background: rgba(129,11,56,0.9);
+      color: white; border: none; border-radius: 50%;
+      width: 24px; height: 24px;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; font-size: 14px;
+    }
+    .loading { pointer-events: none; opacity: 0.6; }
+  </style>
+</head>
+<body>
+  <!-- LOGIN -->
+  <div id="loginScreen" class="min-h-screen flex items-center justify-center px-4">
+    <div class="max-w-md w-full panel-card rounded-lg shadow-2xl p-8">
+      <div class="text-center mb-8">
+        <div class="w-16 h-16 bg-primary text-deepest rounded-full flex items-center justify-center mx-auto mb-4">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6M8 6h8a2 2 0 012 2v12l-4-2-4 2-4-2-4 2V8a2 2 0 012-2z"/>
+          </svg>
+        </div>
+        <h1 class="font-serif text-3xl text-secondary mb-2">Panel de Control</h1>
+        <p class="text-sm text-darktext">Editorial Punto y Coma</p>
+      </div>
+
+      <form id="loginForm" class="space-y-4">
+        <div>
+          <label class="block text-sm font-medium text-secondary mb-1">Correo electrónico</label>
+          <input type="email" id="loginEmail" required
+            class="panel-input w-full px-4 py-2.5 border rounded focus:ring-2 focus:border-transparent"
+            placeholder="tu@correo.com">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-secondary mb-1">Contraseña</label>
+          <input type="password" id="loginPassword" required
+            class="panel-input w-full px-4 py-2.5 border rounded focus:ring-2 focus:border-transparent"
+            placeholder="••••••••">
+        </div>
+        <button type="submit" id="loginBtn"
+          class="w-full bg-primary text-deepest py-2.5 rounded font-bold uppercase tracking-widest text-sm hover:bg-secondary transition">
+          Iniciar Sesión
+        </button>
+      </form>
+
+      <div id="loginError" class="mt-4 hidden">
+        <div class="bg-red-50 text-red-600 px-4 py-3 rounded-xl text-sm"></div>
+      </div>
+
+      <p class="text-[11px] text-darktext/40 text-center mt-6">
+        Los usuarios administradores se crean desde Firebase Authentication
+        (consola de Firebase &gt; Authentication &gt; Users).
+      </p>
+    </div>
+  </div>
+
+  <!-- PANEL PRINCIPAL -->
+  <div id="panelScreen" class="hidden">
+    <!-- SIDEBAR -->
+    <aside class="sidebar fixed left-0 top-0 h-full w-72 border-r z-40">
+      <div class="p-7 border-b border-dorado/10">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 bg-primary text-deepest rounded-full flex items-center justify-center">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6M8 6h8a2 2 0 012 2v12l-4-2-4 2-4-2-4 2V8a2 2 0 012-2z"/>
+            </svg>
+          </div>
+          <div>
+            <h2 class="font-serif text-lg text-secondary"><span class="text-primary italic">Punto</span> y Coma</h2>
+            <p class="text-xs text-darktext">Panel editorial</p>
+          </div>
+        </div>
+      </div>
+
+      <nav class="p-4 space-y-1">
+        <p class="px-4 pt-3 pb-2 text-[10px] text-primary uppercase tracking-[.2em] font-bold">Administración</p>
+        <a href="#" data-section="dashboard" class="nav-link admin-nav-link active flex items-center gap-3 px-4 py-3 rounded mb-1"><i class="fa-solid fa-chart-pie w-5"></i><span class="font-medium">Resumen</span></a>
+        <a href="#" data-section="noticias" class="nav-link admin-nav-link flex items-center gap-3 px-4 py-3 rounded mb-1">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m4 13V6a2 2 0 00-2-2h-4M9 8h6m-6 4h6m-6 4h4"/>
+          </svg>
+          <span class="font-medium">Noticias</span><span class="ml-auto text-xs opacity-60">01</span>
+        </a>
+        <a href="#" data-section="autores" class="nav-link admin-nav-link flex items-center gap-3 px-4 py-3 rounded"><i class="fa-solid fa-feather-pointed w-5"></i><span class="font-medium">Autores</span></a>
+        <a href="#" data-section="libros" class="nav-link admin-nav-link flex items-center gap-3 px-4 py-3 rounded"><i class="fa-solid fa-book w-5"></i><span class="font-medium">Librería digital</span></a>
+        <a href="#" data-section="mensajes" class="nav-link admin-nav-link flex items-center gap-3 px-4 py-3 rounded"><i class="fa-regular fa-envelope w-5"></i><span class="font-medium">Mensajes</span></a>
+        <p class="px-4 pt-6 pb-2 text-[10px] text-primary uppercase tracking-[.2em] font-bold">Cuenta</p>
+        <a href="#" data-section="configuracion" class="nav-link admin-nav-link flex items-center gap-3 px-4 py-3 rounded">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+          </svg>
+          <span class="font-medium">Configuración</span>
+        </a>
+      </nav>
+
+      <div class="absolute bottom-0 left-0 right-0 p-4 border-t border-dorado/10">
+        <div class="flex items-center gap-3 mb-3">
+          <div class="w-9 h-9 rounded-full bg-primary flex items-center justify-center text-deepest text-xs font-semibold" id="userInitials">U</div>
+          <div class="min-w-0">
+            <p class="text-sm font-medium text-secondary truncate" id="userName">Usuario</p>
+            <p class="text-[11px] text-darktext/40 truncate" id="userEmail"></p>
+          </div>
+        </div>
+        <button id="logoutBtn" class="w-full text-sm text-primary hover:text-secondary font-medium text-left px-1"><i class="fa-solid fa-arrow-right-from-bracket mr-2"></i>
+          Cerrar sesión
+        </button>
+      </div>
+    </aside>
+
+    <!-- CONTENIDO PRINCIPAL -->
+    <main class="ml-72 p-8 lg:p-12 min-h-screen">
+      <div class="flex items-center justify-between mb-8">
+        <div><p class="text-primary uppercase tracking-[.18em] text-xs font-bold mb-2">Gestión editorial</p><h1 id="sectionTitle" class="font-serif text-4xl text-secondary">Resumen</h1></div>
+        <button id="btnNuevaNoticia" class="hidden px-5 py-3 bg-primary text-deepest rounded font-bold uppercase tracking-widest text-xs hover:bg-secondary transition">
+          + Nueva noticia
+        </button>
+      </div>
+
+      <!-- RESUMEN -->
+      <div id="seccionDashboard" class="section-content">
+        <div class="grid sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-8">
+          <article class="panel-card p-5 rounded"><p class="text-darktext text-sm">Noticias publicadas</p><p class="font-serif text-4xl text-secondary mt-2" id="statNoticias">—</p><i class="fa-regular fa-newspaper text-primary"></i></article>
+          <article class="panel-card p-5 rounded"><p class="text-darktext text-sm">Autores activos</p><p class="font-serif text-4xl text-secondary mt-2">—</p><i class="fa-solid fa-feather-pointed text-primary"></i></article>
+          <article class="panel-card p-5 rounded"><p class="text-darktext text-sm">Libros en catálogo</p><p class="font-serif text-4xl text-secondary mt-2">—</p><i class="fa-solid fa-book text-primary"></i></article>
+          <article class="panel-card p-5 rounded"><p class="text-darktext text-sm">Mensajes nuevos</p><p class="font-serif text-4xl text-secondary mt-2">—</p><i class="fa-regular fa-envelope text-primary"></i></article>
+        </div>
+        <div class="grid lg:grid-cols-5 gap-6"><section class="panel-card rounded p-7 lg:col-span-3"><div class="flex items-center justify-between mb-6"><h2 class="font-serif text-2xl text-secondary">Comienza a publicar</h2><i class="fa-solid fa-sparkles text-primary"></i></div><p class="text-darktext leading-relaxed max-w-xl">Administra las novedades, perfiles de autores y libros de la editorial desde un solo lugar. Todo el contenido se sincronizará con Firebase.</p><button onclick="abrirModalNueva()" class="mt-6 bg-primary text-deepest px-5 py-3 rounded font-bold uppercase tracking-widest text-xs">Crear noticia</button></section><section class="panel-card rounded p-7 lg:col-span-2"><h2 class="font-serif text-2xl text-secondary mb-4">Accesos rápidos</h2><div class="space-y-3 text-sm"><a href="#" data-go="autores" class="quick-link flex justify-between border-b border-dorado/10 pb-3 text-darktext hover:text-primary">Gestionar autores <i class="fa-solid fa-arrow-right"></i></a><a href="#" data-go="libros" class="quick-link flex justify-between border-b border-dorado/10 pb-3 text-darktext hover:text-primary">Agregar libro <i class="fa-solid fa-arrow-right"></i></a><a href="#" data-go="mensajes" class="quick-link flex justify-between text-darktext hover:text-primary">Revisar mensajes <i class="fa-solid fa-arrow-right"></i></a></div></section></div>
+      </div>
+
+      <!-- SECCIÓN NOTICIAS -->
+      <div id="seccionNoticias" class="section-content hidden">
+        <!-- FILTROS -->
+        <div class="bg-white rounded-2xl shadow-sm p-4 mb-6 grid md:grid-cols-4 gap-3">
+          <input id="filtroTitulo" type="text" placeholder="Buscar por título..."
+            class="px-4 py-2 border border-lightbg rounded-xl text-sm focus:ring-2 focus:ring-primary">
+          <label for="filtroCategoria" class="sr-only">Categoría</label>
+          <select id="filtroCategoria" class="px-4 py-2 border border-lightbg rounded-xl text-sm focus:ring-2 focus:ring-primary">
+            <option value="">Todas las categorías</option>
+            <option value="Lanzamientos">Lanzamientos</option>
+            <option value="Autores">Autores</option>
+            <option value="Ferias del libro">Ferias del libro</option>
+            <option value="Círculo Punto y Coma">Círculo Punto y Coma</option>
+            <option value="Comunidad">Comunidad</option>
+          </select>
+          <label for="filtroEstado" class="sr-only">Estado</label>
+          <select id="filtroEstado" class="px-4 py-2 border border-lightbg rounded-xl text-sm focus:ring-2 focus:ring-primary">
+            <option value="">Todos los estados</option>
+            <option value="publicado">Publicado</option>
+            <option value="borrador">Borrador</option>
+          </select>
+          <button id="btnAplicarFiltros" class="px-4 py-2 bg-secondary text-white rounded-xl text-sm font-medium hover:bg-secondary/90 transition">
+            Filtrar
+          </button>
+        </div>
+
+        <div id="listaNoticias" class="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
+          <div class="col-span-full flex justify-center py-12">
+            <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+          </div>
+        </div>
+      </div>
+
+      <div id="seccionAutores" class="section-content hidden"><div class="flex items-center justify-between mb-6"><p class="text-darktext">Perfiles visibles en la web, con redes, enlace de compra y QR.</p><button id="btnNuevoAutor" class="bg-primary text-deepest px-5 py-3 rounded font-bold uppercase tracking-widest text-xs">+ Nuevo autor</button></div><form id="formAutor" class="panel-card rounded p-6 mb-7 hidden"><input type="hidden" name="id"><div class="grid md:grid-cols-2 gap-4"><input class="panel-input px-4 py-3 rounded border" name="nombre" required placeholder="Nombre del autor *"><input class="panel-input px-4 py-3 rounded border" name="genero" placeholder="Género literario"><input class="panel-input px-4 py-3 rounded border md:col-span-2" name="foto" placeholder="URL de fotografía"><textarea class="panel-input px-4 py-3 rounded border md:col-span-2" name="biografia" rows="3" placeholder="Biografía breve"></textarea><input class="panel-input px-4 py-3 rounded border" name="instagram" placeholder="URL de Instagram"><input class="panel-input px-4 py-3 rounded border" name="facebook" placeholder="URL de Facebook"><input class="panel-input px-4 py-3 rounded border md:col-span-2" name="enlace_venta" placeholder="URL para comprar sus libros o perfil"><label class="flex items-center gap-2 text-darktext"><input type="checkbox" name="publicado" checked> Mostrar en el sitio</label></div><div class="flex gap-3 mt-5"><button class="bg-primary text-deepest px-5 py-3 rounded font-bold text-xs uppercase tracking-widest">Guardar autor</button><button type="button" class="cancel-form border border-primary text-primary px-5 py-3 rounded text-xs uppercase tracking-widest">Cancelar</button></div></form><div id="listaAutores" class="grid md:grid-cols-2 xl:grid-cols-3 gap-5"></div></div>
+      <div id="seccionLibros" class="section-content hidden"><div class="flex items-center justify-between mb-6"><p class="text-darktext">Portadas y enlaces que aparecerán en la Librería Digital.</p><button id="btnNuevoLibro" class="bg-primary text-deepest px-5 py-3 rounded font-bold uppercase tracking-widest text-xs">+ Nuevo libro</button></div><form id="formLibro" class="panel-card rounded p-6 mb-7 hidden"><input type="hidden" name="id"><div class="grid md:grid-cols-2 gap-4"><input class="panel-input px-4 py-3 rounded border" name="titulo" required placeholder="Título del libro *"><input class="panel-input px-4 py-3 rounded border" name="autor" placeholder="Nombre del autor"><input class="panel-input px-4 py-3 rounded border" name="precio" placeholder="Precio, ej. $12.000"><input class="panel-input px-4 py-3 rounded border" name="portada" placeholder="URL de portada"><input class="panel-input px-4 py-3 rounded border md:col-span-2" name="enlace_compra" placeholder="URL de compra"><textarea class="panel-input px-4 py-3 rounded border md:col-span-2" name="sinopsis" rows="3" placeholder="Sinopsis"></textarea><label class="flex items-center gap-2 text-darktext"><input type="checkbox" name="publicado" checked> Mostrar en el sitio</label></div><div class="flex gap-3 mt-5"><button class="bg-primary text-deepest px-5 py-3 rounded font-bold text-xs uppercase tracking-widest">Guardar libro</button><button type="button" class="cancel-form border border-primary text-primary px-5 py-3 rounded text-xs uppercase tracking-widest">Cancelar</button></div></form><div id="listaLibros" class="grid md:grid-cols-2 xl:grid-cols-3 gap-5"></div></div>
+      <div id="seccionMensajes" class="section-content hidden"><div class="panel-card rounded p-10 text-center"><i class="fa-regular fa-envelope text-primary text-3xl mb-4"></i><h2 class="font-serif text-3xl text-secondary">Mensajes recibidos</h2><p class="text-darktext max-w-lg mx-auto mt-3">Las consultas del formulario de contacto aparecerán aquí para que puedas gestionarlas.</p></div></div>
+
+      <!-- SECCIÓN CONFIGURACIÓN -->
+      <div id="seccionConfiguracion" class="section-content hidden">
+        <div class="bg-white rounded-2xl shadow-sm p-6 max-w-lg">
+          <h3 class="font-semibold text-secondary mb-4">Mi perfil</h3>
+          <div class="space-y-4">
+            <div>
+              <label class="block text-sm font-medium text-secondary mb-1">Nombre</label>
+              <input type="text" id="inputNombre" placeholder="Tu nombre" aria-label="Nombre" class="w-full px-4 py-2.5 border border-lightbg rounded-xl focus:ring-2 focus:ring-primary">
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-secondary mb-1">Teléfono</label>
+              <input type="text" id="inputTelefono" placeholder="Tu teléfono" aria-label="Teléfono" class="w-full px-4 py-2.5 border border-lightbg rounded-xl focus:ring-2 focus:ring-primary">
+            </div>
+            <button type="button" id="btnActualizarPerfil" class="px-5 py-2.5 bg-primary text-white rounded-xl font-medium hover:bg-primary/90 transition">
+              Guardar cambios
+            </button>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- MODAL NUEVA / EDITAR NOTICIA -->
+  <div id="modalNoticia" class="modal">
+    <div class="bg-white rounded-3xl w-full max-w-2xl my-8">
+      <div class="p-6 border-b border-lightbg flex items-center justify-between sticky top-0 bg-white rounded-t-3xl">
+        <h2 id="modalTitulo" class="text-xl font-semibold text-secondary">Nueva Noticia</h2>
+        <button id="btnCerrarModal" class="text-darktext/40 hover:text-secondary">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+
+      <form id="formNoticia" class="p-8 space-y-6">
+        <!-- INFORMACIÓN BÁSICA -->
+        <div>
+          <h3 class="text-lg font-semibold text-secondary mb-4">Información básica</h3>
+          <div class="grid md:grid-cols-2 gap-4">
+            <div class="md:col-span-2">
+              <label class="block text-sm font-medium text-secondary mb-1">Título *</label>
+              <input type="text" name="titulo" required
+                class="w-full px-4 py-2.5 border border-lightbg rounded-xl focus:ring-2 focus:ring-primary"
+                placeholder="Ej: Nuevo lanzamiento del Círculo Punto y Coma">
+            </div>
+
+            <div class="md:col-span-2">
+              <label class="block text-sm font-medium text-secondary mb-1">Resumen (aparece en la tarjeta) *</label>
+              <textarea name="resumen" rows="2" required
+                class="w-full px-4 py-2.5 border border-lightbg rounded-xl focus:ring-2 focus:ring-primary"
+                placeholder="Resumen breve de la noticia..."></textarea>
+            </div>
+
+            <div class="md:col-span-2">
+              <label class="block text-sm font-medium text-secondary mb-1">Contenido completo *</label>
+              <textarea name="contenido" rows="6" required
+                class="w-full px-4 py-2.5 border border-lightbg rounded-xl focus:ring-2 focus:ring-primary"
+                placeholder="Redacta aquí la noticia completa..."></textarea>
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium text-secondary mb-1">Categoría *</label>
+              <select name="categoria" required
+                class="w-full px-4 py-2.5 border border-lightbg rounded-xl focus:ring-2 focus:ring-primary">
+                <option value="">Seleccionar...</option>
+                <option value="Lanzamientos">Lanzamientos</option>
+                <option value="Autores">Autores</option>
+                <option value="Ferias del libro">Ferias del libro</option>
+                <option value="Círculo Punto y Coma">Círculo Punto y Coma</option>
+                <option value="Comunidad">Comunidad</option>
+              </select>
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium text-secondary mb-1">Estado *</label>
+              <select name="estado" required
+                class="w-full px-4 py-2.5 border border-lightbg rounded-xl focus:ring-2 focus:ring-primary">
+                <option value="publicado">Publicado</option>
+                <option value="borrador">Borrador</option>
+              </select>
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium text-secondary mb-1">Autor</label>
+              <input type="text" name="autor"
+                class="w-full px-4 py-2.5 border border-lightbg rounded-xl focus:ring-2 focus:ring-primary"
+                placeholder="Ej: Equipo editorial">
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium text-secondary mb-1">Fecha de publicación</label>
+              <input type="date" name="fecha_publicacion"
+                class="w-full px-4 py-2.5 border border-lightbg rounded-xl focus:ring-2 focus:ring-primary">
+            </div>
+
+            <div class="md:col-span-2">
+              <label class="block text-sm font-medium text-secondary mb-1">Enlace externo (opcional)</label>
+              <input type="url" name="enlace_externo"
+                class="w-full px-4 py-2.5 border border-lightbg rounded-xl focus:ring-2 focus:ring-primary"
+                placeholder="https://...">
+            </div>
+
+            <div class="flex items-center">
+              <label class="flex items-center gap-2 cursor-pointer">
+                <input type="checkbox" name="destacado" class="w-4 h-4 text-primary border-lightbg rounded focus:ring-primary">
+                <span class="text-sm font-medium text-secondary">Marcar como destacada</span>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <!-- IMÁGENES -->
+        <div>
+          <h3 class="text-lg font-semibold text-secondary mb-4">Imágenes</h3>
+          <div class="border-2 border-dashed border-accent rounded-xl p-6 text-center">
+            <input type="file" id="inputImagenes" multiple accept="image/*" class="hidden">
+            <label for="inputImagenes" class="cursor-pointer">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-accent mx-auto mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+              </svg>
+              <p class="text-sm text-darktext/60 mb-1">Click para subir imágenes</p>
+              <p class="text-xs text-darktext/40">PNG, JPG hasta 5MB cada una</p>
+            </label>
+          </div>
+          <div id="previewImagenes" class="image-preview-grid mt-4"></div>
+        </div>
+
+        <input type="hidden" name="noticia_id" id="noticiaId">
+
+        <!-- BOTONES -->
+        <div class="flex gap-3 pt-4 border-t border-lightbg">
+          <button type="button" id="btnCancelar" class="flex-1 px-6 py-3 border border-accent text-secondary rounded-xl font-medium hover:bg-lightbg transition">
+            Cancelar
+          </button>
+          <button type="submit" id="btnGuardar" class="flex-1 px-6 py-3 bg-primary text-white rounded-xl font-medium hover:bg-primary/90 transition">
+            Guardar Noticia
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- LÓGICA DE FIREBASE -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
+  <script src="firebase-config.js"></script>
+  <script>
+    const firebaseConfig = window.FIREBASE_CONFIG || {};
+    const tieneValoresPlaceholder = Object.values(firebaseConfig).some(value => typeof value === 'string' && value.includes('REEMPLAZAR'));
+
+    if (!tieneValoresPlaceholder && firebase.apps.length === 0) {
+      firebase.initializeApp(firebaseConfig);
+    }
+
+    const auth = firebase.apps.length ? firebase.auth() : null;
+    const db = firebase.apps.length ? firebase.firestore() : null;
+    const storage = firebase.apps.length ? firebase.storage() : null;
+
+    if (!auth || !db || !storage) {
+      console.warn('Firebase no está configurado correctamente. Revisa el archivo firebase-config.js para usar tu proyecto real.');
+    }
+
+    window.firebaseServices = { auth, db, storage };
+  </script>
+  <script src="panel.js"></script>
+
+</body>
+</html>

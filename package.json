@@ -1,0 +1,12 @@
+{
+  "name": "editorial-punto-y-coma",
+  "version": "1.0.0",
+  "description": "Sitio web de Editorial Punto y Coma con galería de noticias administrable desde panel de control (Firebase).",
+  "scripts": {
+    "start": "npx serve ."
+  },
+  "license": "UNLICENSED",
+  "dependencies": {
+    "firebase": "^12.17.0"
+  }
+}

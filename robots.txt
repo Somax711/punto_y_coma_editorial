@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+Disallow: /paneldecontrol/
+
+Sitemap: https://editorialpuntoycoma.cl/sitemap.xml

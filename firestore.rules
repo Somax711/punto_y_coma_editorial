@@ -1,0 +1,40 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isAdmin() {
+      return request.auth != null
+        && get(/databases/$(database)/documents/usuarios/$(request.auth.uid)).data.rol == 'admin';
+    }
+
+    // NOTICIAS: cualquiera puede leer noticias publicadas.
+    // Solo la cuenta administradora puede crear/editar/eliminar.
+    match /noticias/{noticiaId} {
+      allow read: if resource.data.estado == 'publicado' || isAdmin();
+      allow create, update, delete: if isAdmin();
+    }
+
+    // Los roles se asignan manualmente desde Firebase Console o por un admin.
+    match /usuarios/{userId} {
+      allow read: if isAdmin() || (request.auth != null && request.auth.uid == userId);
+      allow create, delete: if isAdmin();
+      allow update: if isAdmin() || (request.auth != null && request.auth.uid == userId && request.resource.data.rol == resource.data.rol);
+    }
+
+    match /autores/{autorId} {
+      allow read: if resource.data.publicado == true || isAdmin();
+      allow create, update, delete: if isAdmin();
+    }
+
+    match /libros/{libroId} {
+      allow read: if resource.data.publicado == true || isAdmin();
+      allow create, update, delete: if isAdmin();
+    }
+
+    // MENSAJES DE CONTACTO: cualquiera puede crear (enviar el formulario),
+    // solo la administradora puede leerlos.
+    match /mensajes_contacto/{mensajeId} {
+      allow create: if true;
+      allow read, update, delete: if isAdmin();
+    }
+  }
+}

@@ -1,0 +1,157 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de Administración - Punto y Coma</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        marca: '#7B113A',
+                        marcadark: '#3E1218',
+                        fondo: '#F3E8D8',
+                        arena: '#D5C0A1'
+                    },
+                    fontFamily: { sans: ['Inter', 'sans-serif'] }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-gray-100 font-sans flex h-screen overflow-hidden">
+
+    <!-- Menú Lateral -->
+    <aside class="w-64 bg-marcadark text-white flex flex-col">
+        <div class="p-6 text-center border-b border-marca">
+            <h1 class="text-2xl font-bold tracking-wider text-fondo">PUNTO Y COMA</h1>
+            <p class="text-xs text-arena mt-1">Panel de Control</p>
+        </div>
+        <nav class="flex-1 px-4 py-6 space-y-2">
+            <button onclick="mostrarSeccion('noticias')" class="w-full flex items-center gap-3 px-4 py-3 bg-marca rounded-lg text-left transition-colors">
+                <i class="fas fa-newspaper"></i> Noticias
+            </button>
+            <button onclick="mostrarSeccion('autores')" class="w-full flex items-center gap-3 px-4 py-3 hover:bg-marca rounded-lg text-left transition-colors">
+                <i class="fas fa-feather-alt"></i> Autores
+            </button>
+            <button onclick="mostrarSeccion('libros')" class="w-full flex items-center gap-3 px-4 py-3 hover:bg-marca rounded-lg text-left transition-colors">
+                <i class="fas fa-book"></i> Catálogo
+            </button>
+        </nav>
+    </aside>
+
+    <!-- Contenido Principal -->
+    <main class="flex-1 flex flex-col h-full overflow-y-auto">
+        <header class="bg-white shadow-sm p-4 flex justify-between items-center">
+            <h2 id="titulo-seccion" class="text-xl font-bold text-gray-800">Gestión de Noticias</h2>
+            <div class="flex items-center gap-3">
+                <span class="text-sm font-medium text-gray-600">Administrador</span>
+            </div>
+        </header>
+
+        <div class="p-6">
+            <!-- SECCIÓN: NOTICIAS -->
+            <div id="sec-noticias" class="seccion block">
+                <div class="flex justify-between items-center mb-6">
+                    <p class="text-gray-600">Administra las publicaciones del inicio.</p>
+                    <button onclick="toggleFormNoticia()" class="bg-marca text-white px-4 py-2 rounded-lg shadow hover:bg-marcadark transition-colors">
+                        <i class="fas fa-plus"></i> Nueva Noticia
+                    </button>
+                </div>
+
+                <!-- Formulario Nueva Noticia (Oculto por defecto) -->
+                <div id="contenedor-form-noticia" class="hidden bg-white p-6 rounded-lg shadow mb-6 border border-gray-200">
+                    <h3 class="text-lg font-bold text-gray-800 mb-4">Crear Nueva Noticia</h3>
+                    <form id="form-nueva-noticia" onsubmit="guardarNoticia(event)" class="space-y-4">
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Título</label>
+                                <input type="text" id="noticia-titulo" required class="mt-1 w-full border border-gray-300 rounded-md p-2">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Categoría (Ej: Evento, Lanzamiento)</label>
+                                <input type="text" id="noticia-categoria" required class="mt-1 w-full border border-gray-300 rounded-md p-2">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">URL de la Imagen (pega un link de la foto)</label>
+                            <input type="url" id="noticia-imagen" required class="mt-1 w-full border border-gray-300 rounded-md p-2" placeholder="https://ejemplo.com/foto.jpg">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Resumen (Aparece en la tarjeta del inicio)</label>
+                            <textarea id="noticia-resumen" rows="2" required class="mt-1 w-full border border-gray-300 rounded-md p-2"></textarea>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Contenido Completo (Aparece al abrir la noticia)</label>
+                            <textarea id="noticia-contenido" rows="5" required class="mt-1 w-full border border-gray-300 rounded-md p-2"></textarea>
+                        </div>
+                        <div class="flex justify-end gap-2">
+                            <button type="button" onclick="toggleFormNoticia()" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-md">Cancelar</button>
+                            <button type="submit" class="px-4 py-2 bg-marca text-white rounded-md">Guardar Noticia</button>
+                        </div>
+                    </form>
+                </div>
+                
+                <!-- Tabla Dinámica -->
+                <div class="bg-white rounded-lg shadow overflow-hidden">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-gray-50 text-gray-700 border-b">
+                                <th class="p-4">Título</th>
+                                <th class="p-4">Fecha</th>
+                                <th class="p-4 text-center">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbody-noticias">
+                            <tr><td colspan="3" class="p-4 text-center text-gray-500">Cargando noticias... o asegurate de poner tus credenciales en firebase-config.js</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- SECCIÓN: AUTORES (Pendiente de implementar form en firebase) -->
+            <div id="sec-autores" class="seccion hidden">
+                <h3 class="text-xl font-bold mb-4">Sección Autores</h3>
+                <p class="text-gray-500">Formulario similar al de noticias en construcción...</p>
+            </div>
+
+            <!-- SECCIÓN: LIBROS (Pendiente de implementar form en firebase) -->
+            <div id="sec-libros" class="seccion hidden">
+                <h3 class="text-xl font-bold mb-4">Catálogo de Libros</h3>
+                <p class="text-gray-500">Formulario similar al de noticias en construcción...</p>
+            </div>
+        </div>
+    </main>
+
+    <!-- FIREBASE SDKs (Versión 8 de compatibilidad para código más sencillo) -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+
+    <!-- Scripts de Lógica -->
+    <script>
+        function mostrarSeccion(id) {
+            document.querySelectorAll('.seccion').forEach(sec => sec.classList.add('hidden'));
+            document.getElementById('sec-' + id).classList.remove('hidden');
+            const titulos = { 'noticias': 'Gestión de Noticias', 'autores': 'Gestión de Autores', 'libros': 'Catálogo de Libros' };
+            document.getElementById('titulo-seccion').innerText = titulos[id];
+        }
+    </script>
+    <script src="paneldecontrol/firebase-config.js"></script>
+    <script src="paneldecontrol/noticias_firebase.js"></script>
+    <script>
+        // Iniciar la carga de noticias cuando carga el script
+        window.onload = function() {
+            if (typeof firebase !== 'undefined') {
+                cargarNoticias();
+            } else {
+                console.error("Firebase no se cargó correctamente.");
+            }
+        };
+    </script>
+</body>
+</html>
