@@ -1,93 +1,82 @@
-# Editorial Punto y Coma — Sitio web
 
-Sitio web construido sobre la misma base técnica del sitio de referencia
-(`uv_asesorias`): HTML + Tailwind (CDN) + Firebase (Auth, Firestore, Storage),
-sin frameworks ni build step. La sección de **galería de propiedades** del
-sitio original fue reemplazada por una **galería de noticias**, administrable
-desde un panel de control propio.
+# Editorial Punto y Coma --Sitio Web 
 
-## Estructura
+Sitio web oficial de Editorial Punto y Coma, desarrollado con una arquitectura ligera y moderna basada en HTML, Tailwind CSS (vía CDN) 
+y Firebase (Auth, Firestore y Storage). No requiere frameworks complejos ni procesos de compilación (build step).
+Cuenta con una galería de noticias interactiva y un panel de control administrativo completo para la gestión de contenidos.
 
-```
-index.html                         → Sitio público
-style.css                          → Estilos (paleta Punto y Coma)
-scripts.js                         → Interacción general + modal de noticias
-tailwind.config.js                 → Paleta de colores Tailwind
+# Estructura del proyecto 
+
+index.html                      → Sitio web público (landing page y sección de noticias)
+style.css                       → Estilos personalizados y paleta de colores corporativa
+scripts.js                      → Lógica de interacción general y modal de noticias
+tailwind.config.js              → Configuración de la paleta de colores en Tailwind
 paneldecontrol/
-  index_usuario.html               → Login + dashboard del panel admin
-  panel.js                         → CRUD de noticias (crear/editar/eliminar)
-  noticias_firebase.js             → Carga y renderiza la galería de noticias
-firestore.rules                    → Reglas de seguridad sugeridas
-storage.rules                      → Reglas de seguridad sugeridas
-img/logo.png, favicon.png          → Logo provisional (monograma "P;")
-```
+  index_usuario.html            → Interfaz de autenticación (Login) y panel de administración
+  panel.js                      → Operaciones CRUD de noticias (crear, editar, eliminar)
+  noticias_firebase.js          → Carga y renderizado dinámico de la galería de noticias
+firestore.rules                 → Reglas de seguridad recomendadas para Firestore
+storage.rules                   → Reglas de seguridad recomendadas para Firebase Storage
+img/logo.png, favicon.png       → Recursos gráficos corporativos
 
-## Paleta de colores aplicada
 
-| Uso                        | Color     | Hex        |
-|-----------------------------|-----------|------------|
-| `primary` (CTA, acentos)    | Vino      | `#810B38`  |
-| `secondary` (textos, footer)| Granate   | `#541A1A`  |
-| `accent` (detalles, badges) | Arena     | `#DCC3AA`  |
-| `lightbg` (fondos suaves)   | Crema     | `#F1E2D1`  |
+#  Paleta de colores Corporativa 
 
-## Pasos pendientes antes de publicar
+Uso                                          Color              Hexadecimal
+"primary (Botones, CTA, acentos)"            Vino               #810B38
+"secondary (Textos principales, footer)"     Granate            #541A1A
+"accent(Detalles, badges, bordes)"           Arena              #DCC3AA
+"lightbg(Fondos suaves, tarjetas)"           Crema              #F1E2D1
 
-### 1. Crear el proyecto Firebase
-1. Ir a [console.firebase.google.com](https://console.firebase.google.com) → **Crear proyecto**.
-2. Dentro del proyecto: **Compilación → Authentication** → habilitar el proveedor
-   **Correo/contraseña** → pestaña *Users* → **Agregar usuario** (este será el
-   login del panel de control, ej. `admin@editorialpuntoycoma.cl`).
-3. **Compilación → Firestore Database** → Crear base de datos (modo producción).
-   Luego pega el contenido de `firestore.rules` en la pestaña *Reglas*.
-4. **Compilación → Storage** → Comenzar. Pega el contenido de `storage.rules`
-   en la pestaña *Reglas*.
-5. En **Configuración del proyecto → General → Tus apps** → agregar app **Web**
-   → copiar el objeto `firebaseConfig` que entrega Firebase.
-6. Pegar ese mismo objeto **en dos archivos**: `index.html` (busca
-   `REEMPLAZAR_API_KEY`) y `paneldecontrol/index_usuario.html` (mismo bloque).
 
-### 2. Datos de contacto
-Editar solo estas dos líneas al inicio de `scripts.js`:
-```js
-const EDITORIAL_WHATSAPP = "56900000000"; // número real, formato 569XXXXXXXX
-const EDITORIAL_EMAIL = "contacto@editorialpuntoycoma.cl"; // correo real
-```
-Esto actualiza automáticamente todos los botones de WhatsApp y el correo
-mostrado en la sección de contacto.
+1. Pasos para la Configuración y Publicación
 
-### 3. Logo
-`img/logo.png` y `favicon.png` son un monograma provisional ("P;"). Reemplázalos
-por el logo oficial de la editorial manteniendo el mismo nombre de archivo
-(o actualiza las referencias en `index.html`).
+  1. Configurar el Proyecto en Firebase Accede a Firebase Console y haz clic en Crear proyecto.
 
-### 4. Dominio
-Buscar y reemplazar `editorialpuntoycoma.cl` por el dominio real en:
-`index.html` (meta tags SEO, schema.org), `robots.txt`, `sitemap.xml`.
+  2. Authentication: Ve a Compilación > Authentication, habilita el proveedor Correo/contraseña y añade un usuario en la pestaña Users (este será el administrador, ej. admin@editorialpuntoycoma.cl).
 
-### 5. Publicar noticias
-Una vez configurado Firebase y creado el usuario admin:
-1. Entrar a `paneldecontrol/index_usuario.html` (o el link "Acceso admin" del
-   footer del sitio).
-2. Iniciar sesión con el correo/contraseña creados en el paso 1.
-3. **+ Nueva noticia** → completar título, resumen, contenido, categoría,
-   imágenes → Guardar.
-4. La noticia aparece automáticamente en la sección **Noticias** del sitio
-   público (`index.html#noticias`), con carrusel de imágenes y modal de
-   lectura completa.
+  3. Firestore Database: Ve a Compilación > Firestore Database, crea la base de datos en modo producción y pega el contenido del archivo firestore.rules en la pestaña Reglas.
 
-## Despliegue
+  4. Storage: Ve a Compilación > Storage, inicializa el servicio y pega el contenido del archivo storage.rules en la pestaña Reglas.
 
-Al ser un sitio 100% estático, se puede publicar igual que el sitio de
-referencia: arrastrando la carpeta a [Netlify Drop](https://app.netlify.com/drop),
-o conectando el repositorio de GitHub a Netlify/Vercel para despliegue continuo.
-No requiere build step ni backend propio (Firebase cumple ese rol).
+  5. Credenciales: En Configuración del proyecto > General > Tus apps, añade una app web y copia el objeto firebaseConfig.
 
-## Notas
+  6. Pega este objeto de configuración en:
+     - index.html (reemplazando el marcador REEMPLAZAR_API_KEY).
+     - paneldecontrol/index_usuario.html (en el bloque correspondiente de Firebase).
 
-- Los mensajes del formulario de contacto se guardan en la colección
-  `mensajes_contacto` de Firestore (visible solo para el usuario admin
-  autenticado). Si prefieren recibirlos también por correo, se puede integrar
-  EmailJS o una Cloud Function más adelante.
-- Las cifras de la sección "Hero" (autores publicados, etc.) y los testimonios
-  de la sección "Testimonios" son de ejemplo — reemplazar por datos reales.
+
+2. Configurar Datos de Contacto
+Actualiza las constantes de contacto al inicio del archivo scripts.js:
+
+const EDITORIAL_WHATSAPP = "56900000000"; // Número real con formato 569XXXXXXXX
+const EDITORIAL_EMAIL = "contacto@editorialpuntoycoma.cl"; // Correo electrónico real
+(Esto actualizará de forma automática los enlaces directos a WhatsApp y el correo visible en la sección de contacto.)
+
+3. Actualizar Recursos Gráficos y Metadatos
+Logotipo: Reemplaza img/logo.png y favicon.png por los archivos oficiales de la editorial manteniendo los mismos nombres (o actualiza las rutas en index.html).
+
+Dominio: Reemplaza la cadena provisional editorialpuntoycoma.cl por el dominio definitivo en index.html (etiquetas SEO y Schema.org), robots.txt y sitemap.xml.
+
+4. Gestión de Noticias
+Una vez completada la configuración de Firebase:
+
+Ingresa al panel administrativo a través de paneldecontrol/index_usuario.html (o mediante el enlace de acceso en el pie de página).
+
+Inicia sesión con las credenciales creadas en la consola de Firebase.
+
+Utiliza la opción + Nueva noticia para redactar títulos, resúmenes, contenido detallado, categorías y cargar imágenes asociadas.
+
+Los cambios se reflejarán instantáneamente en la sección pública de noticias (index.html#noticias).
+
+# Despliegue
+Al ser una aplicación web completamente estática, el despliegue es inmediato y flexible:
+
+Netlify: Arrastrando la carpeta del proyecto a Netlify Drop o conectando el repositorio de GitHub para despliegues automatizados.
+
+Vercel / GitHub Pages: Compatible mediante integración directa con repositorio.
+
+# Notas Técnicas
+Formulario de Contacto: Los mensajes enviados por los usuarios se almacenan de manera segura en la colección mensajes_contacto de Firestore, accesibles exclusivamente desde el panel de administración. Es posible integrar servicios de notificación por correo (como EmailJS) posteriormente si se requiere.
+
+Contenido de Ejemplo: Las cifras estadísticas de la sección principal (autores publicados, obras en catálogo) y los testimonios son referenciales y deben actualizarse con información real de la editorial.
