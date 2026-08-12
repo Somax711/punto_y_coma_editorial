@@ -23,8 +23,11 @@
       }
     }
   </script>
-  <style>
-    body { font-family: 'Lato', sans-serif; background: #FFF9F2; color: #3B2925; }
+</head>
+<body>
+    <style>
+    body {
+       font-family: 'Lato', sans-serif; background: #FFF9F2; color: #3B2925; }
     .panel-card { background: #FFFFFF; border: 1px solid rgba(184,92,74,.18); box-shadow: 0 8px 24px rgba(59,41,37,.06); }
     .panel-input { background: #FFF9F2; color: #3B2925; border-color: rgba(184,92,74,.28) !important; }
     .panel-input::placeholder { color: rgba(91,69,64,.62); }
@@ -79,9 +82,43 @@
       cursor: pointer; font-size: 14px;
     }
     .loading { pointer-events: none; opacity: 0.6; }
+
+   /* ESTANDARIZACIÓN RESPONSIVA (Panel de Control) */
+
+/* Ajustes para dispositivos móviles (Tablets y Smartphones) */
+@media screen and (max-width: 1024px) {
+    /* Los grids principales se convierten en una sola columna */
+    #listaNoticias, 
+    #listaAutores, 
+    #listaLibros {
+        grid-template-columns: 1fr !important;
+        gap: 1rem !important;
+    }
+
+    /* Ajustar el formulario para que los campos ocupen el ancho total */
+    #formAutor, 
+    #formLibro {
+        padding: 1rem !important;
+    }
+    
+    #formAutor .grid, 
+    #formLibro .grid {
+        grid-template-columns: 1fr !important;
+    }
+}
+
+/* Ajuste específico para el contenedor principal en móviles */
+@media screen and (max-width: 768px) {
+    main {
+        padding: 1rem !important;
+    }
+
+    /* Asegurar que las tarjetas de resumen no se desborden */
+    .grid.sm\:grid-cols-2 {
+        grid-template-columns: 1fr !important;
+    }
+}
   </style>
-</head>
-<body>
   <!-- LOGIN -->
   <div id="loginScreen" class="min-h-screen flex items-center justify-center px-4">
     <div class="max-w-md w-full panel-card rounded-lg shadow-2xl p-8">

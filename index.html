@@ -11,34 +11,27 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
-    tailwind.config = { theme: { extend: { colors: { vino:'#D9A6A0', vinodark:'#FFF9F2', dorado:'#B85C4A', crema:'#3B2925', cremadark:'#5B4540', cardbg:'#FFFFFF', secondary:'#3B2925', salvia:'#7C8B78' }, fontFamily: { serif:['Playfair Display','serif'], sans:['Lato','sans-serif'] } } } };
+    tailwind.config = {
+       theme: { extend: { colors: { vino:'#D9A6A0', vinodark:'#FFF9F2', dorado:'#B85C4A', crema:'#3B2925', cremadark:'#5B4540', cardbg:'#FFFFFF', secondary:'#3B2925', salvia:'#7C8B78' }, fontFamily: { serif:['Playfair Display','serif'], sans:['Lato','sans-serif'] } } } };
   </script>
-  <link rel="icon" type="image/png" href="favicon.png">
-  <!-- Si no tienes style.css, elimina esta línea o crea el archivo -->
+  <link rel="icon" type="image/png" href="logovector.png">
   <link rel="stylesheet" href="style.css">
-  <style>
-    /* Estilos mínimos para que funcione si no hay style.css */
-    .reveal { opacity: 0; transform: translateY(20px); transition: all 0.8s ease; }
-    .reveal.active { opacity: 1; transform: translateY(0); }
-    .interactive-card { transition: all 0.3s ease; }
-    .interactive-card:hover { transform: translateY(-6px); box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04); }
-    .author-card { transition: all 0.3s ease; }
-    .author-card:hover { transform: translateY(-4px); }
-    .line-clamp-3 { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
-  </style>
 </head>
+
+<!--MENU-->
 <body class="font-sans antialiased overflow-x-hidden bg-vinodark text-crema selection:bg-dorado selection:text-vinodark">
   <nav class="fixed w-full z-50 transition-all duration-300" id="navbar">
     <div class="absolute inset-0 bg-vinodark/95 backdrop-blur-md border-b border-dorado/10"></div>
     <div class="max-w-7xl mx-auto px-6 lg:px-8 relative z-10">
       <div class="flex items-center justify-between h-20">
-        <a href="#inicio" class="font-serif text-2xl tracking-wide text-crema"><span class="text-dorado italic">Punto</span> y Coma</a>
+        <a href="#inicio" class="font-serif text-2xl tracking-wide text-crema"><img src="logovector.png" alt="Logo" class="h-16"></a>
         <div class="hidden md:flex items-center gap-5 text-sm uppercase tracking-widest font-semibold">
           <a href="#inicio" class="nav-link">Inicio</a>
           <a href="#noticias" class="nav-link">Noticias</a>
           <a href="#servicios" class="nav-link">Servicios</a>
-          <a href="#autores" class="nav-link">Autores</a>
+          <a href="#autores" class="nav-link">Autores</a>       
           <a href="#libreria" class="nav-link">Librería</a>
+          <a href="https://puntoycomaeyrtextos.blogspot.com/" class="nav-link">Blog</a>
           <a href="#contacto" class="border border-dorado text-dorado hover:bg-dorado hover:text-vinodark transition-colors px-5 py-2">Contacto</a>
         </div>
         <button id="mobile-menu-button" class="md:hidden text-crema hover:text-dorado text-2xl" aria-label="Abrir menú"><i class="fa-solid fa-bars"></i></button>
@@ -49,6 +42,7 @@
         <a href="#servicios" class="block">Servicios</a>
         <a href="#autores" class="block">Autores</a>
         <a href="#libreria" class="block">Librería</a>
+        <a href="https://puntoycomaeyrtextos.blogspot.com/" class="block">Blog</a>
         <a href="#contacto" class="block text-dorado">Contacto</a>
       </div>
     </div>
@@ -141,18 +135,20 @@
         <span class="text-dorado uppercase tracking-widest text-sm font-bold">Hablemos de tu libro</span>
         <h2 class="font-serif text-4xl md:text-5xl mt-3 mb-5">Tu historia merece <span class="italic text-dorado font-light">ser leída.</span></h2>
         <p class="text-cremadark font-light mb-8">Cuéntanos sobre tu proyecto editorial y te acompañaremos en el siguiente capítulo.</p>
-        <a id="whatsapp-hero-link" target="_blank" rel="noopener" class="inline-flex items-center gap-3 border border-dorado text-dorado px-7 py-3 uppercase tracking-widest text-sm font-bold hover:bg-dorado hover:text-vinodark transition"><i class="fa-brands fa-whatsapp text-lg"></i> Escribir por WhatsApp</a>
+        <a id="whatsapp-hero-link" target="_blank" rel="noopener" class="inline-flex items-center gap-3 border border-dorado text-dorado px-7 py-3 uppercase tracking-widest text-sm font-bold hover:bg-dorado hover:text-vinodark transition">
+          <i class="fa-brands fa-whatsapp text-lg"></i> Escribir por WhatsApp</a>
       </div>
     </section>
   </main>
 
+  <!--FOOTER-->
   <footer class="bg-cardbg border-t border-dorado/20 py-10">
     <div class="max-w-7xl mx-auto px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center gap-4 text-center md:text-left">
-      <div class="font-serif text-xl"><span class="text-dorado italic">Punto</span> y Coma</div>
+      <div class="font-serif text-xl"><img src="logovector.png" alt="Logo" class="h-16"></div>
       <p class="text-cremadark text-sm font-light">© <span id="year"></span> Editorial Punto y Coma. Todos los derechos reservados.</p>
       <div class="flex gap-5 text-dorado">
-        <a href="#" aria-label="Facebook"><i class="fa-brands fa-facebook-f"></i></a>
-        <a href="#" aria-label="Instagram"><i class="fa-brands fa-instagram"></i></a>
+        <a href="https://web.facebook.com/puntoycoma.eyrtextos" aria-label="Facebook"><i class="fa-brands fa-facebook-f"></i></a>
+        <a href="https://www.instagram.com/puntoycomaj?" aria-label="Instagram"><i class="fa-brands fa-instagram"></i></a>
         <a href="paneldecontrol/index_usuario.html" class="text-xs uppercase tracking-wider">Admin</a>
       </div>
     </div>
