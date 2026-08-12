@@ -8,14 +8,11 @@ const firebaseConfig = {
   measurementId: "G-N0JE0K0MQK"
 };
 
-// Inicializar Firebase
 if (firebase.apps.length === 0) {
     firebase.initializeApp(firebaseConfig);
 }
 
-// Inicializar Firestore (Base de datos) y Storage
 window.db = firebase.firestore();
 window.storage = firebase.storage();
 window.auth = firebase.auth();
-// Definir correos con acceso de Administrador al panel
 window.FIREBASE_ADMIN_EMAILS = ['puntoycoma.ediciontextos@gmail.com']; 

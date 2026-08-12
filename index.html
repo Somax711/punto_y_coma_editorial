@@ -14,92 +14,186 @@
     tailwind.config = { theme: { extend: { colors: { vino:'#D9A6A0', vinodark:'#FFF9F2', dorado:'#B85C4A', crema:'#3B2925', cremadark:'#5B4540', cardbg:'#FFFFFF', secondary:'#3B2925', salvia:'#7C8B78' }, fontFamily: { serif:['Playfair Display','serif'], sans:['Lato','sans-serif'] } } } };
   </script>
   <link rel="icon" type="image/png" href="favicon.png">
+  <!-- Si no tienes style.css, elimina esta línea o crea el archivo -->
   <link rel="stylesheet" href="style.css">
+  <style>
+    /* Estilos mínimos para que funcione si no hay style.css */
+    .reveal { opacity: 0; transform: translateY(20px); transition: all 0.8s ease; }
+    .reveal.active { opacity: 1; transform: translateY(0); }
+    .interactive-card { transition: all 0.3s ease; }
+    .interactive-card:hover { transform: translateY(-6px); box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04); }
+    .author-card { transition: all 0.3s ease; }
+    .author-card:hover { transform: translateY(-4px); }
+    .line-clamp-3 { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+  </style>
 </head>
 <body class="font-sans antialiased overflow-x-hidden bg-vinodark text-crema selection:bg-dorado selection:text-vinodark">
   <nav class="fixed w-full z-50 transition-all duration-300" id="navbar">
     <div class="absolute inset-0 bg-vinodark/95 backdrop-blur-md border-b border-dorado/10"></div>
-    <div class="max-w-7xl mx-auto px-6 lg:px-8 relative z-10"><div class="flex items-center justify-between h-20">
-      <a href="#inicio" class="font-serif text-2xl tracking-wide text-crema"><span class="text-dorado italic">Punto</span> y Coma</a>
-      <div class="hidden md:flex items-center gap-5 text-sm uppercase tracking-widest font-semibold">
-        <a href="#inicio" class="nav-link">Inicio</a><a href="#noticias" class="nav-link">Noticias</a><a href="#servicios" class="nav-link">Servicios</a><a href="#autores" class="nav-link">Autores</a><a href="#libreria" class="nav-link">Librería</a>
-        <a href="#contacto" class="border border-dorado text-dorado hover:bg-dorado hover:text-vinodark transition-colors px-5 py-2">Contacto</a>
+    <div class="max-w-7xl mx-auto px-6 lg:px-8 relative z-10">
+      <div class="flex items-center justify-between h-20">
+        <a href="#inicio" class="font-serif text-2xl tracking-wide text-crema"><span class="text-dorado italic">Punto</span> y Coma</a>
+        <div class="hidden md:flex items-center gap-5 text-sm uppercase tracking-widest font-semibold">
+          <a href="#inicio" class="nav-link">Inicio</a>
+          <a href="#noticias" class="nav-link">Noticias</a>
+          <a href="#servicios" class="nav-link">Servicios</a>
+          <a href="#autores" class="nav-link">Autores</a>
+          <a href="#libreria" class="nav-link">Librería</a>
+          <a href="#contacto" class="border border-dorado text-dorado hover:bg-dorado hover:text-vinodark transition-colors px-5 py-2">Contacto</a>
+        </div>
+        <button id="mobile-menu-button" class="md:hidden text-crema hover:text-dorado text-2xl" aria-label="Abrir menú"><i class="fa-solid fa-bars"></i></button>
       </div>
-      <button id="mobile-menu-button" class="md:hidden text-crema hover:text-dorado text-2xl" aria-label="Abrir menú"><i class="fa-solid fa-bars"></i></button>
+      <div id="mobile-menu" class="hidden md:hidden py-4 border-t border-dorado/10 text-center space-y-3 uppercase tracking-widest text-sm">
+        <a href="#inicio" class="block">Inicio</a>
+        <a href="#noticias" class="block">Noticias</a>
+        <a href="#servicios" class="block">Servicios</a>
+        <a href="#autores" class="block">Autores</a>
+        <a href="#libreria" class="block">Librería</a>
+        <a href="#contacto" class="block text-dorado">Contacto</a>
+      </div>
     </div>
-    <div id="mobile-menu" class="hidden md:hidden py-4 border-t border-dorado/10 text-center space-y-3 uppercase tracking-widest text-sm"><a href="#inicio" class="block">Inicio</a><a href="#noticias" class="block">Noticias</a><a href="#servicios" class="block">Servicios</a><a href="#autores" class="block">Autores</a><a href="#libreria" class="block">Librería</a><a href="#contacto" class="block text-dorado">Contacto</a></div></div>
   </nav>
 
   <main>
     <section id="inicio" class="relative min-h-screen flex items-center justify-center pt-20 overflow-hidden">
-      <div class="absolute top-0 right-0 w-96 h-96 bg-vino rounded-full blur-[120px] opacity-60"></div><div class="absolute bottom-0 left-0 w-96 h-96 bg-cardbg rounded-full blur-[120px] opacity-40"></div>
+      <div class="absolute top-0 right-0 w-96 h-96 bg-vino rounded-full blur-[120px] opacity-60"></div>
+      <div class="absolute bottom-0 left-0 w-96 h-96 bg-cardbg rounded-full blur-[120px] opacity-40"></div>
       <div class="relative z-10 max-w-5xl mx-auto px-6 text-center">
-        <h1 class="hero-title font-serif text-5xl md:text-7xl lg:text-8xl leading-tight mb-6"><span>Damos</span> <span class="text-dorado italic font-light">vida</span><br><span>a tus historias.</span></h1>
+        <h1 class="font-serif text-5xl md:text-7xl lg:text-8xl leading-tight mb-6"><span>Damos</span> <span class="text-dorado italic font-light">vida</span><br><span>a tus historias.</span></h1>
         <p class="mt-4 text-xl md:text-2xl text-cremadark font-light max-w-2xl mx-auto reveal">Descubre nuestras historias, novedades literarias y a las mentes detrás de cada obra.</p>
         <div class="mt-10 reveal"><a href="#noticias" class="inline-flex items-center gap-3 bg-dorado text-vinodark px-8 py-4 font-semibold uppercase tracking-widest hover:bg-crema transition-colors shadow-lg">Leer novedades <i class="fa-solid fa-arrow-down"></i></a></div>
       </div>
     </section>
-     <!--NOTICIAS-->
 
-    <section id="noticias" class="py-24 relative bg-vino/30 border-y border-dorado/10"><div class="max-w-7xl mx-auto px-6 lg:px-8">
-      <div class="flex flex-col md:flex-row justify-between items-end mb-16 reveal"><div><span class="text-dorado uppercase tracking-widest text-sm font-bold mb-2 block"><i class="fa-regular fa-newspaper mr-2"></i>Actualidad</span><h2 class="font-serif text-4xl md:text-5xl">Últimas <span class="italic text-dorado font-light">Noticias</span></h2></div><a href="#contacto" class="hidden md:inline-flex items-center text-cremadark hover:text-dorado mt-4 pb-1 border-b border-dorado/30 hover:border-dorado">Conversemos <i class="fa-solid fa-arrow-right ml-2 text-sm"></i></a></div>
-      <div id="newsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"><div class="col-span-full text-center py-12 text-cremadark">Cargando noticias...</div></div>
-    </div></section>
+    <!-- NOTICIAS -->
+    <section id="noticias" class="py-24 relative bg-vino/30 border-y border-dorado/10">
+      <div class="max-w-7xl mx-auto px-6 lg:px-8">
+        <div class="flex flex-col md:flex-row justify-between items-end mb-16 reveal">
+          <div><span class="text-dorado uppercase tracking-widest text-sm font-bold mb-2 block"><i class="fa-regular fa-newspaper mr-2"></i>Actualidad</span><h2 class="font-serif text-4xl md:text-5xl">Últimas <span class="italic text-dorado font-light">Noticias</span></h2></div>
+          <a href="#contacto" class="hidden md:inline-flex items-center text-cremadark hover:text-dorado mt-4 pb-1 border-b border-dorado/30 hover:border-dorado">Conversemos <i class="fa-solid fa-arrow-right ml-2 text-sm"></i></a>
+        </div>
+        <div id="newsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div class="col-span-full text-center py-12 text-cremadark">Cargando noticias...</div>
+        </div>
+      </div>
+    </section>
 
-    <!--AUTORES-->
-
-   <section id="autores" class="py-24">
+    <!-- AUTORES -->
+    <section id="autores" class="py-24">
       <div class="max-w-7xl mx-auto px-6 lg:px-8">
         <div class="text-center mb-16 reveal">
           <span class="text-dorado uppercase tracking-widest text-sm font-bold mb-2 block"><i class="fa-solid fa-feather-pointed mr-2"></i>Nuestro talento</span>
           <h2 class="font-serif text-4xl md:text-5xl">Nuestros <span class="italic text-dorado font-light">Autores</span></h2>
           <div class="w-16 h-px bg-dorado mx-auto mt-6"></div>
         </div>
-        
         <div id="autoresGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
           <div class="col-span-full text-center py-12 text-cremadark">
             <i class="fas fa-spinner fa-spin text-dorado mb-3 text-2xl"></i><br>
             Cargando autores...
           </div>
         </div>
-
       </div>
     </section>
 
-    <section id="servicios" class="py-24 bg-vino/30 border-y border-dorado/10"><div class="max-w-7xl mx-auto px-6 lg:px-8"><div class="text-center max-w-3xl mx-auto mb-14 reveal"><span class="eyebrow">Edición que acompaña</span><h2 class="section-title">Servicios <span>editoriales integrales</span></h2><p class="section-copy">Del manuscrito a los lectores, construimos una publicación profesional, cuidada y capaz de llegar más lejos.</p></div><div class="service-grid reveal"><div><i class="fa-solid fa-file-pen"></i><h3>Edición y producción</h3><ul><li>Informe editorial y viabilidad comercial</li><li>Corrección de estilo y ortotipográfica</li><li>Diagramación, portada y revisión de pruebas</li><li>Adaptación digital para EPUB y Kindle</li></ul></div><div><i class="fa-solid fa-book-open"></i><h3>Publicación y distribución</h3><ul><li>Publicación en Amazon KDP</li><li>ISBN y orientación en derechos de autor</li><li>Impresión bajo demanda desde un ejemplar</li><li>Consignación en librerías y espacios aliados</li></ul></div><div><i class="fa-solid fa-bullhorn"></i><h3>Visibilidad y ventas</h3><ul><li>Marca personal y presencia digital</li><li>Promoción, reseñas y medios especializados</li><li>Ferias, lanzamientos y presentaciones</li><li>Reportes de venta y estrategia comercial</li></ul></div></div><p class="text-center text-cremadark mt-10 reveal">Inversión referencial del programa editorial: <strong class="text-dorado">$3.200.000</strong>.</p></div></section>
+    <section id="servicios" class="py-24 bg-vino/30 border-y border-dorado/10">
+      <div class="max-w-7xl mx-auto px-6 lg:px-8">
+        <div class="text-center max-w-3xl mx-auto mb-14 reveal">
+          <span class="eyebrow">Edición que acompaña</span>
+          <h2 class="section-title">Servicios <span>editoriales integrales</span></h2>
+          <p class="section-copy">Del manuscrito a los lectores, construimos una publicación profesional, cuidada y capaz de llegar más lejos.</p>
+        </div>
+        <div class="service-grid reveal">
+          <div><i class="fa-solid fa-file-pen"></i><h3>Edición y producción</h3><ul><li>Informe editorial y viabilidad comercial</li><li>Corrección de estilo y ortotipográfica</li><li>Diagramación, portada y revisión de pruebas</li><li>Adaptación digital para EPUB y Kindle</li></ul></div>
+          <div><i class="fa-solid fa-book-open"></i><h3>Publicación y distribución</h3><ul><li>Publicación en Amazon KDP</li><li>ISBN y orientación en derechos de autor</li><li>Impresión bajo demanda desde un ejemplar</li><li>Consignación en librerías y espacios aliados</li></ul></div>
+          <div><i class="fa-solid fa-bullhorn"></i><h3>Visibilidad y ventas</h3><ul><li>Marca personal y presencia digital</li><li>Promoción, reseñas y medios especializados</li><li>Ferias, lanzamientos y presentaciones</li><li>Reportes de venta y estrategia comercial</li></ul></div>
+        </div>
+        <p class="text-center text-cremadark mt-10 reveal">Inversión referencial del programa editorial: <strong class="text-dorado">$3.200.000</strong>.</p>
+      </div>
+    </section>
 
-    <section id="circulo" class="py-24"><div class="max-w-5xl mx-auto px-6 text-center reveal"><span class="eyebrow">Una escuela para autores</span><h2 class="section-title">Círculo <span>Punto y Coma</span></h2><p class="section-copy leading-relaxed">Ser parte de nuestro Círculo es mucho más que publicar un libro: es ingresar a una comunidad que acompaña, impulsa y celebra cada etapa del camino. Tendrás asesoría editorial personalizada, promoción y visibilidad, acceso preferencial a talleres, ferias y encuentros, además de capacitación en marketing editorial y venta de libros.</p><a href="#contacto" class="inline-flex mt-8 border border-dorado text-dorado px-7 py-3 uppercase tracking-widest text-sm font-bold hover:bg-dorado hover:text-vinodark transition">Quiero ser parte</a></div></section>
+    <section id="circulo" class="py-24">
+      <div class="max-w-5xl mx-auto px-6 text-center reveal">
+        <span class="eyebrow">Una escuela para autores</span>
+        <h2 class="section-title">Círculo <span>Punto y Coma</span></h2>
+        <p class="section-copy leading-relaxed">Ser parte de nuestro Círculo es mucho más que publicar un libro: es ingresar a una comunidad que acompaña, impulsa y celebra cada etapa del camino. Tendrás asesoría editorial personalizada, promoción y visibilidad, acceso preferencial a talleres, ferias y encuentros, además de capacitación en marketing editorial y venta de libros.</p>
+        <a href="#contacto" class="inline-flex mt-8 border border-dorado text-dorado px-7 py-3 uppercase tracking-widest text-sm font-bold hover:bg-dorado hover:text-vinodark transition">Quiero ser parte</a>
+      </div>
+    </section>
 
-    <section id="libreria" class="py-24 bg-vino/30 border-y border-dorado/10"><div class="max-w-7xl mx-auto px-6 lg:px-8"><div class="text-center max-w-3xl mx-auto mb-14 reveal"><span class="eyebrow">Librería digital</span><h2 class="section-title">Tu próxima lectura <span>comienza hoy.</span></h2><p class="section-copy">Un libro puede cambiar una tarde, una idea o incluso una vida. Explora nuestro catálogo y descubre nuevas voces: cada portada guarda una experiencia, una mirada y una historia lista para encontrarte.</p></div><div class="book-grid reveal"><article class="book-placeholder"><i class="fa-solid fa-book"></i><h3>Próximamente</h3><p>Portada y enlace de compra</p></article><article class="book-placeholder"><i class="fa-solid fa-book"></i><h3>Próximamente</h3><p>Portada y enlace de compra</p></article><article class="book-placeholder"><i class="fa-solid fa-book"></i><h3>Próximamente</h3><p>Portada y enlace de compra</p></article><article class="book-placeholder"><i class="fa-solid fa-book"></i><h3>Próximamente</h3><p>Portada y enlace de compra</p></article></div></div></section>
+    <section id="libreria" class="py-24 bg-vino/30 border-y border-dorado/10">
+      <div class="max-w-7xl mx-auto px-6 lg:px-8">
+        <div class="text-center max-w-3xl mx-auto mb-14 reveal">
+          <span class="eyebrow">Librería digital</span>
+          <h2 class="section-title">Tu próxima lectura <span>comienza hoy.</span></h2>
+          <p class="section-copy">Un libro puede cambiar una tarde, una idea o incluso una vida. Explora nuestro catálogo y descubre nuevas voces: cada portada guarda una experiencia, una mirada y una historia lista para encontrarte.</p>
+        </div>
+        <div class="book-grid reveal">
+          <article class="book-placeholder"><i class="fa-solid fa-book"></i><h3>Próximamente</h3><p>Portada y enlace de compra</p></article>
+          <article class="book-placeholder"><i class="fa-solid fa-book"></i><h3>Próximamente</h3><p>Portada y enlace de compra</p></article>
+          <article class="book-placeholder"><i class="fa-solid fa-book"></i><h3>Próximamente</h3><p>Portada y enlace de compra</p></article>
+          <article class="book-placeholder"><i class="fa-solid fa-book"></i><h3>Próximamente</h3><p>Portada y enlace de compra</p></article>
+        </div>
+      </div>
+    </section>
 
-    <section id="contacto" class="py-24 bg-vino/30 border-t border-dorado/10"><div class="max-w-2xl mx-auto px-6 text-center reveal"><span class="text-dorado uppercase tracking-widest text-sm font-bold">Hablemos de tu libro</span><h2 class="font-serif text-4xl md:text-5xl mt-3 mb-5">Tu historia merece <span class="italic text-dorado font-light">ser leída.</span></h2><p class="text-cremadark font-light mb-8">Cuéntanos sobre tu proyecto editorial y te acompañaremos en el siguiente capítulo.</p><a id="whatsapp-hero-link" target="_blank" rel="noopener" class="inline-flex items-center gap-3 border border-dorado text-dorado px-7 py-3 uppercase tracking-widest text-sm font-bold hover:bg-dorado hover:text-vinodark transition"><i class="fa-brands fa-whatsapp text-lg"></i> Escribir por WhatsApp</a></div></section>
+    <section id="contacto" class="py-24 bg-vino/30 border-t border-dorado/10">
+      <div class="max-w-2xl mx-auto px-6 text-center reveal">
+        <span class="text-dorado uppercase tracking-widest text-sm font-bold">Hablemos de tu libro</span>
+        <h2 class="font-serif text-4xl md:text-5xl mt-3 mb-5">Tu historia merece <span class="italic text-dorado font-light">ser leída.</span></h2>
+        <p class="text-cremadark font-light mb-8">Cuéntanos sobre tu proyecto editorial y te acompañaremos en el siguiente capítulo.</p>
+        <a id="whatsapp-hero-link" target="_blank" rel="noopener" class="inline-flex items-center gap-3 border border-dorado text-dorado px-7 py-3 uppercase tracking-widest text-sm font-bold hover:bg-dorado hover:text-vinodark transition"><i class="fa-brands fa-whatsapp text-lg"></i> Escribir por WhatsApp</a>
+      </div>
+    </section>
   </main>
-  <footer class="bg-cardbg border-t border-dorado/20 py-10"><div class="max-w-7xl mx-auto px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center gap-4 text-center md:text-left"><div class="font-serif text-xl"><span class="text-dorado italic">Punto</span> y Coma</div><p class="text-cremadark text-sm font-light">© <span id="year"></span> Editorial Punto y Coma. Todos los derechos reservados.</p><div class="flex gap-5 text-dorado"><a href="#" aria-label="Facebook"><i class="fa-brands fa-facebook-f"></i></a><a href="#" aria-label="Instagram"><i class="fa-brands fa-instagram"></i></a><a href="paneldecontrol/index_usuario.html" class="text-xs uppercase tracking-wider">Admin</a></div></div></footer>
-  <button id="whatsapp-float" class="fixed bottom-5 right-5 z-40 w-12 h-12 rounded-full bg-[#25D366] text-white shadow-xl hover:scale-105 transition" aria-label="Escríbenos por WhatsApp"><i class="fa-brands fa-whatsapp text-2xl"></i></button>
-  <div id="news-modal" class="fixed inset-0 z-[100] bg-secondary/80 hidden items-center justify-center p-4 opacity-0 transition-opacity"><div class="bg-cardbg border border-dorado/30 max-w-3xl w-full max-h-[90vh] overflow-y-auto relative shadow-2xl scale-95 transition-transform"><button id="close-modal" class="absolute top-3 right-3 z-10 w-9 h-9 rounded-full bg-vinodark text-dorado border border-dorado/30"><i class="fa-solid fa-xmark"></i></button><div id="modal-content-body"></div></div></div>
-  <div id="qr-modal" class="fixed inset-0 z-[110] bg-secondary/80 hidden items-center justify-center p-4 opacity-0 transition-opacity"><div class="bg-cardbg border border-dorado/30 max-w-sm w-full p-8 text-center relative shadow-2xl scale-95 transition-transform"><button type="button" onclick="closeQRModal()" class="absolute top-3 right-3 text-dorado" aria-label="Cerrar"><i class="fa-solid fa-xmark"></i></button><i class="fa-solid fa-qrcode text-dorado text-3xl mb-3"></i><h3 id="qr-author-name" class="font-serif text-2xl mb-2">Autor</h3><p class="text-cremadark text-sm mb-5">Escanea para ver sus libros y canales oficiales.</p><div class="bg-crema inline-block p-3"><img id="qr-image" src="" alt="Código QR del autor" class="w-48 h-48"></div></div></div>
-  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script><script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+
+  <footer class="bg-cardbg border-t border-dorado/20 py-10">
+    <div class="max-w-7xl mx-auto px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center gap-4 text-center md:text-left">
+      <div class="font-serif text-xl"><span class="text-dorado italic">Punto</span> y Coma</div>
+      <p class="text-cremadark text-sm font-light">© <span id="year"></span> Editorial Punto y Coma. Todos los derechos reservados.</p>
+      <div class="flex gap-5 text-dorado">
+        <a href="#" aria-label="Facebook"><i class="fa-brands fa-facebook-f"></i></a>
+        <a href="#" aria-label="Instagram"><i class="fa-brands fa-instagram"></i></a>
+        <a href="paneldecontrol/index_usuario.html" class="text-xs uppercase tracking-wider">Admin</a>
+      </div>
+    </div>
+  </footer>
+
+  <button id="whatsapp-float" class="fixed bottom-5 right-5 z-40 w-12 h-12 rounded-full bg-[#25D366] text-white shadow-xl hover:scale-105 transition" aria-label="Escríbenos por WhatsApp">
+    <i class="fa-brands fa-whatsapp text-2xl"></i>
+  </button>
+
+  <!-- MODAL NOTICIA -->
+  <div id="news-modal" class="fixed inset-0 z-[100] bg-secondary/80 hidden items-center justify-center p-4 opacity-0 transition-opacity">
+    <div class="bg-cardbg border border-dorado/30 max-w-3xl w-full max-h-[90vh] overflow-y-auto relative shadow-2xl scale-95 transition-transform">
+      <button id="close-modal" class="absolute top-3 right-3 z-10 w-9 h-9 rounded-full bg-vinodark text-dorado border border-dorado/30">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+      <div id="modal-content-body"></div>
+    </div>
+  </div>
+
+  <!-- MODAL QR -->
+  <div id="qr-modal" class="fixed inset-0 z-[110] bg-secondary/80 hidden items-center justify-center p-4 opacity-0 transition-opacity">
+    <div class="bg-cardbg border border-dorado/30 max-w-sm w-full p-8 text-center relative shadow-2xl scale-95 transition-transform">
+      <button type="button" onclick="closeQRModal()" class="absolute top-3 right-3 text-dorado" aria-label="Cerrar">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+      <i class="fa-solid fa-qrcode text-dorado text-3xl mb-3"></i>
+      <h3 id="qr-author-name" class="font-serif text-2xl mb-2">Autor</h3>
+      <p class="text-cremadark text-sm mb-5">Escanea para ver sus libros y canales oficiales.</p>
+      <div class="bg-crema inline-block p-3"><img id="qr-image" src="" alt="Código QR del autor" class="w-48 h-48"></div>
+    </div>
+  </div>
+
+  <!-- SCRIPTS FIREBASE -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
+
   <script src="paneldecontrol/firebase-config.js"></script>
-  <script>
-  const firebaseConfig = {
-  apiKey: "AIzaSyC6GGmebTtMc5Fgv1BJQYfITuDaYTCOk2M",
-  authDomain: "puntoycomaeditorial-b7a0a.firebaseapp.com",
-  projectId: "puntoycomaeditorial-b7a0a",
-  storageBucket: "puntoycomaeditorial-b7a0a.firebasestorage.app",
-  messagingSenderId: "468641801501",
-  appId: "1:468641801501:web:e0df6227c0b97ebf2dedf4",
-  measurementId: "G-N0JE0K0MQK"
-};
 
-if (firebase.apps.length === 0) {
-    firebase.initializeApp(firebaseConfig);
-}
+  <!-- SCRIPTS PÚBLICOS -->
+  <script src="scripts.js"></script>
 
-window.db = firebase.firestore();
-window.storage = firebase.storage();
-window.auth = firebase.auth();
-  </script>
-  <script src="scripts.js" defer></script>
-  <script>window.addEventListener('scroll',()=>document.getElementById('navbar').classList.toggle('shadow-lg',window.scrollY>50));const revealObserver=new IntersectionObserver(entries=>entries.forEach(entry=>{if(entry.isIntersecting){entry.target.classList.add('active');revealObserver.unobserve(entry.target)}}),{threshold:.12});document.querySelectorAll('.reveal').forEach(element=>revealObserver.observe(element));const modal=document.getElementById('news-modal'),content=document.getElementById('modal-content-body');window.abrirModalNoticia=n=>{content.innerHTML=`<div class="p-8 md:p-10 text-crema"><p class="text-dorado text-xs uppercase tracking-widest mb-3">${n.categoria||'Noticias'} ${n.fecha_publicacion?'· '+n.fecha_publicacion:''}</p><h3 class="font-serif text-3xl mb-5">${n.titulo}</h3>${n.autor?`<p class="text-cremadark mb-5">Por ${n.autor}</p>`:''}<div class="text-cremadark leading-relaxed whitespace-pre-wrap">${n.contenido||n.resumen||''}</div></div>`;modal.classList.remove('hidden');modal.classList.add('flex');setTimeout(()=>{modal.classList.remove('opacity-0');modal.firstElementChild.classList.remove('scale-95')},10)};function closeNews(){modal.classList.add('opacity-0');modal.firstElementChild.classList.add('scale-95');setTimeout(()=>{modal.classList.add('hidden');modal.classList.remove('flex')},250)};document.getElementById('close-modal').onclick=closeNews;modal.onclick=e=>{if(e.target===modal)closeNews()};const qrModal=document.getElementById('qr-modal');window.openQRModal=(author,path)=>{document.getElementById('qr-author-name').textContent=author;const url=new URL(path,window.location.href).href;document.getElementById('qr-image').src='https://api.qrserver.com/v1/create-qr-code/?size=240x240&color=2C0E14&data='+encodeURIComponent(url);qrModal.classList.remove('hidden');qrModal.classList.add('flex');setTimeout(()=>{qrModal.classList.remove('opacity-0');qrModal.firstElementChild.classList.remove('scale-95')},10)};window.closeQRModal=()=>{qrModal.classList.add('opacity-0');qrModal.firstElementChild.classList.add('scale-95');setTimeout(()=>{qrModal.classList.add('hidden');qrModal.classList.remove('flex')},250)};qrModal.onclick=e=>{if(e.target===qrModal)window.closeQRModal()};</script>
 </body>
 </html>

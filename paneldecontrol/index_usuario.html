@@ -232,9 +232,77 @@
         </div>
       </div>
 
-      <div id="seccionAutores" class="section-content hidden"><div class="flex items-center justify-between mb-6"><p class="text-darktext">Perfiles visibles en la web, con redes, enlace de compra y QR.</p><button id="btnNuevoAutor" class="bg-primary text-deepest px-5 py-3 rounded font-bold uppercase tracking-widest text-xs">+ Nuevo autor</button></div><form id="formAutor" class="panel-card rounded p-6 mb-7 hidden"><input type="hidden" name="id"><div class="grid md:grid-cols-2 gap-4"><input class="panel-input px-4 py-3 rounded border" name="nombre" required placeholder="Nombre del autor *"><input class="panel-input px-4 py-3 rounded border" name="genero" placeholder="Género literario"><input class="panel-input px-4 py-3 rounded border md:col-span-2" name="foto" placeholder="URL de fotografía"><textarea class="panel-input px-4 py-3 rounded border md:col-span-2" name="biografia" rows="3" placeholder="Biografía breve"></textarea><input class="panel-input px-4 py-3 rounded border" name="instagram" placeholder="URL de Instagram"><input class="panel-input px-4 py-3 rounded border" name="facebook" placeholder="URL de Facebook"><input class="panel-input px-4 py-3 rounded border md:col-span-2" name="enlace_venta" placeholder="URL para comprar sus libros o perfil"><label class="flex items-center gap-2 text-darktext"><input type="checkbox" name="publicado" checked> Mostrar en el sitio</label></div><div class="flex gap-3 mt-5"><button class="bg-primary text-deepest px-5 py-3 rounded font-bold text-xs uppercase tracking-widest">Guardar autor</button><button type="button" class="cancel-form border border-primary text-primary px-5 py-3 rounded text-xs uppercase tracking-widest">Cancelar</button></div></form><div id="listaAutores" class="grid md:grid-cols-2 xl:grid-cols-3 gap-5"></div></div>
-      <div id="seccionLibros" class="section-content hidden"><div class="flex items-center justify-between mb-6"><p class="text-darktext">Portadas y enlaces que aparecerán en la Librería Digital.</p><button id="btnNuevoLibro" class="bg-primary text-deepest px-5 py-3 rounded font-bold uppercase tracking-widest text-xs">+ Nuevo libro</button></div><form id="formLibro" class="panel-card rounded p-6 mb-7 hidden"><input type="hidden" name="id"><div class="grid md:grid-cols-2 gap-4"><input class="panel-input px-4 py-3 rounded border" name="titulo" required placeholder="Título del libro *"><input class="panel-input px-4 py-3 rounded border" name="autor" placeholder="Nombre del autor"><input class="panel-input px-4 py-3 rounded border" name="precio" placeholder="Precio, ej. $12.000"><input class="panel-input px-4 py-3 rounded border" name="portada" placeholder="URL de portada"><input class="panel-input px-4 py-3 rounded border md:col-span-2" name="enlace_compra" placeholder="URL de compra"><textarea class="panel-input px-4 py-3 rounded border md:col-span-2" name="sinopsis" rows="3" placeholder="Sinopsis"></textarea><label class="flex items-center gap-2 text-darktext"><input type="checkbox" name="publicado" checked> Mostrar en el sitio</label></div><div class="flex gap-3 mt-5"><button class="bg-primary text-deepest px-5 py-3 rounded font-bold text-xs uppercase tracking-widest">Guardar libro</button><button type="button" class="cancel-form border border-primary text-primary px-5 py-3 rounded text-xs uppercase tracking-widest">Cancelar</button></div></form><div id="listaLibros" class="grid md:grid-cols-2 xl:grid-cols-3 gap-5"></div></div>
-      <div id="seccionMensajes" class="section-content hidden"><div class="panel-card rounded p-10 text-center"><i class="fa-regular fa-envelope text-primary text-3xl mb-4"></i><h2 class="font-serif text-3xl text-secondary">Mensajes recibidos</h2><p class="text-darktext max-w-lg mx-auto mt-3">Las consultas del formulario de contacto aparecerán aquí para que puedas gestionarlas.</p></div></div>
+      <!--autores y perfil-->
+      <div id="seccionAutores" class="section-content hidden">
+        <div class="flex items-center justify-between mb-6">
+          <div>
+             <h2 class="font-serif text-2xl text-secondary">Autores</h2>
+             <p class="text-darktext text-sm">Perfiles visibles en la web, con redes y QR.</p>
+          </div>
+          <button id="btnNuevoAutor" class="bg-primary text-deepest px-5 py-3 rounded font-bold uppercase tracking-widest text-xs hover:bg-secondary transition">
+            + Nuevo autor
+          </button>
+        </div>
+
+        <form id="formAutor" class="panel-card rounded p-6 mb-7 hidden">
+          <input type="hidden" name="id">
+          <div class="grid md:grid-cols-2 gap-4">
+            
+            <input class="panel-input px-4 py-3 rounded border" id="autor-nombre" name="nombre" required placeholder="Nombre del autor *">
+            <input class="panel-input px-4 py-3 rounded border" id="autor-genero" name="genero" placeholder="Género literario">
+            
+            <div class="md:col-span-2">
+              <label class="block text-sm text-darktext mb-1 font-bold">Foto del Autor (Archivo)</label>
+              <input type="file" id="autor-foto" accept="image/*" class="panel-input px-4 py-3 rounded border w-full bg-white">
+            </div>
+            
+            <textarea class="panel-input px-4 py-3 rounded border md:col-span-2" id="autor-bio" name="biografia" rows="3" placeholder="Biografía breve"></textarea>
+            <input class="panel-input px-4 py-3 rounded border" id="autor-ig" name="instagram" placeholder="URL de Instagram">
+            <input class="panel-input px-4 py-3 rounded border" id="autor-x" name="twitter" placeholder="URL de Twitter/Facebook">
+            <input class="panel-input px-4 py-3 rounded border md:col-span-2" id="autor-web" name="web" placeholder="URL de Sitio Web / Enlace de venta">
+            
+            <label class="flex items-center gap-2 text-darktext"><input type="checkbox" id="autor-publicado" checked> Mostrar en el sitio</label>
+            
+          </div>
+          <div class="flex gap-3 mt-5">
+            <button type="submit" class="bg-primary text-deepest px-5 py-3 rounded font-bold text-xs uppercase tracking-widest hover:bg-secondary transition">Guardar autor</button>
+            <button type="button" class="cancel-form border border-primary text-primary px-5 py-3 rounded text-xs uppercase tracking-widest">Cancelar</button>
+          </div>
+        </form>
+
+        <div id="listaAutores" class="grid md:grid-cols-2 xl:grid-cols-3 gap-5"></div>
+      </div>
+  
+      <!--SECCION DE LIBROS-->
+
+      <div id="seccionLibros" class="section-content hidden">
+        <div class="flex items-center justify-between mb-6">
+        <p class="text-darktext">Portadas y enlaces.</p>
+        <button id="btnNuevoLibro" class="bg-primary text-deepest px-5 py-3 rounded font-bold uppercase tracking-widest text-xs">+ Nuevo libro</button></div>
+        <form id="formLibro" class="panel-card rounded p-6 mb-7 hidden"><input type="hidden" name="id"><div class="grid md:grid-cols-2 gap-4">
+          <input class="panel-input px-4 py-3 rounded border" name="titulo" required placeholder="Título del libro *">
+          <input class="panel-input px-4 py-3 rounded border" name="autor" placeholder="Nombre del autor">
+          <input class="panel-input px-4 py-3 rounded border" name="precio" placeholder="Precio, ej. $12.000">
+          <input class="panel-input px-4 py-3 rounded border" name="portada" placeholder="URL de portada">
+          <input class="panel-input px-4 py-3 rounded border md:col-span-2" name="enlace_compra" placeholder="URL de compra">
+          <textarea class="panel-input px-4 py-3 rounded border md:col-span-2" name="sinopsis" rows="3" placeholder="Sinopsis">
+          </textarea>
+          <label class="flex items-center gap-2 text-darktext">
+          <input type="checkbox" name="publicado" checked> Mostrar en el sitio</label>
+        </div>
+          <div class="flex gap-3 mt-5">
+            <button class="bg-primary text-deepest px-5 py-3 rounded font-bold text-xs uppercase tracking-widest">Guardar libro</button>
+            <button type="button" class="cancel-form border border-primary text-primary px-5 py-3 rounded text-xs uppercase tracking-widest">Cancelar</button>
+          </div>
+        </form>
+            <div id="listaLibros" class="grid md:grid-cols-2 xl:grid-cols-3 gap-5"></div>
+          </div>
+      <div id="seccionMensajes" class="section-content hidden"><div class="panel-card rounded p-10 text-center">
+        <i class="fa-regular fa-envelope text-primary text-3xl mb-4"></i>
+        <h2 class="font-serif text-3xl text-secondary">Mensajes recibidos</h2>
+        <p class="text-darktext max-w-lg mx-auto mt-3">Las consultas del formulario de contacto aparecerán aquí para que puedas gestionarlas.</p>
+      </div>
+    </div>
 
       <!-- SECCIÓN CONFIGURACIÓN -->
       <div id="seccionConfiguracion" class="section-content hidden">
@@ -258,7 +326,7 @@
     </main>
   </div>
 
-  <!-- MODAL NUEVA / EDITAR NOTICIA -->
+  <!-- MODAL NUEVA / EDITAR NOTICIA (CORREGIDO: TODOS LOS CAMPOS DENTRO DEL FORM) -->
   <div id="modalNoticia" class="modal">
     <div class="bg-white rounded-3xl w-full max-w-2xl my-8">
       <div class="p-6 border-b border-lightbg flex items-center justify-between sticky top-0 bg-white rounded-t-3xl">
@@ -270,122 +338,90 @@
         </button>
       </div>
 
-      <form id="formNoticia" class="p-8 space-y-6">
-        <!-- INFORMACIÓN BÁSICA -->
-        <div>
-          <h3 class="text-lg font-semibold text-secondary mb-4">Información básica</h3>
-          <div class="grid md:grid-cols-2 gap-4">
-            <div class="md:col-span-2">
-              <label class="block text-sm font-medium text-secondary mb-1">Título *</label>
-              <input type="text" name="titulo" required
-                class="w-full px-4 py-2.5 border border-lightbg rounded-xl focus:ring-2 focus:ring-primary"
-                placeholder="Ej: Nuevo lanzamiento del Círculo Punto y Coma">
-            </div>
-
-            <div class="md:col-span-2">
-              <label class="block text-sm font-medium text-secondary mb-1">Resumen (aparece en la tarjeta) *</label>
-              <textarea name="resumen" rows="2" required
-                class="w-full px-4 py-2.5 border border-lightbg rounded-xl focus:ring-2 focus:ring-primary"
-                placeholder="Resumen breve de la noticia..."></textarea>
-            </div>
-
-            <div class="md:col-span-2">
-              <label class="block text-sm font-medium text-secondary mb-1">Contenido completo *</label>
-              <textarea name="contenido" rows="6" required
-                class="w-full px-4 py-2.5 border border-lightbg rounded-xl focus:ring-2 focus:ring-primary"
-                placeholder="Redacta aquí la noticia completa..."></textarea>
-            </div>
-
-            <div>
-              <label class="block text-sm font-medium text-secondary mb-1">Categoría *</label>
-              <select name="categoria" required
-                class="w-full px-4 py-2.5 border border-lightbg rounded-xl focus:ring-2 focus:ring-primary">
-                <option value="">Seleccionar...</option>
-                <option value="Lanzamientos">Lanzamientos</option>
-                <option value="Autores">Autores</option>
-                <option value="Ferias del libro">Ferias del libro</option>
-                <option value="Círculo Punto y Coma">Círculo Punto y Coma</option>
-                <option value="Comunidad">Comunidad</option>
-              </select>
-            </div>
-
-            <div>
-              <label class="block text-sm font-medium text-secondary mb-1">Estado *</label>
-              <select name="estado" required
-                class="w-full px-4 py-2.5 border border-lightbg rounded-xl focus:ring-2 focus:ring-primary">
-                <option value="publicado">Publicado</option>
-                <option value="borrador">Borrador</option>
-              </select>
-            </div>
-
-            <div>
-              <label class="block text-sm font-medium text-secondary mb-1">Autor</label>
-              <input type="text" name="autor"
-                class="w-full px-4 py-2.5 border border-lightbg rounded-xl focus:ring-2 focus:ring-primary"
-                placeholder="Ej: Equipo editorial">
-            </div>
-
-            <div>
-              <label class="block text-sm font-medium text-secondary mb-1">Fecha de publicación</label>
-              <input type="date" name="fecha_publicacion"
-                class="w-full px-4 py-2.5 border border-lightbg rounded-xl focus:ring-2 focus:ring-primary">
-            </div>
-
-            <div class="md:col-span-2">
-              <label class="block text-sm font-medium text-secondary mb-1">Enlace externo (opcional)</label>
-              <input type="url" name="enlace_externo"
-                class="w-full px-4 py-2.5 border border-lightbg rounded-xl focus:ring-2 focus:ring-primary"
-                placeholder="https://...">
-            </div>
-
-            <div class="flex items-center">
-              <label class="flex items-center gap-2 cursor-pointer">
-                <input type="checkbox" name="destacado" class="w-4 h-4 text-primary border-lightbg rounded focus:ring-primary">
-                <span class="text-sm font-medium text-secondary">Marcar como destacada</span>
-              </label>
-            </div>
+      <form id="formNoticia" class="p-6 overflow-y-auto max-h-[70vh]">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          
+          <div class="md:col-span-2">
+            <label class="block text-sm font-bold text-darktext mb-1">Título de la Noticia *</label>
+            <input type="text" name="titulo" required class="w-full border border-gray-300 rounded-xl p-3 outline-none focus:border-primary">
           </div>
-        </div>
 
-        <!-- IMÁGENES -->
-        <div>
-          <h3 class="text-lg font-semibold text-secondary mb-4">Imágenes</h3>
-          <div class="border-2 border-dashed border-accent rounded-xl p-6 text-center">
-            <input type="file" id="inputImagenes" multiple accept="image/*" class="hidden">
-            <label for="inputImagenes" class="cursor-pointer">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-accent mx-auto mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-              </svg>
-              <p class="text-sm text-darktext/60 mb-1">Click para subir imágenes</p>
-              <p class="text-xs text-darktext/40">PNG, JPG hasta 5MB cada una</p>
-            </label>
+          <div>
+            <label class="block text-sm font-bold text-darktext mb-1">Categoría</label>
+            <select name="categoria" class="w-full border border-gray-300 rounded-xl p-3 outline-none focus:border-primary">
+              <option value="Novedad">Novedad</option>
+              <option value="Lanzamiento">Lanzamiento</option>
+              <option value="Evento">Evento</option>
+            </select>
           </div>
-          <div id="previewImagenes" class="image-preview-grid mt-4"></div>
+
+          <div>
+            <label class="block text-sm font-bold text-darktext mb-1">Estado</label>
+            <select name="estado" class="w-full border border-gray-300 rounded-xl p-3 outline-none focus:border-primary">
+              <option value="publicado">Publicado</option>
+              <option value="borrador">Borrador</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-sm font-bold text-darktext mb-1">Autor (Opcional)</label>
+            <input type="text" name="autor" class="w-full border border-gray-300 rounded-xl p-3 outline-none focus:border-primary">
+          </div>
+
+          <div>
+            <label class="block text-sm font-bold text-darktext mb-1">Fecha de Publicación</label>
+            <input type="date" name="fecha_publicacion" class="w-full border border-gray-300 rounded-xl p-3 outline-none focus:border-primary">
+          </div>
+
+          <div class="md:col-span-2">
+            <label class="block text-sm font-bold text-darktext mb-1">Resumen Breve</label>
+            <textarea name="resumen" rows="2" class="w-full border border-gray-300 rounded-xl p-3 outline-none focus:border-primary"></textarea>
+          </div>
+
+          <div class="md:col-span-2">
+            <label class="block text-sm font-bold text-darktext mb-1">Contenido Completo *</label>
+            <textarea name="contenido" rows="5" required class="w-full border border-gray-300 rounded-xl p-3 outline-none focus:border-primary"></textarea>
+          </div>
+
+          <div class="md:col-span-2">
+            <label class="block text-sm font-bold text-darktext mb-1">Enlace Externo (Opcional)</label>
+            <input type="url" name="enlace_externo" placeholder="https://" class="w-full border border-gray-300 rounded-xl p-3 outline-none focus:border-primary">
+          </div>
+
+          <div class="md:col-span-2 flex items-center gap-2 mt-2">
+            <input type="checkbox" name="destacado" id="destacado" class="w-5 h-5 text-primary">
+            <label for="destacado" class="text-sm font-bold text-darktext">Marcar como noticia destacada</label>
+          </div>
+          
+          <!-- IMÁGENES: input y preview dentro del form -->
+          <div class="md:col-span-2 mt-4">
+            <label class="block text-sm font-bold text-darktext mb-2">Imágenes de la noticia</label>
+            <input type="file" id="inputImagenes" multiple accept="image/png, image/jpeg" class="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20 cursor-pointer">
+            <div id="previewImagenes" class="flex gap-4 mt-4 flex-wrap"></div>
+          </div>
+
         </div>
 
         <input type="hidden" name="noticia_id" id="noticiaId">
-
-        <!-- BOTONES -->
-        <div class="flex gap-3 pt-4 border-t border-lightbg">
-          <button type="button" id="btnCancelar" class="flex-1 px-6 py-3 border border-accent text-secondary rounded-xl font-medium hover:bg-lightbg transition">
-            Cancelar
-          </button>
-          <button type="submit" id="btnGuardar" class="flex-1 px-6 py-3 bg-primary text-white rounded-xl font-medium hover:bg-primary/90 transition">
-            Guardar Noticia
-          </button>
+        
+        <div class="flex gap-3 mt-8 pt-4 border-t border-lightbg">
+          <button type="button" id="btnCancelar" class="flex-1 px-6 py-3 border border-gray-300 text-gray-700 rounded-xl font-bold hover:bg-gray-50 transition">Cancelar</button>
+          <button type="submit" id="btnGuardar" class="flex-1 px-6 py-3 bg-primary text-white rounded-xl font-bold hover:bg-primary/90 transition">Guardar Noticia</button>
         </div>
       </form>
     </div>
   </div>
 
-  <!-- LÓGICA DE FIREBASE -->
- <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
+  <!-- SCRIPTS FIREBASE -->
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
 
-  <script src="firebase-config.js"></script>
-  <script src="panel.js"></script>
+<script src="firebase-config.js"></script>
+
+<script src="panel.js"></script>
 
 </body>
 </html>

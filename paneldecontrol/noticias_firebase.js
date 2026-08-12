@@ -130,11 +130,7 @@ window.noticiasCargadas = {};
 
 async function cargarNoticias() {
   const container = document.getElementById('newsGrid');
-
-  if (!container) {
-    console.error('Contenedor de noticias no encontrado');
-    return;
-  }
+  if (!container) return;
 
   try {
     container.innerHTML = `
@@ -146,24 +142,30 @@ async function cargarNoticias() {
       </div>
     `;
 
-    const snapshot = await db.collection('noticias')
-      .orderBy('destacado', 'desc')
-      .orderBy('fecha_creacion', 'desc')
-      .get();
+    // Pedimos las noticias sin orderBy para que Firebase no lo bloquee
+    const snapshot = await db.collection('noticias').get();
 
     if (snapshot.empty) {
-      container.innerHTML = `
-        <div class="col-span-full text-center py-12">
-          <p class="text-darktext/50">Aún no hay noticias publicadas.</p>
-        </div>
-      `;
+      container.innerHTML = `<div class="col-span-full text-center py-12"><p class="text-darktext/50">Aún no hay noticias publicadas.</p></div>`;
       return;
     }
 
-    const noticias = snapshot.docs.map(doc => {
+    let noticias = snapshot.docs.map(doc => {
       const data = { id: doc.id, ...doc.data() };
       window.noticiasCargadas[doc.id] = data;
       return data;
+    });
+
+    // Filtramos solo las que están publicadas
+    noticias = noticias.filter(n => n.estado !== 'borrador');
+
+    // ORDENAMIENTO MANUAL: Primero destacadas, luego por fecha más reciente
+    noticias.sort((a, b) => {
+      if (a.destacado && !b.destacado) return -1;
+      if (!a.destacado && b.destacado) return 1;
+      const fechaA = a.fecha_creacion ? a.fecha_creacion.toMillis() : 0;
+      const fechaB = b.fecha_creacion ? b.fecha_creacion.toMillis() : 0;
+      return fechaB - fechaA;
     });
 
     let noticiasHTML = '';
@@ -177,44 +179,32 @@ async function cargarNoticias() {
 
     container.innerHTML = noticiasHTML;
 
-    // Abrir modal automáticamente si viene ?noticia=ID en la URL
+    // Abrir modal desde URL si existe
     const parametrosUrl = new URLSearchParams(window.location.search);
     const idNoticiaUrl = parametrosUrl.get('noticia');
-
     if (idNoticiaUrl && window.noticiasCargadas[idNoticiaUrl]) {
-      setTimeout(() => {
-        window.abrirModalDesdeId(idNoticiaUrl);
-      }, 500);
+      setTimeout(() => { window.abrirModalDesdeId(idNoticiaUrl); }, 500);
     }
 
+    // Botón "Ver más"
     if (noticias.length > 6) {
       container.insertAdjacentHTML('afterend', `
         <div class="text-center mt-6">
-          <button id="btnVerMasNoticias"
-            class="px-6 py-3 bg-primary text-white rounded-xl text-sm font-medium hover:bg-primary/90 transition">
+          <button id="btnVerMasNoticias" class="px-6 py-3 bg-primary text-white rounded-xl text-sm font-medium hover:bg-primary/90 transition">
               Cargar más noticias
           </button>
         </div>
       `);
 
       document.getElementById("btnVerMasNoticias").addEventListener("click", function () {
-        document.querySelectorAll(".noticia-oculta").forEach(div => {
-          div.classList.remove("hidden");
-        });
+        document.querySelectorAll(".noticia-oculta").forEach(div => div.classList.remove("hidden"));
         this.style.display = "none";
       });
     }
 
   } catch (error) {
     console.error('Error al cargar noticias:', error);
-    container.innerHTML = `
-      <div class="col-span-full text-center py-12">
-        <p class="text-red-500 mb-2">Error al cargar las noticias</p>
-        <button onclick="cargarNoticias()" class="text-sm text-primary hover:underline">
-          Intentar nuevamente
-        </button>
-      </div>
-    `;
+    container.innerHTML = `<div class="col-span-full text-center py-12"><p class="text-red-500 mb-2">Error al cargar las noticias</p><button onclick="cargarNoticias()" class="text-sm text-primary hover:underline">Intentar nuevamente</button></div>`;
   }
 }
 
