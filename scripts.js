@@ -206,3 +206,73 @@ window.abrirNoticiaDesdeBase64 = function(base64Data) {
         console.error("Error decodificando la noticia", e);
     }
 }
+
+
+// Función para cargar autores desde Firebase a la web pública
+async function cargarAutoresPublicos() {
+  const container = document.getElementById('autoresGrid');
+  if (!container || !window.db) return; // Asegura que exista el contenedor y Firebase
+
+  try {
+    // Llamamos a la colección 'autores' ordenados por los más recientes
+    const snapshot = await window.db.collection('autores').orderBy('fechaRegistro', 'desc').get();
+    container.innerHTML = ''; // Limpiamos el texto de "Cargando..."
+
+    if (snapshot.empty) {
+      container.innerHTML = '<div class="col-span-full text-center py-12 text-cremadark">Próximamente revelaremos nuestros talentos.</div>';
+      return;
+    }
+
+    let delay = 0; // Para el efecto visual de aparición en cascada
+
+    snapshot.forEach(doc => {
+      const autor = doc.data();
+
+      // Armamos los íconos de redes sociales si el autor tiene links guardados
+      let redesHTML = '';
+      if (autor.redes && autor.redes.instagram) {
+        redesHTML += `<a href="${autor.redes.instagram}" target="_blank" aria-label="Instagram"><i class="fa-brands fa-instagram"></i></a>`;
+      }
+      if (autor.redes && autor.redes.twitter) {
+        redesHTML += `<a href="${autor.redes.twitter}" target="_blank" aria-label="X"><i class="fa-brands fa-x-twitter"></i></a>`;
+      }
+      if (autor.redes && autor.redes.web) {
+        redesHTML += `<a href="${autor.redes.web}" target="_blank" aria-label="Sitio web"><i class="fa-solid fa-globe"></i></a>`;
+      }
+
+      // Dibujamos la tarjeta exacta con las clases CSS de tu diseño
+      const articleHTML = `
+        <article class="author-card reveal active" style="transition-delay:${delay}s">
+          <img src="${autor.foto}" alt="${autor.nombre}" class="author-image object-cover w-full rounded-t-lg">
+          <h3 class="font-serif text-2xl mt-4 mb-1">${autor.nombre}</h3>
+          <p class="text-dorado text-sm italic mb-4">Talento Punto y Coma</p>
+          <p class="text-cremadark text-sm line-clamp-3 mb-4">${autor.bio}</p>
+          
+          <div class="author-social flex gap-4 text-dorado text-lg mb-4">
+            ${redesHTML}
+          </div>
+          
+          <div class="author-actions flex justify-between items-center border-t border-dorado/20 pt-4 mt-auto">
+            <a href="#libreria" class="text-xs uppercase tracking-widest hover:text-dorado transition">Ver libros</a>
+            <button type="button" onclick="openQRModal('${autor.nombre}', '#libreria')" class="text-xs uppercase tracking-widest text-dorado hover:text-crema transition">
+              <i class="fa-solid fa-qrcode text-sm"></i> QR
+            </button>
+          </div>
+        </article>
+      `;
+
+      container.innerHTML += articleHTML;
+      delay += 0.1; // Sube 0.1s en cada tarjeta para la animación
+    });
+
+  } catch (error) {
+    console.error("Error al cargar los autores de Firebase:", error);
+    container.innerHTML = '<div class="col-span-full text-center py-12 text-red-500">Error al cargar la lista de autores. Por favor recarga la página.</div>';
+  }
+}
+
+// Ejecutar la carga apenas inicie la página
+window.addEventListener('DOMContentLoaded', () => {
+  // Le damos un segundo de respiro para asegurar que firebase se cargó
+  setTimeout(cargarAutoresPublicos, 1000); 
+});

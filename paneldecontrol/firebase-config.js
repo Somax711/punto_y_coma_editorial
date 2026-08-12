@@ -17,3 +17,5 @@ if (firebase.apps.length === 0) {
 window.db = firebase.firestore();
 window.storage = firebase.storage();
 window.auth = firebase.auth();
+// Definir correos con acceso de Administrador al panel
+window.FIREBASE_ADMIN_EMAILS = ['puntoycoma.ediciontextos@gmail.com']; 

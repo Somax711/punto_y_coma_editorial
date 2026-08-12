@@ -63,9 +63,14 @@ async function obtenerPerfilUsuario(user) {
   const usuarioRef = db.collection('usuarios').doc(user.uid);
   const usuarioDoc = await usuarioRef.get();
   const correo = (user.email || '').toLowerCase();
-  const esAdminPorCorreo = Array.isArray(window.FIREBASE_ADMIN_EMAILS) && window.FIREBASE_ADMIN_EMAILS.some(email => (email || '').toLowerCase() === correo);
+  
+  // Verifica si el correo está en la lista 
+  const esAdminPorCorreo = Array.isArray(window.FIREBASE_ADMIN_EMAILS) && 
+                           window.FIREBASE_ADMIN_EMAILS.some(email => (email || '').toLowerCase() === correo);
+                           
   const datos = usuarioDoc.exists ? usuarioDoc.data() : {};
 
+  // Si el usuario es nuevo, lo crea
   if (!usuarioDoc.exists) {
     const nombreBase = user.displayName || correo.split('@')[0] || 'Usuario';
     await usuarioRef.set({
@@ -78,15 +83,16 @@ async function obtenerPerfilUsuario(user) {
     return { nombre: nombreBase, email: correo, telefono: '', rol: esAdminPorCorreo ? 'admin' : 'editor' };
   }
 
-  if (!datos.rol && esAdminPorCorreo) {
+  if (esAdminPorCorreo && datos.rol !== 'admin') {
     await usuarioRef.set({ rol: 'admin' }, { merge: true });
+    datos.rol = 'admin'; 
   }
 
   return {
     ...datos,
     nombre: datos.nombre || user.displayName || correo.split('@')[0] || 'Usuario',
     email: datos.email || correo,
-    rol: datos.rol || (esAdminPorCorreo ? 'admin' : 'editor')
+    rol: datos.rol || 'editor'
   };
 }
 
@@ -162,37 +168,10 @@ if (auth) {
     }
   });
 } else {
-  mostrarErrorAcceso('Firebase no está configurado. Revisa firebase-config.js y usa tus credenciales reales.');
+  mostrarErrorAcceso('error.');
   mostrarLogin();
 }
 
-/*
-// Mantener sesión al recargar
-auth.onAuthStateChanged(async (user) => {
-  if (user) {
-    try {
-      if (!await esAdministrador(user)) {
-        await auth.signOut();
-        mostrarErrorAcceso('Esta cuenta no tiene permisos de administración.');
-        return;
-      }
-      usuarioActual = user;
-      await cargarDatosUsuario(user);
-      mostrarPanel();
-      cargarNoticiasUsuario();
-      cargarResumen();
-      cargarAutores();
-      cargarLibros();
-    } catch (error) {
-      console.error('Error al validar permisos:', error);
-      await auth.signOut();
-      mostrarErrorAcceso('No fue posible validar los permisos de esta cuenta.');
-    }
-  } else {
-    mostrarLogin();
-  }
-});
-*/
 
 // NAVEGACIÓN
 document.querySelectorAll('.nav-link').forEach(link => {

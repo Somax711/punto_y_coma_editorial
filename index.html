@@ -39,21 +39,32 @@
         <div class="mt-10 reveal"><a href="#noticias" class="inline-flex items-center gap-3 bg-dorado text-vinodark px-8 py-4 font-semibold uppercase tracking-widest hover:bg-crema transition-colors shadow-lg">Leer novedades <i class="fa-solid fa-arrow-down"></i></a></div>
       </div>
     </section>
+     <!--NOTICIAS-->
 
     <section id="noticias" class="py-24 relative bg-vino/30 border-y border-dorado/10"><div class="max-w-7xl mx-auto px-6 lg:px-8">
       <div class="flex flex-col md:flex-row justify-between items-end mb-16 reveal"><div><span class="text-dorado uppercase tracking-widest text-sm font-bold mb-2 block"><i class="fa-regular fa-newspaper mr-2"></i>Actualidad</span><h2 class="font-serif text-4xl md:text-5xl">Últimas <span class="italic text-dorado font-light">Noticias</span></h2></div><a href="#contacto" class="hidden md:inline-flex items-center text-cremadark hover:text-dorado mt-4 pb-1 border-b border-dorado/30 hover:border-dorado">Conversemos <i class="fa-solid fa-arrow-right ml-2 text-sm"></i></a></div>
       <div id="newsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"><div class="col-span-full text-center py-12 text-cremadark">Cargando noticias...</div></div>
     </div></section>
 
-    <section id="autores" class="py-24"><div class="max-w-7xl mx-auto px-6 lg:px-8">
-      <div class="text-center mb-16 reveal"><span class="text-dorado uppercase tracking-widest text-sm font-bold mb-2 block"><i class="fa-solid fa-feather-pointed mr-2"></i>Nuestro talento</span><h2 class="font-serif text-4xl md:text-5xl">Nuestros <span class="italic text-dorado font-light">Autores</span></h2><div class="w-16 h-px bg-dorado mx-auto mt-6"></div></div>
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-        <article class="author-card reveal"><img src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=300&auto=format&fit=crop" alt="Autora destacada" class="author-image"><h3>Historias que perduran</h3><p class="text-dorado text-sm italic mb-4">Narrativa y memoria</p><p>Conoce a los autores que confían sus historias a nuestro sello editorial.</p><div class="author-social"><a href="#" aria-label="Instagram"><i class="fa-brands fa-instagram"></i></a><a href="#" aria-label="Facebook"><i class="fa-brands fa-facebook-f"></i></a><a href="#" aria-label="Sitio web"><i class="fa-solid fa-globe"></i></a></div><div class="author-actions"><a href="#libreria">Ver libros</a><button type="button" onclick="openQRModal('Historias que perduran', '#libreria')"><i class="fa-solid fa-qrcode"></i> QR</button></div></article>
-        <article class="author-card reveal" style="transition-delay:.1s"><img src="https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?q=80&w=300&auto=format&fit=crop" alt="Autor destacado" class="author-image"><h3>Voces singulares</h3><p class="text-dorado text-sm italic mb-4">Ensayo y crítica</p><p>Obras que abren conversaciones y acompañan nuevas miradas.</p><div class="author-social"><a href="#" aria-label="Instagram"><i class="fa-brands fa-instagram"></i></a><a href="#" aria-label="X"><i class="fa-brands fa-x-twitter"></i></a><a href="#" aria-label="Sitio web"><i class="fa-solid fa-globe"></i></a></div><div class="author-actions"><a href="#libreria">Ver libros</a><button type="button" onclick="openQRModal('Voces singulares', '#libreria')"><i class="fa-solid fa-qrcode"></i> QR</button></div></article>
-        <article class="author-card reveal" style="transition-delay:.2s"><img src="https://images.unsplash.com/photo-1531123897727-8f129e1688ce?q=80&w=300&auto=format&fit=crop" alt="Autora destacada" class="author-image"><h3>Nuevas lecturas</h3><p class="text-dorado text-sm italic mb-4">Poesía y ficción</p><p>Una comunidad dedicada a compartir libros con sentido.</p><div class="author-social"><a href="#" aria-label="Instagram"><i class="fa-brands fa-instagram"></i></a><a href="#" aria-label="Facebook"><i class="fa-brands fa-facebook-f"></i></a><a href="#" aria-label="Sitio web"><i class="fa-solid fa-globe"></i></a></div><div class="author-actions"><a href="#libreria">Ver libros</a><button type="button" onclick="openQRModal('Nuevas lecturas', '#libreria')"><i class="fa-solid fa-qrcode"></i> QR</button></div></article>
-        <article class="author-card reveal" style="transition-delay:.3s"><img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=300&auto=format&fit=crop" alt="Autor destacado" class="author-image"><h3>Talento editorial</h3><p class="text-dorado text-sm italic mb-4">Crónica y novela</p><p>Acompañamos cada manuscrito desde su primera página.</p><div class="author-social"><a href="#" aria-label="Instagram"><i class="fa-brands fa-instagram"></i></a><a href="#" aria-label="LinkedIn"><i class="fa-brands fa-linkedin-in"></i></a><a href="#" aria-label="Sitio web"><i class="fa-solid fa-globe"></i></a></div><div class="author-actions"><a href="#libreria">Ver libros</a><button type="button" onclick="openQRModal('Talento editorial', '#libreria')"><i class="fa-solid fa-qrcode"></i> QR</button></div></article>
+    <!--AUTORES-->
+
+   <section id="autores" class="py-24">
+      <div class="max-w-7xl mx-auto px-6 lg:px-8">
+        <div class="text-center mb-16 reveal">
+          <span class="text-dorado uppercase tracking-widest text-sm font-bold mb-2 block"><i class="fa-solid fa-feather-pointed mr-2"></i>Nuestro talento</span>
+          <h2 class="font-serif text-4xl md:text-5xl">Nuestros <span class="italic text-dorado font-light">Autores</span></h2>
+          <div class="w-16 h-px bg-dorado mx-auto mt-6"></div>
+        </div>
+        
+        <div id="autoresGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+          <div class="col-span-full text-center py-12 text-cremadark">
+            <i class="fas fa-spinner fa-spin text-dorado mb-3 text-2xl"></i><br>
+            Cargando autores...
+          </div>
+        </div>
+
       </div>
-    </div></section>
+    </section>
 
     <section id="servicios" class="py-24 bg-vino/30 border-y border-dorado/10"><div class="max-w-7xl mx-auto px-6 lg:px-8"><div class="text-center max-w-3xl mx-auto mb-14 reveal"><span class="eyebrow">Edición que acompaña</span><h2 class="section-title">Servicios <span>editoriales integrales</span></h2><p class="section-copy">Del manuscrito a los lectores, construimos una publicación profesional, cuidada y capaz de llegar más lejos.</p></div><div class="service-grid reveal"><div><i class="fa-solid fa-file-pen"></i><h3>Edición y producción</h3><ul><li>Informe editorial y viabilidad comercial</li><li>Corrección de estilo y ortotipográfica</li><li>Diagramación, portada y revisión de pruebas</li><li>Adaptación digital para EPUB y Kindle</li></ul></div><div><i class="fa-solid fa-book-open"></i><h3>Publicación y distribución</h3><ul><li>Publicación en Amazon KDP</li><li>ISBN y orientación en derechos de autor</li><li>Impresión bajo demanda desde un ejemplar</li><li>Consignación en librerías y espacios aliados</li></ul></div><div><i class="fa-solid fa-bullhorn"></i><h3>Visibilidad y ventas</h3><ul><li>Marca personal y presencia digital</li><li>Promoción, reseñas y medios especializados</li><li>Ferias, lanzamientos y presentaciones</li><li>Reportes de venta y estrategia comercial</li></ul></div></div><p class="text-center text-cremadark mt-10 reveal">Inversión referencial del programa editorial: <strong class="text-dorado">$3.200.000</strong>.</p></div></section>
 
