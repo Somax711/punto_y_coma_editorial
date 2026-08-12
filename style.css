@@ -109,11 +109,13 @@ floatUp{
     text-transform:uppercase
     ;transition:.2s ease
 }
-.author-actions a:hover,.author-actions button:hover{
+.author-actions a:hover,
+.author-actions button:hover{
     color:#fff;
     background:#B85C4A
 }
 
+ 
 .eyebrow{
     display:block;
     color:#7C8B78;

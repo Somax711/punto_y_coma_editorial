@@ -201,8 +201,110 @@ async function cargarAutoresPublicos() {
 }
 
 // ==========================================
-// FUNCIONES PARA MODALES (Noticias y QR)
+// CARGA DE AUTORES (PÚBLICO)
 // ==========================================
+async function cargarAutoresPublicos() {
+  const container = document.getElementById('autoresGrid');
+  const btnVerMas = document.getElementById('btnVerMasAutores'); // Seleccionamos el botón
+  
+  if (!container) return;
+
+  const baseDatos = window.db || (typeof db !== 'undefined' ? db : null);
+  if (!baseDatos) {
+    container.innerHTML = '<div class="col-span-full text-center py-12 text-red-500">Error: No se detecta la conexión a Firebase.</div>';
+    return;
+  }
+
+  try {
+    const snapshot = await baseDatos.collection('autores').get();
+    container.innerHTML = '';
+
+    if (snapshot.empty) {
+      container.innerHTML = '<div class="col-span-full text-center py-12 text-cremadark">Próximamente revelaremos nuestros talentos.</div>';
+      if(btnVerMas) btnVerMas.style.display = 'none'; // Ocultar botón si no hay autores
+      return;
+    }
+
+    let delay = 0;
+    let autores = snapshot.docs.map(doc => doc.data());
+    autores.sort((a, b) => {
+      const fechaA = a.creado_en ? a.creado_en.toMillis() : 0;
+      const fechaB = b.creado_en ? b.creado_en.toMillis() : 0;
+      return fechaB - fechaA;
+    });
+
+    // Filtramos para usar solo los autores publicados
+    const autoresPublicados = autores.filter(autor => autor.publicado !== false);
+
+    autoresPublicados.forEach((autor, index) => {
+      const foto = autor.foto || '';
+      const biografia = autor.biografia || autor.bio || 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?q=80&w=200&auto=format&fit=crop';
+
+      let redesHTML = '';
+      if (autor.redes?.instagram || autor.instagram) redesHTML += `<a href="${autor.redes?.instagram || autor.instagram}" target="_blank" aria-label="Instagram"><i class="fa-brands fa-instagram"></i></a>`;
+      if (autor.redes?.facebook || autor.facebook) redesHTML += `<a href="${autor.redes?.facebook || autor.facebook}" target="_blank" aria-label="Facebook"><i class="fa-brands fa-facebook"></i></a>`;
+      if (autor.redes?.twitter || autor.twitter) redesHTML += `<a href="${autor.redes?.twitter || autor.twitter}" target="_blank" aria-label="Twitter"><i class="fa-brands fa-x-twitter"></i></a>`;
+      if (autor.redes?.web || autor.enlace_venta || autor.web) redesHTML += `<a href="${autor.redes?.web || autor.enlace_venta || autor.web}" target="_blank" aria-label="Web"><i class="fa-solid fa-globe"></i></a>`;
+
+      // LÓGICA CLAVE: Si el índice es mayor o igual a 4, le agregamos la clase 'hidden' de Tailwind
+      const claseOculta = index >= 4 ? 'hidden' : '';
+
+      const articleHTML = `
+        <article class="author-card reveal active ${claseOculta}" style="transition-delay:${delay}s">
+          <img src="${foto}" alt="${autor.nombre}" class="author-image object-cover w-full h-64 rounded-t-lg"
+               onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?q=80&w=200&auto=format&fit=crop';">
+          <div class="p-4 flex flex-col flex-grow bg-white border border-t-0 border-dorado/20 rounded-b-lg">
+            <h3 class="font-serif text-2xl mt-2 mb-1">${autor.nombre}</h3>
+            <p class="text-dorado text-sm italic mb-3">${autor.genero || 'Talento Punto y Coma'}</p>
+            <p class="text-cremadark text-sm line-clamp-3 mb-4">${biografia}</p>
+            <div class="author-social flex gap-4 text-dorado text-lg mb-4 mt-auto">${redesHTML}</div>
+            <div class="author-actions flex justify-between items-center border-t border-dorado/20 pt-4">
+              <a href="${autor.enlace_venta || autor.redes?.web || '#libreria'}" target="_blank" class="text-xs uppercase tracking-widest hover:text-dorado transition font-bold">Ver Libros</a>
+              <button type="button" onclick="openQRModal('${autor.nombre}', '${autor.enlace_venta || '#libreria'}')" class="text-xs uppercase tracking-widest text-dorado hover:text-crema transition font-bold">
+                <i class="fa-solid fa-qrcode text-sm"></i> QR
+              </button>
+            </div>
+          </div>
+        </article>
+      `;
+
+      container.innerHTML += articleHTML;
+      
+      // Solo le damos retraso de animación a los primeros 4 para que carguen bonito
+      if (index < 4) delay += 0.1; 
+    });
+
+    // ACTIVAR EL BOTÓN DESPUÉS DE CARGAR LOS DATOS
+    if (btnVerMas) {
+        if (autoresPublicados.length > 4) {
+            // Si hay más de 4 autores, nos aseguramos que el botón se vea
+            btnVerMas.style.display = 'inline-block';
+            
+            // Le damos la orden al botón
+            btnVerMas.onclick = () => {
+                // Buscamos solo las tarjetas que están ocultas
+                const autoresOcultos = container.querySelectorAll('.author-card.hidden');
+                
+                // Les quitamos la clase 'hidden' para mostrarlas
+                autoresOcultos.forEach(autor => autor.classList.remove('hidden'));
+                
+                // Escondemos el botón ya que mostramos todo
+                btnVerMas.style.display = 'none'; 
+            };
+        } else {
+            // Si hay 4 autores o menos, escondemos el botón desde el principio
+            btnVerMas.style.display = 'none';
+        }
+    }
+
+  } catch (error) {
+    console.error("Error al cargar los autores:", error);
+    container.innerHTML = '<div class="col-span-full text-center py-12 text-red-500">Error al cargar la lista de autores.</div>';
+  }
+}
+
+// FUNCIONES PARA MODALES (Noticias y QR)
+
 window.abrirNoticiaDesdeBase64 = function(base64Data) {
   try {
     const jsonString = decodeURIComponent(escape(atob(base64Data)));
