@@ -23,11 +23,9 @@
       }
     }
   </script>
-</head>
-<body>
-    <style>
-    body {
-       font-family: 'Lato', sans-serif; background: #FFF9F2; color: #3B2925; }
+  <!-- Estilos adicionales para el panel -->
+  <style>
+    body { font-family: 'Lato', sans-serif; background: #FFF9F2; color: #3B2925; }
     .panel-card { background: #FFFFFF; border: 1px solid rgba(184,92,74,.18); box-shadow: 0 8px 24px rgba(59,41,37,.06); }
     .panel-input { background: #FFF9F2; color: #3B2925; border-color: rgba(184,92,74,.28) !important; }
     .panel-input::placeholder { color: rgba(91,69,64,.62); }
@@ -83,43 +81,25 @@
     }
     .loading { pointer-events: none; opacity: 0.6; }
 
-   /* ESTANDARIZACIÓN RESPONSIVA (Panel de Control) */
-
-/* Ajustes para dispositivos móviles (Tablets y Smartphones) */
-@media screen and (max-width: 1024px) {
-    /* Los grids principales se convierten en una sola columna */
-    #listaNoticias, 
-    #listaAutores, 
-    #listaLibros {
+    /* Ajustes responsive del panel */
+    @media screen and (max-width: 1024px) {
+      #listaNoticias, #listaAutores, #listaLibros {
         grid-template-columns: 1fr !important;
         gap: 1rem !important;
-    }
-
-    /* Ajustar el formulario para que los campos ocupen el ancho total */
-    #formAutor, 
-    #formLibro {
-        padding: 1rem !important;
-    }
-    
-    #formAutor .grid, 
-    #formLibro .grid {
+      }
+      #formAutor .grid, #formLibro .grid {
         grid-template-columns: 1fr !important;
+      }
     }
-}
-
-/* Ajuste específico para el contenedor principal en móviles */
-@media screen and (max-width: 768px) {
-    main {
-        padding: 1rem !important;
+    @media screen and (max-width: 768px) {
+      main { padding: 1rem !important; }
+      .grid.sm\:grid-cols-2 { grid-template-columns: 1fr !important; }
     }
-
-    /* Asegurar que las tarjetas de resumen no se desborden */
-    .grid.sm\:grid-cols-2 {
-        grid-template-columns: 1fr !important;
-    }
-}
   </style>
-  <!-- LOGIN -->
+</head>
+<body>
+
+  <!-- ==================== LOGIN ==================== -->
   <div id="loginScreen" class="min-h-screen flex items-center justify-center px-4">
     <div class="max-w-md w-full panel-card rounded-lg shadow-2xl p-8">
       <div class="text-center mb-8">
@@ -156,14 +136,14 @@
       </div>
 
       <p class="text-[11px] text-darktext/40 text-center mt-6">
-        Los usuarios administradores se crean desde Firebase Authentication
-        (consola de Firebase &gt; Authentication &gt; Users).
+        Los usuarios administradores se crean desde Firebase Authentication.
       </p>
     </div>
   </div>
 
-  <!-- PANEL PRINCIPAL -->
+  <!-- ==================== PANEL PRINCIPAL ==================== -->
   <div id="panelScreen" class="hidden">
+
     <!-- SIDEBAR -->
     <aside class="sidebar fixed left-0 top-0 h-full w-72 border-r z-40">
       <div class="p-7 border-b border-dorado/10">
@@ -210,9 +190,7 @@
             <p class="text-[11px] text-darktext/40 truncate" id="userEmail"></p>
           </div>
         </div>
-        <button id="logoutBtn" class="w-full text-sm text-primary hover:text-secondary font-medium text-left px-1"><i class="fa-solid fa-arrow-right-from-bracket mr-2"></i>
-          Cerrar sesión
-        </button>
+        <button id="logoutBtn" class="w-full text-sm text-primary hover:text-secondary font-medium text-left px-1"><i class="fa-solid fa-arrow-right-from-bracket mr-2"></i> Cerrar sesión</button>
       </div>
     </aside>
 
@@ -220,29 +198,38 @@
     <main class="ml-72 p-8 lg:p-12 min-h-screen">
       <div class="flex items-center justify-between mb-8">
         <div><p class="text-primary uppercase tracking-[.18em] text-xs font-bold mb-2">Gestión editorial</p><h1 id="sectionTitle" class="font-serif text-4xl text-secondary">Resumen</h1></div>
-        <button id="btnNuevaNoticia" class="hidden px-5 py-3 bg-primary text-deepest rounded font-bold uppercase tracking-widest text-xs hover:bg-secondary transition">
-          + Nueva noticia
-        </button>
+        <button id="btnNuevaNoticia" class="hidden px-5 py-3 bg-primary text-deepest rounded font-bold uppercase tracking-widest text-xs hover:bg-secondary transition">+ Nueva noticia</button>
       </div>
 
-      <!-- RESUMEN -->
+      <!-- DASHBOARD -->
       <div id="seccionDashboard" class="section-content">
         <div class="grid sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-8">
           <article class="panel-card p-5 rounded"><p class="text-darktext text-sm">Noticias publicadas</p><p class="font-serif text-4xl text-secondary mt-2" id="statNoticias">—</p><i class="fa-regular fa-newspaper text-primary"></i></article>
-          <article class="panel-card p-5 rounded"><p class="text-darktext text-sm">Autores activos</p><p class="font-serif text-4xl text-secondary mt-2">—</p><i class="fa-solid fa-feather-pointed text-primary"></i></article>
-          <article class="panel-card p-5 rounded"><p class="text-darktext text-sm">Libros en catálogo</p><p class="font-serif text-4xl text-secondary mt-2">—</p><i class="fa-solid fa-book text-primary"></i></article>
-          <article class="panel-card p-5 rounded"><p class="text-darktext text-sm">Mensajes nuevos</p><p class="font-serif text-4xl text-secondary mt-2">—</p><i class="fa-regular fa-envelope text-primary"></i></article>
+          <article class="panel-card p-5 rounded"><p class="text-darktext text-sm">Autores activos</p><p class="font-serif text-4xl text-secondary mt-2" id="statAutores">—</p><i class="fa-solid fa-feather-pointed text-primary"></i></article>
+          <article class="panel-card p-5 rounded"><p class="text-darktext text-sm">Libros en catálogo</p><p class="font-serif text-4xl text-secondary mt-2" id="statLibros">—</p><i class="fa-solid fa-book text-primary"></i></article>
+          <article class="panel-card p-5 rounded"><p class="text-darktext text-sm">Mensajes nuevos</p><p class="font-serif text-4xl text-secondary mt-2" id="statMensajes">—</p><i class="fa-regular fa-envelope text-primary"></i></article>
         </div>
-        <div class="grid lg:grid-cols-5 gap-6"><section class="panel-card rounded p-7 lg:col-span-3"><div class="flex items-center justify-between mb-6"><h2 class="font-serif text-2xl text-secondary">Comienza a publicar</h2><i class="fa-solid fa-sparkles text-primary"></i></div><p class="text-darktext leading-relaxed max-w-xl">Administra las novedades, perfiles de autores y libros de la editorial desde un solo lugar. Todo el contenido se sincronizará con Firebase.</p><button onclick="abrirModalNueva()" class="mt-6 bg-primary text-deepest px-5 py-3 rounded font-bold uppercase tracking-widest text-xs">Crear noticia</button></section><section class="panel-card rounded p-7 lg:col-span-2"><h2 class="font-serif text-2xl text-secondary mb-4">Accesos rápidos</h2><div class="space-y-3 text-sm"><a href="#" data-go="autores" class="quick-link flex justify-between border-b border-dorado/10 pb-3 text-darktext hover:text-primary">Gestionar autores <i class="fa-solid fa-arrow-right"></i></a><a href="#" data-go="libros" class="quick-link flex justify-between border-b border-dorado/10 pb-3 text-darktext hover:text-primary">Agregar libro <i class="fa-solid fa-arrow-right"></i></a><a href="#" data-go="mensajes" class="quick-link flex justify-between text-darktext hover:text-primary">Revisar mensajes <i class="fa-solid fa-arrow-right"></i></a></div></section></div>
+        <div class="grid lg:grid-cols-5 gap-6">
+          <section class="panel-card rounded p-7 lg:col-span-3">
+            <div class="flex items-center justify-between mb-6"><h2 class="font-serif text-2xl text-secondary">Comienza a publicar</h2><i class="fa-solid fa-sparkles text-primary"></i></div>
+            <p class="text-darktext leading-relaxed max-w-xl">Administra las novedades, perfiles de autores y libros de la editorial desde un solo lugar. Todo el contenido se sincronizará con Firebase.</p>
+            <button onclick="abrirModalNueva()" class="mt-6 bg-primary text-deepest px-5 py-3 rounded font-bold uppercase tracking-widest text-xs">Crear noticia</button>
+          </section>
+          <section class="panel-card rounded p-7 lg:col-span-2">
+            <h2 class="font-serif text-2xl text-secondary mb-4">Accesos rápidos</h2>
+            <div class="space-y-3 text-sm">
+              <a href="#" data-go="autores" class="quick-link flex justify-between border-b border-dorado/10 pb-3 text-darktext hover:text-primary">Gestionar autores <i class="fa-solid fa-arrow-right"></i></a>
+              <a href="#" data-go="libros" class="quick-link flex justify-between border-b border-dorado/10 pb-3 text-darktext hover:text-primary">Agregar libro <i class="fa-solid fa-arrow-right"></i></a>
+              <a href="#" data-go="mensajes" class="quick-link flex justify-between text-darktext hover:text-primary">Revisar mensajes <i class="fa-solid fa-arrow-right"></i></a>
+            </div>
+          </section>
+        </div>
       </div>
 
       <!-- SECCIÓN NOTICIAS -->
       <div id="seccionNoticias" class="section-content hidden">
-        <!-- FILTROS -->
         <div class="bg-white rounded-2xl shadow-sm p-4 mb-6 grid md:grid-cols-4 gap-3">
-          <input id="filtroTitulo" type="text" placeholder="Buscar por título..."
-            class="px-4 py-2 border border-lightbg rounded-xl text-sm focus:ring-2 focus:ring-primary">
-          <label for="filtroCategoria" class="sr-only">Categoría</label>
+          <input id="filtroTitulo" type="text" placeholder="Buscar por título..." class="px-4 py-2 border border-lightbg rounded-xl text-sm focus:ring-2 focus:ring-primary">
           <select id="filtroCategoria" class="px-4 py-2 border border-lightbg rounded-xl text-sm focus:ring-2 focus:ring-primary">
             <option value="">Todas las categorías</option>
             <option value="Lanzamientos">Lanzamientos</option>
@@ -251,55 +238,43 @@
             <option value="Círculo Punto y Coma">Círculo Punto y Coma</option>
             <option value="Comunidad">Comunidad</option>
           </select>
-          <label for="filtroEstado" class="sr-only">Estado</label>
           <select id="filtroEstado" class="px-4 py-2 border border-lightbg rounded-xl text-sm focus:ring-2 focus:ring-primary">
             <option value="">Todos los estados</option>
             <option value="publicado">Publicado</option>
             <option value="borrador">Borrador</option>
           </select>
-          <button id="btnAplicarFiltros" class="px-4 py-2 bg-secondary text-white rounded-xl text-sm font-medium hover:bg-secondary/90 transition">
-            Filtrar
-          </button>
+          <button id="btnAplicarFiltros" class="px-4 py-2 bg-secondary text-white rounded-xl text-sm font-medium hover:bg-secondary/90 transition">Filtrar</button>
         </div>
-
         <div id="listaNoticias" class="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
-          <div class="col-span-full flex justify-center py-12">
-            <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-          </div>
+          <div class="col-span-full flex justify-center py-12"><div class="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div></div>
         </div>
       </div>
 
-      <!--autores y perfil-->
+      <!-- SECCIÓN AUTORES -->
       <div id="seccionAutores" class="section-content hidden">
         <div class="flex items-center justify-between mb-6">
           <div>
-             <h2 class="font-serif text-2xl text-secondary">Autores</h2>
-             <p class="text-darktext text-sm">Perfiles visibles en la web, con redes y QR.</p>
+            <h2 class="font-serif text-2xl text-secondary">Autores</h2>
+            <p class="text-darktext text-sm">Perfiles visibles en la web, con redes y QR.</p>
           </div>
-          <button id="btnNuevoAutor" class="bg-primary text-deepest px-5 py-3 rounded font-bold uppercase tracking-widest text-xs hover:bg-secondary transition">
-            + Nuevo autor
-          </button>
+          <button id="btnNuevoAutor" class="bg-primary text-deepest px-5 py-3 rounded font-bold uppercase tracking-widest text-xs hover:bg-secondary transition">+ Nuevo autor</button>
         </div>
 
+        <!-- Formulario de autor (con subida de foto) -->
         <form id="formAutor" class="panel-card rounded p-6 mb-7 hidden">
           <input type="hidden" name="id">
           <div class="grid md:grid-cols-2 gap-4">
-            
             <input class="panel-input px-4 py-3 rounded border" id="autor-nombre" name="nombre" required placeholder="Nombre del autor *">
             <input class="panel-input px-4 py-3 rounded border" id="autor-genero" name="genero" placeholder="Género literario">
-            
             <div class="md:col-span-2">
               <label class="block text-sm text-darktext mb-1 font-bold">Foto del Autor (Archivo)</label>
               <input type="file" id="autor-foto" accept="image/*" class="panel-input px-4 py-3 rounded border w-full bg-white">
             </div>
-            
             <textarea class="panel-input px-4 py-3 rounded border md:col-span-2" id="autor-bio" name="biografia" rows="3" placeholder="Biografía breve"></textarea>
             <input class="panel-input px-4 py-3 rounded border" id="autor-ig" name="instagram" placeholder="URL de Instagram">
             <input class="panel-input px-4 py-3 rounded border" id="autor-x" name="twitter" placeholder="URL de Twitter/Facebook">
             <input class="panel-input px-4 py-3 rounded border md:col-span-2" id="autor-web" name="web" placeholder="URL de Sitio Web / Enlace de venta">
-            
             <label class="flex items-center gap-2 text-darktext"><input type="checkbox" id="autor-publicado" checked> Mostrar en el sitio</label>
-            
           </div>
           <div class="flex gap-3 mt-5">
             <button type="submit" class="bg-primary text-deepest px-5 py-3 rounded font-bold text-xs uppercase tracking-widest hover:bg-secondary transition">Guardar autor</button>
@@ -309,37 +284,52 @@
 
         <div id="listaAutores" class="grid md:grid-cols-2 xl:grid-cols-3 gap-5"></div>
       </div>
-  
-      <!--SECCION DE LIBROS-->
 
+      <!-- SECCIÓN LIBROS -->
       <div id="seccionLibros" class="section-content hidden">
         <div class="flex items-center justify-between mb-6">
-        <p class="text-darktext">Portadas y enlaces.</p>
-        <button id="btnNuevoLibro" class="bg-primary text-deepest px-5 py-3 rounded font-bold uppercase tracking-widest text-xs">+ Nuevo libro</button></div>
-        <form id="formLibro" class="panel-card rounded p-6 mb-7 hidden"><input type="hidden" name="id"><div class="grid md:grid-cols-2 gap-4">
-          <input class="panel-input px-4 py-3 rounded border" name="titulo" required placeholder="Título del libro *">
-          <input class="panel-input px-4 py-3 rounded border" name="autor" placeholder="Nombre del autor">
-          <input class="panel-input px-4 py-3 rounded border" name="precio" placeholder="Precio, ej. $12.000">
-          <input class="panel-input px-4 py-3 rounded border" name="portada" placeholder="URL de portada">
-          <input class="panel-input px-4 py-3 rounded border md:col-span-2" name="enlace_compra" placeholder="URL de compra">
-          <textarea class="panel-input px-4 py-3 rounded border md:col-span-2" name="sinopsis" rows="3" placeholder="Sinopsis">
-          </textarea>
-          <label class="flex items-center gap-2 text-darktext">
-          <input type="checkbox" name="publicado" checked> Mostrar en el sitio</label>
+          <p class="text-darktext">Portadas y enlaces.</p>
+          <button id="btnNuevoLibro" class="bg-primary text-deepest px-5 py-3 rounded font-bold uppercase tracking-widest text-xs">+ Nuevo libro</button>
         </div>
+
+        <!-- Formulario de libro (con subida de portada) -->
+        <form id="formLibro" class="panel-card rounded p-6 mb-7 hidden">
+          <input type="hidden" name="id">
+          <div class="grid md:grid-cols-2 gap-4">
+            <input class="panel-input px-4 py-3 rounded border" name="titulo" required placeholder="Título del libro *">
+            <input class="panel-input px-4 py-3 rounded border" name="autor" placeholder="Nombre del autor">
+            <input class="panel-input px-4 py-3 rounded border" name="precio" placeholder="Precio, ej. $12.000">
+            <!-- Campo para subir portada (archivo) -->
+            <div>
+              <label class="block text-sm text-darktext mb-1 font-bold">Portada (Archivo)</label>
+              <input type="file" id="portada-file" accept="image/*" class="panel-input px-4 py-3 rounded border w-full bg-white">
+              <p class="text-xs text-darktext/50 mt-1">Sube una imagen para la portada. Si no, se usará la URL.</p>
+            </div>
+            <!-- Campo URL de portada (alternativo) -->
+            <input class="panel-input px-4 py-3 rounded border md:col-span-2" name="portada" placeholder="O URL de portada (alternativo)">
+            <input class="panel-input px-4 py-3 rounded border md:col-span-2" name="enlace_compra" placeholder="URL de compra">
+            <textarea class="panel-input px-4 py-3 rounded border md:col-span-2" name="sinopsis" rows="3" placeholder="Sinopsis"></textarea>
+            <label class="flex items-center gap-2 text-darktext">
+              <input type="checkbox" name="publicado" checked> Mostrar en el sitio
+            </label>
+          </div>
           <div class="flex gap-3 mt-5">
-            <button class="bg-primary text-deepest px-5 py-3 rounded font-bold text-xs uppercase tracking-widest">Guardar libro</button>
+            <button type="submit" class="bg-primary text-deepest px-5 py-3 rounded font-bold text-xs uppercase tracking-widest">Guardar libro</button>
             <button type="button" class="cancel-form border border-primary text-primary px-5 py-3 rounded text-xs uppercase tracking-widest">Cancelar</button>
           </div>
         </form>
-            <div id="listaLibros" class="grid md:grid-cols-2 xl:grid-cols-3 gap-5"></div>
-          </div>
-      <div id="seccionMensajes" class="section-content hidden"><div class="panel-card rounded p-10 text-center">
-        <i class="fa-regular fa-envelope text-primary text-3xl mb-4"></i>
-        <h2 class="font-serif text-3xl text-secondary">Mensajes recibidos</h2>
-        <p class="text-darktext max-w-lg mx-auto mt-3">Las consultas del formulario de contacto aparecerán aquí para que puedas gestionarlas.</p>
+
+        <div id="listaLibros" class="grid md:grid-cols-2 xl:grid-cols-3 gap-5"></div>
       </div>
-    </div>
+
+      <!-- SECCIÓN MENSAJES (placeholder) -->
+      <div id="seccionMensajes" class="section-content hidden">
+        <div class="panel-card rounded p-10 text-center">
+          <i class="fa-regular fa-envelope text-primary text-3xl mb-4"></i>
+          <h2 class="font-serif text-3xl text-secondary">Mensajes recibidos</h2>
+          <p class="text-darktext max-w-lg mx-auto mt-3">Las consultas del formulario de contacto aparecerán aquí para que puedas gestionarlas.</p>
+        </div>
+      </div>
 
       <!-- SECCIÓN CONFIGURACIÓN -->
       <div id="seccionConfiguracion" class="section-content hidden">
@@ -348,22 +338,20 @@
           <div class="space-y-4">
             <div>
               <label class="block text-sm font-medium text-secondary mb-1">Nombre</label>
-              <input type="text" id="inputNombre" placeholder="Tu nombre" aria-label="Nombre" class="w-full px-4 py-2.5 border border-lightbg rounded-xl focus:ring-2 focus:ring-primary">
+              <input type="text" id="inputNombre" placeholder="Tu nombre" class="w-full px-4 py-2.5 border border-lightbg rounded-xl focus:ring-2 focus:ring-primary">
             </div>
             <div>
               <label class="block text-sm font-medium text-secondary mb-1">Teléfono</label>
-              <input type="text" id="inputTelefono" placeholder="Tu teléfono" aria-label="Teléfono" class="w-full px-4 py-2.5 border border-lightbg rounded-xl focus:ring-2 focus:ring-primary">
+              <input type="text" id="inputTelefono" placeholder="Tu teléfono" class="w-full px-4 py-2.5 border border-lightbg rounded-xl focus:ring-2 focus:ring-primary">
             </div>
-            <button type="button" id="btnActualizarPerfil" class="px-5 py-2.5 bg-primary text-white rounded-xl font-medium hover:bg-primary/90 transition">
-              Guardar cambios
-            </button>
+            <button type="button" id="btnActualizarPerfil" class="px-5 py-2.5 bg-primary text-white rounded-xl font-medium hover:bg-primary/90 transition">Guardar cambios</button>
           </div>
         </div>
       </div>
     </main>
   </div>
 
-  <!-- MODAL NUEVA / EDITAR NOTICIA (CORREGIDO: TODOS LOS CAMPOS DENTRO DEL FORM) -->
+  <!-- ==================== MODAL NOTICIA ==================== -->
   <div id="modalNoticia" class="modal">
     <div class="bg-white rounded-3xl w-full max-w-2xl my-8">
       <div class="p-6 border-b border-lightbg flex items-center justify-between sticky top-0 bg-white rounded-t-3xl">
@@ -377,12 +365,10 @@
 
       <form id="formNoticia" class="p-6 overflow-y-auto max-h-[70vh]">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          
           <div class="md:col-span-2">
             <label class="block text-sm font-bold text-darktext mb-1">Título de la Noticia *</label>
             <input type="text" name="titulo" required class="w-full border border-gray-300 rounded-xl p-3 outline-none focus:border-primary">
           </div>
-
           <div>
             <label class="block text-sm font-bold text-darktext mb-1">Categoría</label>
             <select name="categoria" class="w-full border border-gray-300 rounded-xl p-3 outline-none focus:border-primary">
@@ -391,7 +377,6 @@
               <option value="Evento">Evento</option>
             </select>
           </div>
-
           <div>
             <label class="block text-sm font-bold text-darktext mb-1">Estado</label>
             <select name="estado" class="w-full border border-gray-300 rounded-xl p-3 outline-none focus:border-primary">
@@ -399,48 +384,39 @@
               <option value="borrador">Borrador</option>
             </select>
           </div>
-
           <div>
             <label class="block text-sm font-bold text-darktext mb-1">Autor (Opcional)</label>
             <input type="text" name="autor" class="w-full border border-gray-300 rounded-xl p-3 outline-none focus:border-primary">
           </div>
-
           <div>
             <label class="block text-sm font-bold text-darktext mb-1">Fecha de Publicación</label>
             <input type="date" name="fecha_publicacion" class="w-full border border-gray-300 rounded-xl p-3 outline-none focus:border-primary">
           </div>
-
           <div class="md:col-span-2">
             <label class="block text-sm font-bold text-darktext mb-1">Resumen Breve</label>
             <textarea name="resumen" rows="2" class="w-full border border-gray-300 rounded-xl p-3 outline-none focus:border-primary"></textarea>
           </div>
-
           <div class="md:col-span-2">
             <label class="block text-sm font-bold text-darktext mb-1">Contenido Completo *</label>
             <textarea name="contenido" rows="5" required class="w-full border border-gray-300 rounded-xl p-3 outline-none focus:border-primary"></textarea>
           </div>
-
           <div class="md:col-span-2">
             <label class="block text-sm font-bold text-darktext mb-1">Enlace Externo (Opcional)</label>
             <input type="url" name="enlace_externo" placeholder="https://" class="w-full border border-gray-300 rounded-xl p-3 outline-none focus:border-primary">
           </div>
-
           <div class="md:col-span-2 flex items-center gap-2 mt-2">
             <input type="checkbox" name="destacado" id="destacado" class="w-5 h-5 text-primary">
             <label for="destacado" class="text-sm font-bold text-darktext">Marcar como noticia destacada</label>
           </div>
-          
-          <!-- IMÁGENES: input y preview dentro del form -->
+          <!-- Imágenes -->
           <div class="md:col-span-2 mt-4">
             <label class="block text-sm font-bold text-darktext mb-2">Imágenes de la noticia</label>
             <input type="file" id="inputImagenes" multiple accept="image/png, image/jpeg" class="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20 cursor-pointer">
             <div id="previewImagenes" class="flex gap-4 mt-4 flex-wrap"></div>
           </div>
-
         </div>
 
         <input type="hidden" name="noticia_id" id="noticiaId">
-        
         <div class="flex gap-3 mt-8 pt-4 border-t border-lightbg">
           <button type="button" id="btnCancelar" class="flex-1 px-6 py-3 border border-gray-300 text-gray-700 rounded-xl font-bold hover:bg-gray-50 transition">Cancelar</button>
           <button type="submit" id="btnGuardar" class="flex-1 px-6 py-3 bg-primary text-white rounded-xl font-bold hover:bg-primary/90 transition">Guardar Noticia</button>
@@ -449,16 +425,12 @@
     </div>
   </div>
 
-  <!-- SCRIPTS FIREBASE -->
-<!-- Firebase SDK -->
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
-
-<script src="firebase-config.js"></script>
-
-<script src="panel.js"></script>
-
+  <!-- ==================== SCRIPTS ==================== -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
+  <script src="firebase-config.js"></script>
+  <script src="panel.js"></script>
 </body>
 </html>

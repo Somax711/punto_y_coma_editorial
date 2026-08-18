@@ -1,15 +1,29 @@
-// ==========================================
-// CONFIGURACIÓN WHATSAPP Y CONTACTOS
-// ==========================================
-const EDITORIAL_WHATSAPP = "573116060210"; 
-const EDITORIAL_EMAIL = "puntoycoma.ediciontextos@gmail.com"; 
+// ================================================================
+// SCRIPTS PÚBLICOS - Editorial Punto y Coma
+// Carga de noticias, autores y libros desde Firebase.
+// También maneja los modales, WhatsApp y efectos.
+// ================================================================
+
+// ================================================================
+// CONFIGURACIÓN DE WHATSAPP
+// ================================================================
+const EDITORIAL_WHATSAPP = "573116060210";
+const EDITORIAL_EMAIL = "puntoycoma.ediciontextos@gmail.com";
 
 function linkWhatsapp(mensaje) {
   return `https://wa.me/${EDITORIAL_WHATSAPP}?text=${encodeURIComponent(mensaje)}`;
 }
 
-// Asignar enlaces WhatsApp
+// ================================================================
+// VARIABLES GLOBALES
+// ================================================================
+let autoresData = [];   // Almacena todos los autores para el modal
+
+// ================================================================
+// DOMContentLoaded - Asignación de eventos y carga inicial
+// ================================================================
 document.addEventListener("DOMContentLoaded", () => {
+  // Enlaces de WhatsApp
   const enlaces = [
     { id: "whatsapp-header-link", msg: "Hola, quiero publicar mi libro con Editorial Punto y Coma." },
     { id: "whatsapp-hero-link", msg: "Hola, quiero solicitar un informe editorial." },
@@ -34,7 +48,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // Botón WhatsApp flotante
+  // WhatsApp flotante
   const whatsappButton = document.getElementById('whatsapp-float');
   if (whatsappButton) {
     whatsappButton.addEventListener('click', () => {
@@ -42,40 +56,71 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // Cargar noticias y autores
+  // Cerrar modal de noticias
+  const modalNews = document.getElementById('news-modal');
+  const closeNews = document.getElementById('close-modal');
+  if (closeNews) closeNews.addEventListener('click', closeNewsModal);
+  if (modalNews) {
+    modalNews.addEventListener('click', (e) => {
+      if (e.target === modalNews) closeNewsModal();
+    });
+  }
+
+  // Cerrar modal de autor
+  const modalAuthor = document.getElementById('author-modal');
+  const closeAuthor = document.getElementById('close-author-modal');
+  if (closeAuthor) closeAuthor.addEventListener('click', closeAuthorModal);
+  if (modalAuthor) {
+    modalAuthor.addEventListener('click', (e) => {
+      if (e.target === modalAuthor) closeAuthorModal();
+    });
+  }
+
+  // Cerrar QR
+  const qrModal = document.getElementById('qr-modal');
+  if (qrModal) {
+    qrModal.addEventListener('click', (e) => {
+      if (e.target === qrModal) closeQRModal();
+    });
+  }
+
+  // Cargar datos desde Firebase (con pequeño retraso para asegurar conexión)
   setTimeout(() => {
     cargarNoticiasPublicas();
     cargarAutoresPublicos();
+    cargarLibrosPublicos();
   }, 500);
 });
 
-// ==========================================
-// CARGA DE NOTICIAS (PÚBLICO)
-// ==========================================
+// ================================================================
+// NOTICIAS PÚBLICAS
+// ================================================================
 async function cargarNoticiasPublicas() {
   const grid = document.getElementById('newsGrid');
   if (!grid) return;
-
-  const baseDatos = window.db || (typeof db !== 'undefined' ? db : null);
-  if (!baseDatos) {
-    grid.innerHTML = '<div class="col-span-full text-center py-12 text-red-500">Error: No se detecta la conexión a Firebase.</div>';
+  const db = window.db || (typeof db !== 'undefined' ? db : null);
+  if (!db) {
+    grid.innerHTML = '<div class="col-span-full text-center py-20 text-red-500">Error: No se detecta la conexión a Firebase.</div>';
     return;
   }
 
   try {
-    const snapshot = await baseDatos.collection('noticias').get();
+    const snapshot = await db.collection('noticias').get();
     if (snapshot.empty) {
-      grid.innerHTML = '<div class="col-span-full text-center py-12 text-cremadark">Próximamente compartiremos nuevas historias y novedades.</div>';
+      grid.innerHTML = '<div class="col-span-full text-center py-20 text-cremadark">Próximamente compartiremos nuevas historias y novedades.</div>';
       return;
     }
 
     let noticias = snapshot.docs.map(doc => doc.data());
+    // Solo publicadas
     noticias = noticias.filter(n => n.estado === 'publicado');
+    // Ordenar por fecha (más reciente primero)
     noticias.sort((a, b) => {
       const fechaA = a.fecha_creacion ? a.fecha_creacion.toMillis() : 0;
       const fechaB = b.fecha_creacion ? b.fecha_creacion.toMillis() : 0;
       return fechaB - fechaA;
     });
+    // Máximo 6 noticias en la página principal
     noticias = noticias.slice(0, 6);
 
     if (noticias.length === 0) {
@@ -83,7 +128,9 @@ async function cargarNoticiasPublicas() {
       return;
     }
 
-    const noticiasHTML = noticias.map((noticia, index) => {
+    let html = '';
+    noticias.forEach((noticia, index) => {
+      // Obtener imagen principal (la primera con orden 0 o la primera de la lista)
       const imagenPrincipal = noticia.imagenes && noticia.imagenes.length > 0
         ? noticia.imagenes.find(img => img.orden === 0)?.url || noticia.imagenes[0].url
         : 'https://images.unsplash.com/photo-1532012197267-da84d127e765?q=80&w=600&auto=format&fit=crop';
@@ -94,11 +141,13 @@ async function cargarNoticiasPublicas() {
       }
 
       const delay = index * 0.1;
+      const revealClass = index % 3 === 0 ? 'reveal-up' : index % 3 === 1 ? 'reveal-left' : 'reveal-right';
+      // Codificamos la noticia en base64 para pasarla al modal
       const noticiaSegura = btoa(unescape(encodeURIComponent(JSON.stringify(noticia))));
 
-      return `
-        <article class="interactive-card bg-cardbg rounded-xl overflow-hidden shadow-lg border border-dorado/10 flex flex-col reveal active" style="transition-delay: ${delay}s">
-          <div class="h-48 overflow-hidden relative cursor-pointer group" onclick="abrirNoticiaDesdeBase64('${noticiaSegura}')">
+      html += `
+        <article class="interactive-card bg-cardbg rounded-xl overflow-hidden shadow-lg border border-dorado/10 flex flex-col ${revealClass}" style="transition-delay: ${delay}s">
+          <div class="h-64 overflow-hidden relative cursor-pointer group" onclick="abrirNoticiaDesdeBase64('${noticiaSegura}')">
             <img src="${imagenPrincipal}" alt="${noticia.titulo}" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                  onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1532012197267-da84d127e765?q=80&w=600&auto=format&fit=crop';">
             <div class="absolute top-4 left-4 bg-dorado text-vinodark text-[10px] font-bold uppercase tracking-wider px-3 py-1 rounded-sm shadow-md">
@@ -119,9 +168,11 @@ async function cargarNoticiasPublicas() {
           </div>
         </article>
       `;
-    }).join('');
+    });
 
-    grid.innerHTML = noticiasHTML;
+    grid.innerHTML = html;
+    // Activar el observer para los nuevos elementos con clases de revelado
+    document.querySelectorAll('#newsGrid .reveal-up, #newsGrid .reveal-left, #newsGrid .reveal-right').forEach(el => observer.observe(el));
 
   } catch (error) {
     console.error('Error cargando noticias:', error);
@@ -129,50 +180,64 @@ async function cargarNoticiasPublicas() {
   }
 }
 
-// ==========================================
-// CARGA DE AUTORES (PÚBLICO)
-// ==========================================
+// ================================================================
+// AUTORES PÚBLICOS
+// ================================================================
 async function cargarAutoresPublicos() {
   const container = document.getElementById('autoresGrid');
+  const btnVerMas = document.getElementById('btnVerMasAutores');
   if (!container) return;
 
-  const baseDatos = window.db || (typeof db !== 'undefined' ? db : null);
-  if (!baseDatos) {
+  const db = window.db || (typeof db !== 'undefined' ? db : null);
+  if (!db) {
     container.innerHTML = '<div class="col-span-full text-center py-12 text-red-500">Error: No se detecta la conexión a Firebase.</div>';
     return;
   }
 
   try {
-    const snapshot = await baseDatos.collection('autores').get();
+    const snapshot = await db.collection('autores').get();
     container.innerHTML = '';
 
     if (snapshot.empty) {
       container.innerHTML = '<div class="col-span-full text-center py-12 text-cremadark">Próximamente revelaremos nuestros talentos.</div>';
+      if (btnVerMas) btnVerMas.style.display = 'none';
       return;
     }
 
-    let delay = 0;
     let autores = snapshot.docs.map(doc => doc.data());
+    // Ordenar por fecha de creación
     autores.sort((a, b) => {
       const fechaA = a.creado_en ? a.creado_en.toMillis() : 0;
       const fechaB = b.creado_en ? b.creado_en.toMillis() : 0;
       return fechaB - fechaA;
     });
 
-    autores.forEach(autor => {
-      if (autor.publicado === false) return;
+    // Guardar todos en variable global para el modal
+    autoresData = autores.filter(autor => autor.publicado !== false);
 
+    if (autoresData.length === 0) {
+      container.innerHTML = '<div class="col-span-full text-center py-12 text-cremadark">Próximamente revelaremos nuestros talentos.</div>';
+      if (btnVerMas) btnVerMas.style.display = 'none';
+      return;
+    }
+
+    let html = '';
+    autoresData.forEach((autor, index) => {
       const foto = autor.foto || '';
-      const biografia = autor.biografia || autor.bio || 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?q=80&w=200&auto=format&fit=crop';
+      const biografia = autor.biografia || autor.bio || 'Sin biografía disponible.';
+      const revealClass = index % 3 === 0 ? 'reveal-up' : index % 3 === 1 ? 'reveal-left' : 'reveal-right';
+      const delay = (index < 4) ? index * 0.1 : 0;
+      const oculto = index >= 4 ? 'hidden' : ''; // Los primeros 4 visibles, el resto ocultos
 
+      // Redes sociales
       let redesHTML = '';
       if (autor.redes?.instagram || autor.instagram) redesHTML += `<a href="${autor.redes?.instagram || autor.instagram}" target="_blank" aria-label="Instagram"><i class="fa-brands fa-instagram"></i></a>`;
       if (autor.redes?.facebook || autor.facebook) redesHTML += `<a href="${autor.redes?.facebook || autor.facebook}" target="_blank" aria-label="Facebook"><i class="fa-brands fa-facebook"></i></a>`;
       if (autor.redes?.twitter || autor.twitter) redesHTML += `<a href="${autor.redes?.twitter || autor.twitter}" target="_blank" aria-label="Twitter"><i class="fa-brands fa-x-twitter"></i></a>`;
       if (autor.redes?.web || autor.enlace_venta || autor.web) redesHTML += `<a href="${autor.redes?.web || autor.enlace_venta || autor.web}" target="_blank" aria-label="Web"><i class="fa-solid fa-globe"></i></a>`;
 
-      const articleHTML = `
-        <article class="author-card reveal active" style="transition-delay:${delay}s">
+      html += `
+        <article class="author-card ${oculto} ${revealClass}" style="transition-delay: ${delay}s">
           <img src="${foto}" alt="${autor.nombre}" class="author-image object-cover w-full h-64 rounded-t-lg"
                onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?q=80&w=200&auto=format&fit=crop';">
           <div class="p-4 flex flex-col flex-grow bg-white border border-t-0 border-dorado/20 rounded-b-lg">
@@ -181,7 +246,7 @@ async function cargarAutoresPublicos() {
             <p class="text-cremadark text-sm line-clamp-3 mb-4">${biografia}</p>
             <div class="author-social flex gap-4 text-dorado text-lg mb-4 mt-auto">${redesHTML}</div>
             <div class="author-actions flex justify-between items-center border-t border-dorado/20 pt-4">
-              <a href="${autor.enlace_venta || autor.redes?.web || '#libreria'}" target="_blank" class="text-xs uppercase tracking-widest hover:text-dorado transition font-bold">Ver Libros</a>
+              <button onclick="openAuthorModal(${index})" class="text-xs uppercase tracking-widest hover:text-dorado transition font-bold">Ver más</button>
               <button type="button" onclick="openQRModal('${autor.nombre}', '${autor.enlace_venta || '#libreria'}')" class="text-xs uppercase tracking-widest text-dorado hover:text-crema transition font-bold">
                 <i class="fa-solid fa-qrcode text-sm"></i> QR
               </button>
@@ -189,112 +254,25 @@ async function cargarAutoresPublicos() {
           </div>
         </article>
       `;
-
-      container.innerHTML += articleHTML;
-      delay += 0.1;
     });
 
-  } catch (error) {
-    console.error("Error al cargar los autores:", error);
-    container.innerHTML = '<div class="col-span-full text-center py-12 text-red-500">Error al cargar la lista de autores.</div>';
-  }
-}
+    container.innerHTML = html;
 
-// ==========================================
-// CARGA DE AUTORES (PÚBLICO)
-// ==========================================
-async function cargarAutoresPublicos() {
-  const container = document.getElementById('autoresGrid');
-  const btnVerMas = document.getElementById('btnVerMasAutores'); // Seleccionamos el botón
-  
-  if (!container) return;
+    // Observer para los elementos visibles
+    document.querySelectorAll('#autoresGrid .reveal-up, #autoresGrid .reveal-left, #autoresGrid .reveal-right').forEach(el => observer.observe(el));
 
-  const baseDatos = window.db || (typeof db !== 'undefined' ? db : null);
-  if (!baseDatos) {
-    container.innerHTML = '<div class="col-span-full text-center py-12 text-red-500">Error: No se detecta la conexión a Firebase.</div>';
-    return;
-  }
-
-  try {
-    const snapshot = await baseDatos.collection('autores').get();
-    container.innerHTML = '';
-
-    if (snapshot.empty) {
-      container.innerHTML = '<div class="col-span-full text-center py-12 text-cremadark">Próximamente revelaremos nuestros talentos.</div>';
-      if(btnVerMas) btnVerMas.style.display = 'none'; // Ocultar botón si no hay autores
-      return;
-    }
-
-    let delay = 0;
-    let autores = snapshot.docs.map(doc => doc.data());
-    autores.sort((a, b) => {
-      const fechaA = a.creado_en ? a.creado_en.toMillis() : 0;
-      const fechaB = b.creado_en ? b.creado_en.toMillis() : 0;
-      return fechaB - fechaA;
-    });
-
-    // Filtramos para usar solo los autores publicados
-    const autoresPublicados = autores.filter(autor => autor.publicado !== false);
-
-    autoresPublicados.forEach((autor, index) => {
-      const foto = autor.foto || '';
-      const biografia = autor.biografia || autor.bio || 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?q=80&w=200&auto=format&fit=crop';
-
-      let redesHTML = '';
-      if (autor.redes?.instagram || autor.instagram) redesHTML += `<a href="${autor.redes?.instagram || autor.instagram}" target="_blank" aria-label="Instagram"><i class="fa-brands fa-instagram"></i></a>`;
-      if (autor.redes?.facebook || autor.facebook) redesHTML += `<a href="${autor.redes?.facebook || autor.facebook}" target="_blank" aria-label="Facebook"><i class="fa-brands fa-facebook"></i></a>`;
-      if (autor.redes?.twitter || autor.twitter) redesHTML += `<a href="${autor.redes?.twitter || autor.twitter}" target="_blank" aria-label="Twitter"><i class="fa-brands fa-x-twitter"></i></a>`;
-      if (autor.redes?.web || autor.enlace_venta || autor.web) redesHTML += `<a href="${autor.redes?.web || autor.enlace_venta || autor.web}" target="_blank" aria-label="Web"><i class="fa-solid fa-globe"></i></a>`;
-
-      // LÓGICA CLAVE: Si el índice es mayor o igual a 4, le agregamos la clase 'hidden' de Tailwind
-      const claseOculta = index >= 4 ? 'hidden' : '';
-
-      const articleHTML = `
-        <article class="author-card reveal active ${claseOculta}" style="transition-delay:${delay}s">
-          <img src="${foto}" alt="${autor.nombre}" class="author-image object-cover w-full h-64 rounded-t-lg"
-               onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?q=80&w=200&auto=format&fit=crop';">
-          <div class="p-4 flex flex-col flex-grow bg-white border border-t-0 border-dorado/20 rounded-b-lg">
-            <h3 class="font-serif text-2xl mt-2 mb-1">${autor.nombre}</h3>
-            <p class="text-dorado text-sm italic mb-3">${autor.genero || 'Talento Punto y Coma'}</p>
-            <p class="text-cremadark text-sm line-clamp-3 mb-4">${biografia}</p>
-            <div class="author-social flex gap-4 text-dorado text-lg mb-4 mt-auto">${redesHTML}</div>
-            <div class="author-actions flex justify-between items-center border-t border-dorado/20 pt-4">
-              <a href="${autor.enlace_venta || autor.redes?.web || '#libreria'}" target="_blank" class="text-xs uppercase tracking-widest hover:text-dorado transition font-bold">Ver Libros</a>
-              <button type="button" onclick="openQRModal('${autor.nombre}', '${autor.enlace_venta || '#libreria'}')" class="text-xs uppercase tracking-widest text-dorado hover:text-crema transition font-bold">
-                <i class="fa-solid fa-qrcode text-sm"></i> QR
-              </button>
-            </div>
-          </div>
-        </article>
-      `;
-
-      container.innerHTML += articleHTML;
-      
-      // Solo le damos retraso de animación a los primeros 4 para que carguen bonito
-      if (index < 4) delay += 0.1; 
-    });
-
-    // ACTIVAR EL BOTÓN DESPUÉS DE CARGAR LOS DATOS
+    // Lógica del botón "Ver más autores"
     if (btnVerMas) {
-        if (autoresPublicados.length > 4) {
-            // Si hay más de 4 autores, nos aseguramos que el botón se vea
-            btnVerMas.style.display = 'inline-block';
-            
-            // Le damos la orden al botón
-            btnVerMas.onclick = () => {
-                // Buscamos solo las tarjetas que están ocultas
-                const autoresOcultos = container.querySelectorAll('.author-card.hidden');
-                
-                // Les quitamos la clase 'hidden' para mostrarlas
-                autoresOcultos.forEach(autor => autor.classList.remove('hidden'));
-                
-                // Escondemos el botón ya que mostramos todo
-                btnVerMas.style.display = 'none'; 
-            };
-        } else {
-            // Si hay 4 autores o menos, escondemos el botón desde el principio
-            btnVerMas.style.display = 'none';
-        }
+      if (autoresData.length > 4) {
+        btnVerMas.style.display = 'inline-block';
+        btnVerMas.onclick = () => {
+          const ocultos = container.querySelectorAll('.author-card.hidden');
+          ocultos.forEach(el => el.classList.remove('hidden'));
+          btnVerMas.style.display = 'none';
+        };
+      } else {
+        btnVerMas.style.display = 'none';
+      }
     }
 
   } catch (error) {
@@ -303,20 +281,130 @@ async function cargarAutoresPublicos() {
   }
 }
 
-// FUNCIONES PARA MODALES (Noticias y QR)
+// ================================================================
+// LIBROS PÚBLICOS
+// ================================================================
+async function cargarLibrosPublicos() {
+  const grid = document.getElementById('librosGrid');
+  if (!grid) return;
+  const db = window.db || (typeof db !== 'undefined' ? db : null);
+  if (!db) {
+    grid.innerHTML = '<div class="col-span-full text-center py-12 text-red-500">Error de conexión.</div>';
+    return;
+  }
 
+  try {
+    const snapshot = await db.collection('libros').get();
+    if (snapshot.empty) {
+      grid.innerHTML = '<div class="col-span-full text-center py-12 text-cremadark">Próximamente nuevos títulos.</div>';
+      return;
+    }
+
+    let libros = snapshot.docs.map(doc => doc.data());
+    libros = libros.filter(libro => libro.publicado !== false);
+    // Ordenar por fecha de creación
+    libros.sort((a, b) => {
+      const fa = a.fecha_creacion ? a.fecha_creacion.toMillis() : 0;
+      const fb = b.fecha_creacion ? b.fecha_creacion.toMillis() : 0;
+      return fb - fa;
+    });
+
+    if (libros.length === 0) {
+      grid.innerHTML = '<div class="col-span-full text-center py-12 text-cremadark">Próximamente nuevos títulos.</div>';
+      return;
+    }
+
+    let html = '';
+    libros.forEach((libro, index) => {
+      const portada = libro.portada || 'https://via.placeholder.com/300x400?text=Sin+portada';
+      const delay = index * 0.1;
+      const revealClass = index % 3 === 0 ? 'reveal-up' : index % 3 === 1 ? 'reveal-left' : 'reveal-right';
+
+      html += `
+        <article class="book-card ${revealClass}" style="transition-delay: ${delay}s">
+          <img src="${portada}" alt="${libro.titulo}" class="w-full h-64 object-cover rounded-t-lg" onerror="this.src='https://via.placeholder.com/300x400?text=Error'">
+          <div class="p-4 bg-white rounded-b-lg border border-t-0 border-dorado/20">
+            <h3 class="font-serif text-xl">${libro.titulo}</h3>
+            <p class="text-dorado text-sm">${libro.autor || 'Editorial Punto y Coma'}</p>
+            <p class="text-cremadark text-sm line-clamp-2 mt-2">${libro.descripcion || ''}</p>
+            <a href="${libro.enlace_compra || '#'}" target="_blank" class="inline-block mt-3 border border-dorado text-dorado px-4 py-1 text-xs uppercase tracking-widest hover:bg-dorado hover:text-vinodark transition">Comprar</a>
+          </div>
+        </article>
+      `;
+    });
+
+    grid.innerHTML = html;
+    document.querySelectorAll('#librosGrid .reveal-up, #librosGrid .reveal-left, #librosGrid .reveal-right').forEach(el => observer.observe(el));
+
+  } catch (error) {
+    console.error('Error cargando libros:', error);
+    grid.innerHTML = '<div class="col-span-full text-center py-12 text-dorado">Error al cargar los libros.</div>';
+  }
+}
+
+// ================================================================
+// MODAL DE AUTOR (página pública)
+// ================================================================
+function openAuthorModal(index) {
+  const autor = autoresData[index];
+  if (!autor) return;
+  const modal = document.getElementById('author-modal');
+  const photo = document.getElementById('author-modal-photo');
+  const name = document.getElementById('author-modal-name');
+  const genre = document.getElementById('author-modal-genre');
+  const bio = document.getElementById('author-modal-bio');
+  const social = document.getElementById('author-modal-social');
+  const link = document.getElementById('author-modal-link');
+
+  photo.src = autor.foto || 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?q=80&w=200&auto=format&fit=crop';
+  name.textContent = autor.nombre;
+  genre.textContent = autor.genero || 'Talento Punto y Coma';
+  bio.textContent = autor.biografia || autor.bio || 'Sin biografía disponible.';
+
+  let socialHTML = '';
+  if (autor.redes?.instagram || autor.instagram) socialHTML += `<a href="${autor.redes?.instagram || autor.instagram}" target="_blank"><i class="fa-brands fa-instagram"></i></a>`;
+  if (autor.redes?.facebook || autor.facebook) socialHTML += `<a href="${autor.redes?.facebook || autor.facebook}" target="_blank"><i class="fa-brands fa-facebook"></i></a>`;
+  if (autor.redes?.twitter || autor.twitter) socialHTML += `<a href="${autor.redes?.twitter || autor.twitter}" target="_blank"><i class="fa-brands fa-x-twitter"></i></a>`;
+  if (autor.redes?.web || autor.enlace_venta || autor.web) socialHTML += `<a href="${autor.redes?.web || autor.enlace_venta || autor.web}" target="_blank"><i class="fa-solid fa-globe"></i></a>`;
+  social.innerHTML = socialHTML;
+
+  link.href = autor.enlace_venta || autor.redes?.web || '#libreria';
+  link.textContent = 'Ver libros';
+
+  // Mostrar modal con animación
+  modal.classList.remove('hidden');
+  modal.classList.add('flex');
+  setTimeout(() => {
+    modal.classList.remove('opacity-0');
+    modal.firstElementChild.classList.remove('scale-95');
+  }, 10);
+}
+
+function closeAuthorModal() {
+  const modal = document.getElementById('author-modal');
+  if (!modal) return;
+  modal.classList.add('opacity-0');
+  modal.firstElementChild.classList.add('scale-95');
+  setTimeout(() => {
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+  }, 250);
+}
+
+// ================================================================
+// MODAL DE NOTICIA (página pública)
+// ================================================================
 window.abrirNoticiaDesdeBase64 = function(base64Data) {
   try {
     const jsonString = decodeURIComponent(escape(atob(base64Data)));
     const noticia = JSON.parse(jsonString);
-    window.abrirModalNoticia(noticia);
-  } catch(e) {
+    abrirModalNoticia(noticia);
+  } catch (e) {
     console.error("Error decodificando la noticia", e);
   }
 };
 
-// Función para abrir el modal de noticia (definida globalmente)
-window.abrirModalNoticia = function(noticia) {
+function abrirModalNoticia(noticia) {
   const modal = document.getElementById('news-modal');
   const content = document.getElementById('modal-content-body');
   if (!modal || !content) return;
@@ -340,21 +428,7 @@ window.abrirModalNoticia = function(noticia) {
     modal.classList.remove('opacity-0');
     modal.firstElementChild.classList.remove('scale-95');
   }, 10);
-};
-
-// Cerrar modal de noticias
-document.addEventListener('DOMContentLoaded', () => {
-  const modal = document.getElementById('news-modal');
-  const closeBtn = document.getElementById('close-modal');
-  if (closeBtn) {
-    closeBtn.addEventListener('click', closeNewsModal);
-  }
-  if (modal) {
-    modal.addEventListener('click', (e) => {
-      if (e.target === modal) closeNewsModal();
-    });
-  }
-});
+}
 
 function closeNewsModal() {
   const modal = document.getElementById('news-modal');
@@ -367,7 +441,9 @@ function closeNewsModal() {
   }, 250);
 }
 
-// Funciones para QR
+// ================================================================
+// MODAL QR
+// ================================================================
 window.openQRModal = function(author, path) {
   const modal = document.getElementById('qr-modal');
   if (!modal) return;
@@ -394,28 +470,19 @@ window.closeQRModal = function() {
   }, 250);
 };
 
-// Cerrar QR al hacer clic fuera
-document.addEventListener('DOMContentLoaded', () => {
-  const qrModal = document.getElementById('qr-modal');
-  if (qrModal) {
-    qrModal.addEventListener('click', (e) => {
-      if (e.target === qrModal) window.closeQRModal();
-    });
-  }
-});
+// ================================================================
+// INTERSECTION OBSERVER (para animaciones al hacer scroll)
+// ================================================================
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.classList.add('active');
+      observer.unobserve(entry.target);
+    }
+  });
+}, { threshold: 0.15 });
 
-// ==========================================
-// INTERSECTION OBSERVER PARA REVEAL
-// ==========================================
+// Observar todos los elementos con clases de revelado al cargar la página
 document.addEventListener('DOMContentLoaded', () => {
-  const observer = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting) {
-        entry.target.classList.add('active');
-        observer.unobserve(entry.target);
-      }
-    });
-  }, { threshold: 0.15 });
-
-  document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+  document.querySelectorAll('.reveal-up, .reveal-left, .reveal-right, .reveal-zoom').forEach(el => observer.observe(el));
 });

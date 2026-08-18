@@ -1,7 +1,9 @@
-// =========================================================================
+// ================================================================
 // PANEL DE CONTROL - EDITORIAL PUNTO Y COMA
-// Archivo: panel.js (Completo y corregido - muestra TODOS los autores)
-// =========================================================================
+// Archivo: panel.js
+// Gestiona noticias, autores, libros, autenticación y perfil.
+// Todos los datos se sincronizan con Firebase Firestore y Storage.
+// ================================================================
 
 // Usar las instancias globales definidas en firebase-config.js
 const auth = window.auth;
@@ -15,21 +17,19 @@ let imagenesExistentes = [];
 
 console.log('panel.js cargado. db:', db ? 'OK' : 'NO');
 
-// =========================================================================
+// ================================================================
 // 1. AUTENTICACIÓN Y ROLES
-// =========================================================================
+// ================================================================
 
 // Login
 const loginForm = document.getElementById('loginForm');
 if (loginForm) {
   loginForm.addEventListener('submit', async (e) => {
     e.preventDefault();
-
     if (!auth || !db) {
       mostrarErrorAcceso('Firebase no está configurado. Revisa firebase-config.js');
       return;
     }
-
     const email = document.getElementById('loginEmail').value;
     const password = document.getElementById('loginPassword').value;
     const loginBtn = document.getElementById('loginBtn');
@@ -68,10 +68,9 @@ if (logoutBtn) {
   });
 }
 
-// Obtener o Crear Perfil de Usuario con Rol
+// Obtener o crear perfil de usuario con rol
 async function obtenerPerfilUsuario(user) {
   if (!db || !user) return null;
-
   const usuarioRef = db.collection('usuarios').doc(user.uid);
   const usuarioDoc = await usuarioRef.get();
   const correo = (user.email || '').toLowerCase();
@@ -110,7 +109,6 @@ async function cargarDatosUsuario(user) {
   try {
     const userData = await obtenerPerfilUsuario(user);
     if (!userData) return;
-
     const elName = document.getElementById('userName');
     const elEmail = document.getElementById('userEmail');
     if (elName) elName.textContent = userData.nombre || user.email;
@@ -122,7 +120,6 @@ async function cargarDatosUsuario(user) {
       .join('')
       .substring(0, 2)
       .toUpperCase();
-
     const elInitials = document.getElementById('userInitials');
     if (elInitials) elInitials.textContent = initials;
 
@@ -150,20 +147,16 @@ function mostrarErrorAcceso(mensaje) {
 }
 
 function mostrarLogin() {
-  const loginScreen = document.getElementById('loginScreen');
-  const panelScreen = document.getElementById('panelScreen');
-  if (loginScreen) loginScreen.classList.remove('hidden');
-  if (panelScreen) panelScreen.classList.add('hidden');
+  document.getElementById('loginScreen').classList.remove('hidden');
+  document.getElementById('panelScreen').classList.add('hidden');
 }
 
 function mostrarPanel() {
-  const loginScreen = document.getElementById('loginScreen');
-  const panelScreen = document.getElementById('panelScreen');
-  if (loginScreen) loginScreen.classList.add('hidden');
-  if (panelScreen) panelScreen.classList.remove('hidden');
+  document.getElementById('loginScreen').classList.add('hidden');
+  document.getElementById('panelScreen').classList.remove('hidden');
 }
 
-// Listener de Estado de Sesión
+// Listener de estado de sesión
 if (auth) {
   auth.onAuthStateChanged(async (user) => {
     if (user) {
@@ -178,7 +171,7 @@ if (auth) {
         mostrarPanel();
         cargarNoticiasUsuario();
         cargarResumen();
-        cargarAutores();    // 🔥 Carga TODOS los autores (sin filtro)
+        cargarAutores();
         cargarLibros();
       } catch (error) {
         console.error('Error al validar permisos:', error);
@@ -194,14 +187,13 @@ if (auth) {
   mostrarLogin();
 }
 
-// =========================================================================
+// ================================================================
 // 2. NAVEGACIÓN Y DASHBOARD
-// =========================================================================
+// ================================================================
 
 document.querySelectorAll('.nav-link').forEach(link => {
   link.addEventListener('click', (e) => {
     e.preventDefault();
-
     document.querySelectorAll('.nav-link').forEach(l => {
       l.classList.remove('active', 'bg-primary', 'text-white');
       l.classList.add('text-secondary');
@@ -216,18 +208,15 @@ document.querySelectorAll('.nav-link').forEach(link => {
     const btnNuevaNoticia = document.getElementById('btnNuevaNoticia');
 
     if (section === 'dashboard') {
-      const target = document.getElementById('seccionDashboard');
-      if (target) target.classList.remove('hidden');
+      document.getElementById('seccionDashboard').classList.remove('hidden');
       if (sectionTitle) sectionTitle.textContent = 'Resumen';
       if (btnNuevaNoticia) btnNuevaNoticia.classList.add('hidden');
     } else if (section === 'noticias') {
-      const target = document.getElementById('seccionNoticias');
-      if (target) target.classList.remove('hidden');
+      document.getElementById('seccionNoticias').classList.remove('hidden');
       if (sectionTitle) sectionTitle.textContent = 'Noticias';
       if (btnNuevaNoticia) btnNuevaNoticia.classList.remove('hidden');
     } else if (section === 'configuracion') {
-      const target = document.getElementById('seccionConfiguracion');
-      if (target) target.classList.remove('hidden');
+      document.getElementById('seccionConfiguracion').classList.remove('hidden');
       if (sectionTitle) sectionTitle.textContent = 'Configuración';
       if (btnNuevaNoticia) btnNuevaNoticia.classList.add('hidden');
     } else {
@@ -248,13 +237,24 @@ document.querySelectorAll('.quick-link').forEach(link => {
   });
 });
 
+// Estadísticas del dashboard
 async function cargarResumen() {
   if (!db || !usuarioActual) return;
   try {
-    const snapshot = await db.collection('noticias').where('usuario_id', '==', usuarioActual.uid).get();
-    const total = snapshot.docs.filter(doc => doc.data().estado !== 'borrador').length;
-    const stat = document.getElementById('statNoticias');
-    if (stat) stat.textContent = total;
+    const snapNoticias = await db.collection('noticias').where('usuario_id', '==', usuarioActual.uid).get();
+    const totalNoticias = snapNoticias.docs.filter(doc => doc.data().estado !== 'borrador').length;
+    document.getElementById('statNoticias').textContent = totalNoticias;
+
+    const snapAutores = await db.collection('autores').get();
+    const totalAutores = snapAutores.docs.filter(doc => doc.data().publicado !== false).length;
+    document.getElementById('statAutores').textContent = totalAutores;
+
+    const snapLibros = await db.collection('libros').where('usuario_id', '==', usuarioActual.uid).get();
+    const totalLibros = snapLibros.docs.filter(doc => doc.data().publicado !== false).length;
+    document.getElementById('statLibros').textContent = totalLibros;
+
+    // Mensajes (placeholder)
+    document.getElementById('statMensajes').textContent = '0';
   } catch (error) {
     console.warn('No se pudo cargar el resumen:', error);
   }
@@ -267,12 +267,8 @@ function prepararFormulario(id, abierto) {
   if (!abierto) form.reset();
 }
 
-const btnNuevoAutor = document.getElementById('btnNuevoAutor');
-if (btnNuevoAutor) btnNuevoAutor.addEventListener('click', () => prepararFormulario('formAutor', true));
-
-const btnNuevoLibro = document.getElementById('btnNuevoLibro');
-if (btnNuevoLibro) btnNuevoLibro.addEventListener('click', () => prepararFormulario('formLibro', true));
-
+document.getElementById('btnNuevoAutor')?.addEventListener('click', () => prepararFormulario('formAutor', true));
+document.getElementById('btnNuevoLibro')?.addEventListener('click', () => prepararFormulario('formLibro', true));
 document.querySelectorAll('.cancel-form').forEach(button => {
   button.addEventListener('click', () => {
     const form = button.closest('form');
@@ -280,20 +276,17 @@ document.querySelectorAll('.cancel-form').forEach(button => {
   });
 });
 
-// =========================================================================
-// 3. GESTIÓN DE AUTORES (Muestra TODOS, sin filtrar por usuario)
-// =========================================================================
+// ================================================================
+// 3. GESTIÓN DE AUTORES (muestra TODOS)
+// ================================================================
 
 async function cargarAutores() {
   const container = document.getElementById('listaAutores');
   if (!container || !db) return;
-
   container.innerHTML = '<div class="col-span-full text-center py-8"><i class="fas fa-spinner fa-spin text-primary text-2xl"></i><p class="text-xs text-darktext/60 mt-2">Cargando autores...</p></div>';
 
   try {
-    // 🔥 IMPORTANTE: Traemos TODOS los autores (sin where)
     const snapshot = await db.collection('autores').get();
-
     if (snapshot.empty) {
       container.innerHTML = '<div class="col-span-full text-center py-8 text-darktext/50 text-sm">No hay autores registrados aún.</div>';
       return;
@@ -302,14 +295,12 @@ async function cargarAutores() {
     let html = '';
     snapshot.forEach(doc => {
       const autor = { id: doc.id, ...doc.data() };
-      // Validar que el ID existe
       if (!autor.id) {
-        console.warn('Autor sin ID encontrado:', autor);
+        console.warn('Autor sin ID:', autor);
         return;
       }
       html += crearTarjetaAutorAdmin(autor);
     });
-
     container.innerHTML = html;
     console.log('Autores cargados en panel:', snapshot.size);
   } catch (error) {
@@ -319,21 +310,10 @@ async function cargarAutores() {
 }
 
 function crearTarjetaAutorAdmin(autor) {
-  // Validar que el autor tenga ID
-  if (!autor.id) {
-    console.error('Autor sin ID, no se puede generar tarjeta:', autor);
-    return '<div class="text-red-500">Error: autor sin ID</div>';
-  }
-
-  // Corregir ruta de foto: si es local, usar imagen por defecto
+  if (!autor.id) return '<div class="text-red-500">Error: autor sin ID</div>';
   let foto = autor.foto || '';
-  if (!foto.startsWith('http') && !foto.startsWith('https') && foto) {
-    console.warn('Ruta de foto local detectada, usando imagen por defecto:', foto);
-    foto = 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?q=80&w=200&auto=format&fit=crop';
-  }
-  if (!foto) {
-    foto = 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?q=80&w=200&auto=format&fit=crop';
-  }
+  if (!foto.startsWith('http') && foto) foto = 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?q=80&w=200&auto=format&fit=crop';
+  if (!foto) foto = 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?q=80&w=200&auto=format&fit=crop';
 
   return `
     <div class="panel-card p-5 rounded-xl border border-lightbg flex flex-col justify-between bg-white shadow-sm">
@@ -351,66 +331,43 @@ function crearTarjetaAutorAdmin(autor) {
           ${autor.publicado !== false ? 'Visible' : 'Oculto'}
         </span>
         <div class="flex gap-2">
-          <button onclick="editarAutor('${autor.id}')" class="px-3 py-1 bg-primary/10 text-primary hover:bg-primary hover:text-white rounded text-xs transition" title="Editar">
-            Editar
-          </button>
-          <button onclick="eliminarAutor('${autor.id}')" class="px-3 py-1 bg-red-50 text-red-600 hover:bg-red-600 hover:text-white rounded text-xs transition" title="Eliminar">
-            <i class="fa-solid fa-trash"></i>
-          </button>
+          <button onclick="editarAutor('${autor.id}')" class="px-3 py-1 bg-primary/10 text-primary hover:bg-primary hover:text-white rounded text-xs transition">Editar</button>
+          <button onclick="eliminarAutor('${autor.id}')" class="px-3 py-1 bg-red-50 text-red-600 hover:bg-red-600 hover:text-white rounded text-xs transition"><i class="fa-solid fa-trash"></i></button>
         </div>
       </div>
     </div>
   `;
 }
 
-// =========================================================================
-// 4. FUNCIONES DE EDICIÓN Y ELIMINACIÓN DE AUTORES (CON VALIDACIÓN)
-// =========================================================================
+// ================================================================
+// 4. EDICIÓN Y ELIMINACIÓN DE AUTORES
+// ================================================================
 
 async function editarAutor(id) {
-  console.log('editarAutor llamado con id:', id);
   if (!id || id.trim() === '') {
-    alert('No se puede editar: el ID del autor está vacío o no es válido.');
-    console.error('editarAutor: ID vacío');
+    alert('No se puede editar: el ID del autor está vacío.');
     return;
   }
-
-  if (!db) {
-    alert('La base de datos no está disponible.');
-    return;
-  }
-
+  if (!db) return;
   try {
     const doc = await db.collection('autores').doc(id).get();
-    if (!doc.exists) {
-      alert('Autor no encontrado.');
-      return;
-    }
-
+    if (!doc.exists) { alert('Autor no encontrado.'); return; }
     const autor = doc.data();
     const form = document.getElementById('formAutor');
-    if (!form) {
-      console.error('Formulario #formAutor no encontrado');
-      return;
-    }
-
+    if (!form) return;
     form.classList.remove('hidden');
 
-    if (form.querySelector('input[name="id"]')) form.querySelector('input[name="id"]').value = id;
-    if (form.querySelector('[name="nombre"]')) form.querySelector('[name="nombre"]').value = autor.nombre || '';
-    if (form.querySelector('[name="genero"]')) form.querySelector('[name="genero"]').value = autor.genero || '';
-    if (form.querySelector('[name="biografia"]')) form.querySelector('[name="biografia"]').value = autor.biografia || autor.bio || '';
-    if (form.querySelector('[name="instagram"]')) form.querySelector('[name="instagram"]').value = autor.redes?.instagram || autor.instagram || '';
-    if (form.querySelector('[name="facebook"]')) form.querySelector('[name="facebook"]').value = autor.redes?.facebook || autor.facebook || '';
-    if (form.querySelector('[name="twitter"]')) form.querySelector('[name="twitter"]').value = autor.redes?.twitter || autor.twitter || '';
-    if (form.querySelector('[name="enlace_venta"]')) form.querySelector('[name="enlace_venta"]').value = autor.enlace_venta || autor.redes?.web || '';
-    if (form.querySelector('[name="web"]')) form.querySelector('[name="web"]').value = autor.web || autor.redes?.web || '';
-
-    const pubCheck = form.querySelector('#autor-publicado') || form.querySelector('[name="publicado"]');
+    form.querySelector('input[name="id"]').value = id;
+    form.querySelector('[name="nombre"]').value = autor.nombre || '';
+    form.querySelector('[name="genero"]').value = autor.genero || '';
+    form.querySelector('[name="biografia"]').value = autor.biografia || autor.bio || '';
+    form.querySelector('[name="instagram"]').value = autor.redes?.instagram || autor.instagram || '';
+    form.querySelector('[name="twitter"]').value = autor.redes?.twitter || autor.twitter || '';
+    form.querySelector('[name="web"]').value = autor.web || autor.redes?.web || '';
+    const pubCheck = document.getElementById('autor-publicado');
     if (pubCheck) pubCheck.checked = autor.publicado !== false;
 
     form.scrollIntoView({ behavior: 'smooth', block: 'start' });
-
   } catch (error) {
     console.error('Error al cargar autor para edición:', error);
     alert('Error al cargar los datos del autor.');
@@ -418,124 +375,92 @@ async function editarAutor(id) {
 }
 
 async function eliminarAutor(id) {
-  console.log('eliminarAutor llamado con id:', id);
-  if (!id || id.trim() === '') {
-    alert('No se puede eliminar: el ID del autor está vacío o no es válido.');
-    console.error('eliminarAutor: ID vacío');
-    return;
-  }
-
-  if (!confirm('¿Estás seguro de que deseas eliminar este autor? Esta acción no se puede deshacer.')) return;
-  if (!db) {
-    alert('La base de datos no está disponible.');
-    return;
-  }
-
+  if (!id || id.trim() === '') { alert('ID inválido.'); return; }
+  if (!confirm('¿Estás seguro de eliminar este autor?')) return;
+  if (!db) return;
   try {
     await db.collection('autores').doc(id).delete();
-    alert('Autor eliminado correctamente.');
+    alert('Autor eliminado.');
     cargarAutores();
   } catch (error) {
     console.error('Error al eliminar autor:', error);
-    alert('No se pudo eliminar el autor. Revisa la consola para más detalles.');
+    alert('No se pudo eliminar el autor.');
   }
 }
 
-// =========================================================================
-// 5. GUARDAR AUTOR (formulario)
-// =========================================================================
+// ================================================================
+// 5. GUARDAR AUTOR (con subida de foto a Storage)
+// ================================================================
 
-const formAutorElement = document.getElementById('formAutor');
-if (formAutorElement) {
-  formAutorElement.addEventListener('submit', async (e) => {
-    e.preventDefault();
+document.getElementById('formAutor')?.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const form = e.target;
+  const btnGuardar = form.querySelector('button[type="submit"]');
+  const textoOriginal = btnGuardar.textContent;
+  btnGuardar.disabled = true;
+  btnGuardar.textContent = 'Guardando...';
 
-    const btnGuardar = formAutorElement.querySelector('button[type="submit"]');
-    const textoOriginal = btnGuardar ? btnGuardar.textContent : 'Guardar autor';
-    if (btnGuardar) {
-      btnGuardar.disabled = true;
-      btnGuardar.textContent = 'Guardando...';
+  try {
+    const inputId = form.querySelector('input[name="id"]');
+    const docId = inputId ? inputId.value.trim() : '';
+    const nombre = form.querySelector('[name="nombre"]')?.value?.trim() || '';
+    const genero = form.querySelector('[name="genero"]')?.value?.trim() || '';
+    const biografia = form.querySelector('[name="biografia"]')?.value?.trim() || '';
+    const instagram = form.querySelector('[name="instagram"]')?.value?.trim() || '';
+    const twitter = form.querySelector('[name="twitter"]')?.value?.trim() || '';
+    const web = form.querySelector('[name="web"]')?.value?.trim() || '';
+    const publicadoCheck = document.getElementById('autor-publicado');
+    const estaPublicado = publicadoCheck ? publicadoCheck.checked : true;
+
+    // Subir foto si se seleccionó un archivo
+    let fotoUrl = '';
+    const fotoInput = document.getElementById('autor-foto');
+    if (fotoInput && fotoInput.files && fotoInput.files.length > 0) {
+      btnGuardar.textContent = 'Subiendo foto...';
+      const archivo = fotoInput.files[0];
+      const storageRef = storage.ref(`autores/${Date.now()}_${archivo.name}`);
+      const snapshot = await storageRef.put(archivo);
+      fotoUrl = await snapshot.ref.getDownloadURL();
     }
 
-    try {
-      const inputId = formAutorElement.querySelector('input[name="id"]');
-      const docId = inputId ? inputId.value.trim() : '';
+    const datosAutor = {
+      nombre,
+      genero,
+      biografia,
+      bio: biografia,
+      publicado: estaPublicado,
+      usuario_id: usuarioActual ? usuarioActual.uid : '',
+      redes: { instagram, twitter, web },
+      actualizado_en: firebase.firestore.FieldValue.serverTimestamp()
+    };
+    if (fotoUrl) datosAutor.foto = fotoUrl;
 
-      const nombre = (formAutorElement.querySelector('[name="nombre"]')?.value || '').trim();
-      const genero = (formAutorElement.querySelector('[name="genero"]')?.value || '').trim();
-      const biografia = (formAutorElement.querySelector('[name="biografia"]')?.value || '').trim();
-      const instagram = (formAutorElement.querySelector('[name="instagram"]')?.value || '').trim();
-      const facebook = (formAutorElement.querySelector('[name="facebook"]')?.value || '').trim();
-      const twitter = (formAutorElement.querySelector('[name="twitter"]')?.value || '').trim();
-      const enlace_venta = (formAutorElement.querySelector('[name="enlace_venta"]')?.value || '').trim();
-      const web = (formAutorElement.querySelector('[name="web"]')?.value || '').trim();
-
-      const publicadoCheck = formAutorElement.querySelector('#autor-publicado') || formAutorElement.querySelector('[name="publicado"]');
-      const estaPublicado = publicadoCheck ? publicadoCheck.checked : true;
-
-      // Subida de foto a Storage
-      let fotoUrl = '';
-      const fotoInput = document.getElementById('autor-foto');
-
-      if (fotoInput && fotoInput.files && fotoInput.files.length > 0) {
-        if (btnGuardar) btnGuardar.textContent = 'Subiendo foto...';
-        const archivo = fotoInput.files[0];
-        const storageRef = storage.ref(`autores/${Date.now()}_${archivo.name}`);
-        const snapshot = await storageRef.put(archivo);
-        fotoUrl = await snapshot.ref.getDownloadURL();
-      }
-
-      const datosAutor = {
-        nombre,
-        genero,
-        biografia,
-        bio: biografia,
-        publicado: estaPublicado,
-        usuario_id: usuarioActual ? usuarioActual.uid : '',
-        redes: {
-          instagram,
-          facebook,
-          twitter,
-          web: enlace_venta || web
-        },
-        enlace_venta: enlace_venta || web,
-        actualizado_en: firebase.firestore.FieldValue.serverTimestamp()
-      };
-
-      if (fotoUrl) datosAutor.foto = fotoUrl;
-
-      if (docId) {
-        await db.collection('autores').doc(docId).update(datosAutor);
-        alert('Autor actualizado correctamente.');
-      } else {
-        if (!fotoUrl) {
-          datosAutor.foto = 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?q=80&w=200&auto=format&fit=crop';
-        }
-        datosAutor.creado_en = firebase.firestore.FieldValue.serverTimestamp();
-        await db.collection('autores').add(datosAutor);
-        alert('Autor creado correctamente.');
-      }
-
-      formAutorElement.reset();
-      if (inputId) inputId.value = '';
-      formAutorElement.classList.add('hidden');
-      cargarAutores();
-
-    } catch (error) {
-      console.error('Error al guardar autor:', error);
-      alert('Hubo un error al guardar el autor. Inténtalo de nuevo.');
-    } finally {
-      if (btnGuardar) {
-        btnGuardar.disabled = false;
-        btnGuardar.textContent = textoOriginal;
-      }
+    if (docId) {
+      await db.collection('autores').doc(docId).update(datosAutor);
+      alert('Autor actualizado.');
+    } else {
+      if (!fotoUrl) datosAutor.foto = 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?q=80&w=200&auto=format&fit=crop';
+      datosAutor.creado_en = firebase.firestore.FieldValue.serverTimestamp();
+      await db.collection('autores').add(datosAutor);
+      alert('Autor creado.');
     }
-  });
-}
 
-// =========================================================================
-// 6. GESTIÓN DE LIBROS
-// =========================================================================
+    form.reset();
+    if (inputId) inputId.value = '';
+    form.classList.add('hidden');
+    cargarAutores();
+  } catch (error) {
+    console.error('Error al guardar autor:', error);
+    alert('Error al guardar el autor.');
+  } finally {
+    btnGuardar.disabled = false;
+    btnGuardar.textContent = textoOriginal;
+  }
+});
+
+// ================================================================
+// 6. GESTIÓN DE LIBROS (con subida de portada)
+// ================================================================
 
 async function cargarLibros() {
   const container = document.getElementById('listaLibros');
@@ -574,68 +499,95 @@ function crearTarjetaLibro(libro) {
   `;
 }
 
-const formLibroElement = document.getElementById('formLibro');
-if (formLibroElement) {
-  formLibroElement.addEventListener('submit', async event => {
-    event.preventDefault();
-    const form = event.target;
-    const id = form.id.value;
-    const data = Object.fromEntries(new FormData(form).entries());
-    data.publicado = form.publicado ? form.publicado.checked : true;
-    data.usuario_id = usuarioActual.uid;
-    data.actualizado_en = firebase.firestore.FieldValue.serverTimestamp();
+document.getElementById('formLibro')?.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const form = e.target;
+  const btnGuardar = form.querySelector('button[type="submit"]');
+  btnGuardar.disabled = true;
+  btnGuardar.textContent = 'Guardando...';
 
-    try {
-      if (id) await db.collection('libros').doc(id).update(data);
-      else {
-        data.creado_en = firebase.firestore.FieldValue.serverTimestamp();
-        await db.collection('libros').add(data);
-      }
-      prepararFormulario('formLibro', false);
-      cargarLibros();
-      alert('Libro guardado correctamente.');
-    } catch (error) {
-      console.error(error);
-      alert('No se pudo guardar el libro.');
+  try {
+    const id = form.querySelector('input[name="id"]')?.value || '';
+    const titulo = form.querySelector('[name="titulo"]')?.value?.trim() || '';
+    const autor = form.querySelector('[name="autor"]')?.value?.trim() || '';
+    const precio = form.querySelector('[name="precio"]')?.value?.trim() || '';
+    const enlace_compra = form.querySelector('[name="enlace_compra"]')?.value?.trim() || '';
+    const sinopsis = form.querySelector('[name="sinopsis"]')?.value?.trim() || '';
+    const publicado = form.querySelector('[name="publicado"]')?.checked !== false;
+
+    // Subir portada si se seleccionó archivo
+    let portadaUrl = form.querySelector('[name="portada"]')?.value?.trim() || '';
+    const portadaFile = document.getElementById('portada-file');
+    if (portadaFile && portadaFile.files && portadaFile.files.length > 0) {
+      btnGuardar.textContent = 'Subiendo portada...';
+      const archivo = portadaFile.files[0];
+      const storageRef = storage.ref(`portadas/${Date.now()}_${archivo.name}`);
+      const snapshot = await storageRef.put(archivo);
+      portadaUrl = await snapshot.ref.getDownloadURL();
     }
-  });
-}
+
+    const data = {
+      titulo, autor, precio, enlace_compra, sinopsis, publicado,
+      portada: portadaUrl,
+      usuario_id: usuarioActual.uid,
+      actualizado_en: firebase.firestore.FieldValue.serverTimestamp()
+    };
+
+    if (id) {
+      await db.collection('libros').doc(id).update(data);
+      alert('Libro actualizado.');
+    } else {
+      data.creado_en = firebase.firestore.FieldValue.serverTimestamp();
+      await db.collection('libros').add(data);
+      alert('Libro creado.');
+    }
+
+    form.reset();
+    form.classList.add('hidden');
+    cargarLibros();
+  } catch (error) {
+    console.error('Error al guardar libro:', error);
+    alert('Error al guardar el libro.');
+  } finally {
+    btnGuardar.disabled = false;
+    btnGuardar.textContent = 'Guardar libro';
+  }
+});
 
 async function editarLibro(id) {
   const doc = await db.collection('libros').doc(id).get();
   if (!doc.exists) return;
   const form = document.getElementById('formLibro');
   if (!form) return;
-  Object.entries({ id: doc.id, ...doc.data() }).forEach(([key, value]) => {
-    if (form[key]) {
-      form[key].type === 'checkbox' ? form[key].checked = Boolean(value) : form[key].value = value || '';
+  const data = { id: doc.id, ...doc.data() };
+  Object.entries(data).forEach(([key, value]) => {
+    const field = form.querySelector(`[name="${key}"]`);
+    if (field) {
+      if (field.type === 'checkbox') field.checked = Boolean(value);
+      else field.value = value || '';
     }
   });
-  prepararFormulario('formLibro', true);
+  form.classList.remove('hidden');
 }
 
 async function eliminarLibro(id) {
-  if (!confirm('¿Eliminar este libro del catálogo?')) return;
+  if (!confirm('¿Eliminar este libro?')) return;
   await db.collection('libros').doc(id).delete();
   cargarLibros();
   alert('Libro eliminado.');
 }
 
-// =========================================================================
+// ================================================================
 // 7. GESTIÓN DE NOTICIAS
-// =========================================================================
+// ================================================================
 
 async function cargarNoticiasUsuario() {
   const container = document.getElementById('listaNoticias');
   if (!container || !db || !usuarioActual) return;
-
   container.innerHTML = '<div class="col-span-full flex justify-center py-12"><div class="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div></div>';
 
   try {
-    const snapshot = await db.collection('noticias')
-      .where('usuario_id', '==', usuarioActual.uid)
-      .get();
-
+    const snapshot = await db.collection('noticias').where('usuario_id', '==', usuarioActual.uid).get();
     if (snapshot.empty) {
       container.innerHTML = '<div class="col-span-full text-center py-12"><p class="text-darktext/40 mb-4">No tienes noticias publicadas</p></div>';
       return;
@@ -643,17 +595,15 @@ async function cargarNoticiasUsuario() {
 
     let noticias = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
     noticias.sort((a, b) => {
-      const fechaA = a.fecha_creacion ? a.fecha_creacion.toMillis() : 0;
-      const fechaB = b.fecha_creacion ? b.fecha_creacion.toMillis() : 0;
-      return fechaB - fechaA;
+      const fa = a.fecha_creacion ? a.fecha_creacion.toMillis() : 0;
+      const fb = b.fecha_creacion ? b.fecha_creacion.toMillis() : 0;
+      return fb - fa;
     });
 
-    const html = noticias.map(crearTarjetaNoticiaAdmin).join('');
-    container.innerHTML = html;
-
+    container.innerHTML = noticias.map(crearTarjetaNoticiaAdmin).join('');
   } catch (error) {
     console.error('Error al cargar noticias:', error);
-    container.innerHTML = '<div class="col-span-full text-center py-12"><p class="text-red-500 mb-4">Error al cargar las noticias</p></div>';
+    container.innerHTML = '<div class="col-span-full text-center py-12"><p class="text-red-500">Error al cargar las noticias</p></div>';
   }
 }
 
@@ -661,7 +611,6 @@ function crearTarjetaNoticiaAdmin(noticia) {
   const imagenPrincipal = noticia.imagenes && noticia.imagenes.length > 0
     ? noticia.imagenes.find(img => img.orden === 0)?.url || noticia.imagenes[0].url
     : '';
-
   const estadoClases = {
     publicado: 'bg-green-100 text-green-700',
     borrador: 'bg-yellow-100 text-yellow-700'
@@ -681,7 +630,6 @@ function crearTarjetaNoticiaAdmin(noticia) {
             </svg>
           </div>
         `}
-
         <div class="p-5">
           <div class="flex items-start justify-between mb-3 gap-2">
             <div class="flex-1 min-w-0">
@@ -692,54 +640,35 @@ function crearTarjetaNoticiaAdmin(noticia) {
               ${noticia.estado || 'borrador'}
             </span>
           </div>
-
           <p class="text-xs text-darktext/50 mb-4 line-clamp-2">${noticia.resumen || ''}</p>
         </div>
       </div>
-
       <div class="p-5 pt-0 flex gap-2">
-        <button onclick="editarNoticia('${noticia.id}')" class="flex-1 px-4 py-2 bg-primary text-white rounded-xl text-sm font-medium hover:bg-primary/90 transition">
-          Editar
-        </button>
-        <button onclick="eliminarNoticia('${noticia.id}')" class="px-4 py-2 border border-red-300 text-red-600 rounded-xl text-sm font-medium hover:bg-red-50 transition">
-          Eliminar
-        </button>
+        <button onclick="editarNoticia('${noticia.id}')" class="flex-1 px-4 py-2 bg-primary text-white rounded-xl text-sm font-medium hover:bg-primary/90 transition">Editar</button>
+        <button onclick="eliminarNoticia('${noticia.id}')" class="px-4 py-2 border border-red-300 text-red-600 rounded-xl text-sm font-medium hover:bg-red-50 transition">Eliminar</button>
       </div>
     </div>
   `;
 }
 
-// Control Modal Noticias
-const btnNuevaNoticia = document.getElementById('btnNuevaNoticia');
-if (btnNuevaNoticia) btnNuevaNoticia.addEventListener('click', abrirModalNueva);
+// Modal de noticias
+document.getElementById('btnNuevaNoticia')?.addEventListener('click', abrirModalNueva);
+document.getElementById('btnCerrarModal')?.addEventListener('click', cerrarModal);
+document.getElementById('btnCancelar')?.addEventListener('click', cerrarModal);
 
 function abrirModalNueva() {
   noticiaEnEdicion = null;
   imagenesSeleccionadas = [];
   imagenesExistentes = [];
-  const modalTitulo = document.getElementById('modalTitulo');
-  const formNoticia = document.getElementById('formNoticia');
-  const noticiaId = document.getElementById('noticiaId');
-  const previewContainer = document.getElementById('previewImagenes');
-
-  if (modalTitulo) modalTitulo.textContent = 'Nueva Noticia';
-  if (formNoticia) formNoticia.reset();
-  if (noticiaId) noticiaId.value = '';
-  if (previewContainer) previewContainer.innerHTML = '';
-
-  const modalNoticia = document.getElementById('modalNoticia');
-  if (modalNoticia) modalNoticia.classList.add('active');
+  document.getElementById('modalTitulo').textContent = 'Nueva Noticia';
+  document.getElementById('formNoticia').reset();
+  document.getElementById('noticiaId').value = '';
+  document.getElementById('previewImagenes').innerHTML = '';
+  document.getElementById('modalNoticia').classList.add('active');
 }
 
-const btnCerrarModal = document.getElementById('btnCerrarModal');
-if (btnCerrarModal) btnCerrarModal.addEventListener('click', cerrarModal);
-
-const btnCancelar = document.getElementById('btnCancelar');
-if (btnCancelar) btnCancelar.addEventListener('click', cerrarModal);
-
 function cerrarModal() {
-  const modalNoticia = document.getElementById('modalNoticia');
-  if (modalNoticia) modalNoticia.classList.remove('active');
+  document.getElementById('modalNoticia').classList.remove('active');
   noticiaEnEdicion = null;
   imagenesSeleccionadas = [];
   imagenesExistentes = [];
@@ -748,92 +677,68 @@ function cerrarModal() {
 async function editarNoticia(id) {
   try {
     const doc = await db.collection('noticias').doc(id).get();
-    if (!doc.exists) {
-      alert('Noticia no encontrada');
-      return;
-    }
+    if (!doc.exists) { alert('Noticia no encontrada'); return; }
     noticiaEnEdicion = { id: doc.id, ...doc.data() };
     imagenesExistentes = noticiaEnEdicion.imagenes || [];
     imagenesSeleccionadas = [];
 
     const form = document.getElementById('formNoticia');
     if (form) {
-      if (form.titulo) form.titulo.value = noticiaEnEdicion.titulo || '';
-      if (form.resumen) form.resumen.value = noticiaEnEdicion.resumen || '';
-      if (form.contenido) form.contenido.value = noticiaEnEdicion.contenido || '';
-      if (form.categoria) form.categoria.value = noticiaEnEdicion.categoria || 'Novedad';
-      if (form.estado) form.estado.value = noticiaEnEdicion.estado || 'publicado';
-      if (form.autor) form.autor.value = noticiaEnEdicion.autor || '';
-      if (form.fecha_publicacion) form.fecha_publicacion.value = noticiaEnEdicion.fecha_publicacion || '';
-      if (form.enlace_externo) form.enlace_externo.value = noticiaEnEdicion.enlace_externo || '';
-      if (form.destacado) form.destacado.checked = noticiaEnEdicion.destacado || false;
+      form.titulo.value = noticiaEnEdicion.titulo || '';
+      form.resumen.value = noticiaEnEdicion.resumen || '';
+      form.contenido.value = noticiaEnEdicion.contenido || '';
+      form.categoria.value = noticiaEnEdicion.categoria || 'Novedad';
+      form.estado.value = noticiaEnEdicion.estado || 'publicado';
+      form.autor.value = noticiaEnEdicion.autor || '';
+      form.fecha_publicacion.value = noticiaEnEdicion.fecha_publicacion || '';
+      form.enlace_externo.value = noticiaEnEdicion.enlace_externo || '';
+      form.destacado.checked = noticiaEnEdicion.destacado || false;
     }
-
-    const inputNoticiaId = document.getElementById('noticiaId');
-    if (inputNoticiaId) inputNoticiaId.value = doc.id;
-
-    const modalTitulo = document.getElementById('modalTitulo');
-    if (modalTitulo) modalTitulo.textContent = 'Editar Noticia';
-
+    document.getElementById('noticiaId').value = doc.id;
+    document.getElementById('modalTitulo').textContent = 'Editar Noticia';
     mostrarPreviewImagenes();
-    const modalNoticia = document.getElementById('modalNoticia');
-    if (modalNoticia) modalNoticia.classList.add('active');
-
+    document.getElementById('modalNoticia').classList.add('active');
   } catch (error) {
     console.error('Error al cargar noticia:', error);
-    alert('Error al cargar la noticia');
+    alert('Error al cargar la noticia.');
   }
 }
 
 async function eliminarNoticia(id) {
-  if (!confirm('¿Estás seguro de eliminar esta noticia? También se eliminarán sus imágenes.')) return;
+  if (!confirm('¿Eliminar esta noticia y sus imágenes?')) return;
   try {
     const doc = await db.collection('noticias').doc(id).get();
     const noticia = doc.data();
-
     if (noticia && noticia.imagenes && noticia.imagenes.length > 0) {
       const deletePromises = noticia.imagenes.map(img => {
         try {
           const path = img.url.split('/o/')[1].split('?')[0];
           const decodedPath = decodeURIComponent(path);
           return storage.ref(decodedPath).delete().catch(err => console.warn('Error al borrar imagen:', err));
-        } catch (e) {
-          return Promise.resolve();
-        }
+        } catch (e) { return Promise.resolve(); }
       });
       await Promise.all(deletePromises);
     }
-
     await db.collection('noticias').doc(id).delete();
-    alert('Noticia eliminada correctamente');
+    alert('Noticia eliminada.');
     cargarNoticiasUsuario();
-
   } catch (error) {
     console.error('Error al eliminar noticia:', error);
     alert('Error al eliminar la noticia.');
   }
 }
 
-// Control de Imágenes
-const inputImagenes = document.getElementById('inputImagenes');
-if (inputImagenes) {
-  inputImagenes.addEventListener('change', (e) => {
-    const files = Array.from(e.target.files);
-    files.forEach(file => {
-      if (file.size > 5 * 1024 * 1024) {
-        alert(`La imagen ${file.name} supera los 5MB`);
-        return;
-      }
-      if (!file.type.startsWith('image/')) {
-        alert(`El archivo ${file.name} no es una imagen válida`);
-        return;
-      }
-      imagenesSeleccionadas.push(file);
-    });
-    mostrarPreviewImagenes();
-    e.target.value = '';
+// Control de imágenes en noticias
+document.getElementById('inputImagenes')?.addEventListener('change', (e) => {
+  const files = Array.from(e.target.files);
+  files.forEach(file => {
+    if (file.size > 5 * 1024 * 1024) { alert(`La imagen ${file.name} supera los 5MB`); return; }
+    if (!file.type.startsWith('image/')) { alert(`El archivo ${file.name} no es una imagen válida`); return; }
+    imagenesSeleccionadas.push(file);
   });
-}
+  mostrarPreviewImagenes();
+  e.target.value = '';
+});
 
 function mostrarPreviewImagenes() {
   const container = document.getElementById('previewImagenes');
@@ -867,34 +772,20 @@ function mostrarPreviewImagenes() {
   });
 }
 
-function eliminarImagenExistente(index) {
-  imagenesExistentes.splice(index, 1);
-  mostrarPreviewImagenes();
-}
-
-function eliminarImagenNueva(index) {
-  imagenesSeleccionadas.splice(index, 1);
-  mostrarPreviewImagenes();
-}
+function eliminarImagenExistente(index) { imagenesExistentes.splice(index, 1); mostrarPreviewImagenes(); }
+function eliminarImagenNueva(index) { imagenesSeleccionadas.splice(index, 1); mostrarPreviewImagenes(); }
 
 async function subirImagenes(noticiaId) {
   const urlsImagenes = [...imagenesExistentes];
-
   for (let i = 0; i < imagenesSeleccionadas.length; i++) {
     const file = imagenesSeleccionadas[i];
     const timestamp = Date.now();
     const fileName = `${noticiaId}_${timestamp}_${i}.jpg`;
     const storageRef = storage.ref(`noticias/${usuarioActual.uid}/${fileName}`);
-
     try {
       const snapshot = await storageRef.put(file);
       const url = await snapshot.ref.getDownloadURL();
-
-      urlsImagenes.push({
-        url: url,
-        nombre: fileName,
-        orden: urlsImagenes.length
-      });
+      urlsImagenes.push({ url, nombre: fileName, orden: urlsImagenes.length });
     } catch (error) {
       console.error('Error al subir imagen:', error);
       alert(`Error al subir la imagen ${file.name}. Se omitirá.`);
@@ -903,149 +794,116 @@ async function subirImagenes(noticiaId) {
   return urlsImagenes;
 }
 
-// Formulario Noticia Submit
-const formNoticia = document.getElementById('formNoticia');
-if (formNoticia) {
-  formNoticia.addEventListener('submit', async (e) => {
-    e.preventDefault();
+document.getElementById('formNoticia')?.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const form = e.target;
+  const btnGuardar = document.getElementById('btnGuardar');
+  const noticiaIdInput = document.getElementById('noticiaId');
+  const noticiaId = noticiaIdInput ? noticiaIdInput.value : '';
 
-    const form = e.target;
-    const btnGuardar = document.getElementById('btnGuardar');
-    const noticiaIdInput = document.getElementById('noticiaId');
-    const noticiaId = noticiaIdInput ? noticiaIdInput.value : '';
+  btnGuardar.textContent = 'Guardando...';
+  btnGuardar.disabled = true;
 
-    if (btnGuardar) {
-      btnGuardar.textContent = 'Guardando...';
-      btnGuardar.disabled = true;
+  try {
+    const datos = {
+      titulo: form.titulo.value.trim(),
+      resumen: form.resumen.value.trim(),
+      contenido: form.contenido.value.trim(),
+      categoria: form.categoria.value || 'Novedad',
+      estado: form.estado.value || 'publicado',
+      autor: form.autor.value.trim(),
+      fecha_publicacion: form.fecha_publicacion.value || '',
+      enlace_externo: form.enlace_externo.value.trim(),
+      destacado: form.destacado.checked,
+      usuario_id: usuarioActual.uid,
+      fecha_actualizacion: firebase.firestore.FieldValue.serverTimestamp()
+    };
+
+    let docId;
+    if (noticiaId) {
+      docId = noticiaId;
+      const imagenes = await subirImagenes(docId);
+      datos.imagenes = imagenes;
+      await db.collection('noticias').doc(docId).update(datos);
+      alert('Noticia actualizada.');
+    } else {
+      datos.fecha_creacion = firebase.firestore.FieldValue.serverTimestamp();
+      const docRef = await db.collection('noticias').add(datos);
+      docId = docRef.id;
+      const imagenes = await subirImagenes(docId);
+      await db.collection('noticias').doc(docId).update({ imagenes });
+      alert('Noticia publicada.');
     }
 
-    try {
-      const datos = {
-        titulo: (form.titulo?.value || '').trim(),
-        resumen: (form.resumen?.value || '').trim(),
-        contenido: (form.contenido?.value || '').trim(),
-        categoria: form.categoria?.value || 'Novedad',
-        estado: form.estado?.value || 'publicado',
-        autor: (form.autor?.value || '').trim(),
-        fecha_publicacion: form.fecha_publicacion?.value || '',
-        enlace_externo: (form.enlace_externo?.value || '').trim(),
-        destacado: form.destacado ? form.destacado.checked : false,
-        usuario_id: usuarioActual.uid,
-        fecha_actualizacion: firebase.firestore.FieldValue.serverTimestamp()
-      };
+    cerrarModal();
+    cargarNoticiasUsuario();
+  } catch (error) {
+    console.error('Error al guardar noticia:', error);
+    alert('Error al guardar la noticia.');
+  } finally {
+    btnGuardar.textContent = 'Guardar Noticia';
+    btnGuardar.disabled = false;
+  }
+});
 
-      let docId;
+// ================================================================
+// 8. CONFIGURACIÓN DE PERFIL
+// ================================================================
 
-      if (noticiaId) {
-        docId = noticiaId;
-        const imagenes = await subirImagenes(docId);
-        datos.imagenes = imagenes;
-        await db.collection('noticias').doc(docId).update(datos);
-        alert('Noticia actualizada correctamente');
-      } else {
-        datos.fecha_creacion = firebase.firestore.FieldValue.serverTimestamp();
-        const docRef = await db.collection('noticias').add(datos);
-        docId = docRef.id;
+document.getElementById('btnActualizarPerfil')?.addEventListener('click', async () => {
+  const nombre = document.getElementById('inputNombre').value.trim();
+  const telefono = document.getElementById('inputTelefono').value.trim();
+  if (!nombre) { alert('El nombre es obligatorio'); return; }
 
-        const imagenes = await subirImagenes(docId);
-        await db.collection('noticias').doc(docId).update({ imagenes });
-
-        alert('Noticia publicada correctamente');
-      }
-
-      cerrarModal();
-      cargarNoticiasUsuario();
-
-    } catch (error) {
-      console.error('Error al guardar noticia:', error);
-      alert('Error al guardar la noticia. Revisa la consola para más detalles.');
-    } finally {
-      if (btnGuardar) {
-        btnGuardar.textContent = 'Guardar Noticia';
-        btnGuardar.disabled = false;
-      }
+  try {
+    if (auth && auth.currentUser) {
+      await auth.currentUser.updateProfile({ displayName: nombre });
     }
-  });
-}
+    await db.collection('usuarios').doc(usuarioActual.uid).set({
+      nombre, telefono, email: usuarioActual.email
+    }, { merge: true });
+    alert('Perfil actualizado.');
+    await cargarDatosUsuario(usuarioActual);
+  } catch (error) {
+    console.error('Error al actualizar perfil:', error);
+    alert('Error al actualizar el perfil.');
+  }
+});
 
-// =========================================================================
-// 8. CONFIGURACIÓN DE PERFIL Y FILTROS
-// =========================================================================
+// ================================================================
+// 9. FILTROS DE NOTICIAS
+// ================================================================
 
-const btnActualizarPerfil = document.getElementById('btnActualizarPerfil');
-if (btnActualizarPerfil) {
-  btnActualizarPerfil.addEventListener('click', async () => {
-    const nombre = document.getElementById('inputNombre').value.trim();
-    const telefono = document.getElementById('inputTelefono').value.trim();
+document.getElementById('btnAplicarFiltros')?.addEventListener('click', async () => {
+  const titulo = document.getElementById('filtroTitulo').value.toLowerCase();
+  const categoria = document.getElementById('filtroCategoria').value;
+  const estado = document.getElementById('filtroEstado').value;
+  const container = document.getElementById('listaNoticias');
+  container.innerHTML = '<div class="col-span-full flex justify-center py-12"><div class="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div></div>';
 
-    if (!nombre) {
-      alert('El nombre es obligatorio');
+  try {
+    let query = db.collection('noticias').where('usuario_id', '==', usuarioActual.uid);
+    if (categoria) query = query.where('categoria', '==', categoria);
+    if (estado) query = query.where('estado', '==', estado);
+
+    const snapshot = await query.get();
+    let noticias = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    if (titulo) noticias = noticias.filter(n => (n.titulo || '').toLowerCase().includes(titulo));
+
+    if (noticias.length === 0) {
+      container.innerHTML = '<div class="col-span-full text-center py-12"><p class="text-darktext/40">No se encontraron noticias</p></div>';
       return;
     }
+    container.innerHTML = noticias.map(crearTarjetaNoticiaAdmin).join('');
+  } catch (error) {
+    console.error('Error al filtrar:', error);
+    container.innerHTML = '<div class="col-span-full text-center py-12"><p class="text-red-500">Error al aplicar filtros</p></div>';
+  }
+});
 
-    try {
-      if (auth && auth.currentUser) {
-        await auth.currentUser.updateProfile({ displayName: nombre });
-      }
-
-      await db.collection('usuarios').doc(usuarioActual.uid).set({
-        nombre: nombre,
-        telefono: telefono,
-        email: usuarioActual.email
-      }, { merge: true });
-
-      alert('Perfil actualizado correctamente');
-      await cargarDatosUsuario(usuarioActual);
-
-    } catch (error) {
-      console.error('Error al actualizar perfil:', error);
-      alert('Error al actualizar el perfil');
-    }
-  });
-}
-
-const btnAplicarFiltros = document.getElementById('btnAplicarFiltros');
-if (btnAplicarFiltros) {
-  btnAplicarFiltros.addEventListener('click', async () => {
-    const titulo = document.getElementById('filtroTitulo').value.toLowerCase();
-    const categoria = document.getElementById('filtroCategoria').value;
-    const estado = document.getElementById('filtroEstado').value;
-
-    const container = document.getElementById('listaNoticias');
-    if (!container) return;
-    container.innerHTML = '<div class="col-span-full flex justify-center py-12"><div class="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div></div>';
-
-    try {
-      let query = db.collection('noticias').where('usuario_id', '==', usuarioActual.uid);
-
-      if (categoria) query = query.where('categoria', '==', categoria);
-      if (estado) query = query.where('estado', '==', estado);
-
-      const snapshot = await query.get();
-      let noticias = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-
-      if (titulo) {
-        noticias = noticias.filter(n => (n.titulo || '').toLowerCase().includes(titulo));
-      }
-
-      if (noticias.length === 0) {
-        container.innerHTML = '<div class="col-span-full text-center py-12"><p class="text-darktext/40">No se encontraron noticias</p></div>';
-        return;
-      }
-
-      const html = noticias.map(crearTarjetaNoticiaAdmin).join('');
-      container.innerHTML = html;
-
-    } catch (error) {
-      console.error('Error al filtrar:', error);
-      container.innerHTML = '<div class="col-span-full text-center py-12"><p class="text-red-500">Error al aplicar filtros</p></div>';
-    }
-  });
-}
-
-// =========================================================================
-// 9. UTILIDADES Y EXPOSICIÓN GLOBAL
-// =========================================================================
+// ================================================================
+// 10. UTILIDADES Y EXPOSICIÓN GLOBAL
+// ================================================================
 
 function obtenerMensajeError(code) {
   const errores = {
@@ -1058,7 +916,7 @@ function obtenerMensajeError(code) {
   return errores[code] || 'Error al iniciar sesión.';
 }
 
-// EXPONER FUNCIONES GLOBALMENTE (para usar con onclick en HTML)
+// Exponer funciones globalmente para onclick en HTML
 window.editarAutor = editarAutor;
 window.eliminarAutor = eliminarAutor;
 window.editarLibro = editarLibro;

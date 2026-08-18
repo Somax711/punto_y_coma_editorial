@@ -1,3 +1,7 @@
+// ================================================================
+// CONFIGURACIÓN DE FIREBASE
+// ================================================================
+
 const firebaseConfig = {
   apiKey: "AIzaSyC6GGmebTtMc5Fgv1BJQYfITuDaYTCOk2M",
   authDomain: "puntoycomaeditorial-b7a0a.firebaseapp.com",
@@ -12,7 +16,10 @@ if (firebase.apps.length === 0) {
     firebase.initializeApp(firebaseConfig);
 }
 
+// Exportar servicios globalmente
 window.db = firebase.firestore();
 window.storage = firebase.storage();
 window.auth = firebase.auth();
-window.FIREBASE_ADMIN_EMAILS = ['puntoycoma.ediciontextos@gmail.com']; 
+
+// Lista de correos con permisos de administrador
+window.FIREBASE_ADMIN_EMAILS = ['puntoycoma.ediciontextos@gmail.com'];
