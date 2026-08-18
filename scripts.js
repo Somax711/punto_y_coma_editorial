@@ -18,6 +18,15 @@ function linkWhatsapp(mensaje) {
 let autoresData = [];
 
 // ================================================================
+// AUTENTICACIÓN ANÓNIMA (para permitir escritura en mensajes)
+// ================================================================
+if (firebase && firebase.auth) {
+  firebase.auth().signInAnonymously()
+    .then(() => console.log('🔓 Autenticación anónima exitosa'))
+    .catch(error => console.warn('⚠️ Auth anónima falló:', error));
+}
+
+// ================================================================
 // DOMContentLoaded - Asignación de eventos y carga inicial
 // ================================================================
 document.addEventListener("DOMContentLoaded", () => {
@@ -127,7 +136,7 @@ window.cerrarModalContacto = function() {
   }, 250);
 };
 
-// Enviar mensaje de contacto
+// Enviar mensaje de contacto (corregido)
 document.getElementById('formContacto')?.addEventListener('submit', async (e) => {
   e.preventDefault();
   const btn = document.getElementById('btnEnviarContacto');
@@ -150,9 +159,10 @@ document.getElementById('formContacto')?.addEventListener('submit', async (e) =>
     return;
   }
 
+  // Verificar que la base de datos esté disponible
   const db = window.db || (typeof db !== 'undefined' ? db : null);
   if (!db) {
-    respuesta.textContent = 'Error de conexión. Intenta más tarde.';
+    respuesta.textContent = 'Error de conexión con el servidor. Intenta más tarde.';
     respuesta.className = 'mt-4 text-red-600 text-sm font-medium block';
     respuesta.classList.remove('hidden');
     btn.disabled = false;
@@ -161,13 +171,19 @@ document.getElementById('formContacto')?.addEventListener('submit', async (e) =>
   }
 
   try {
+    // Verificar que firebase y FieldValue están disponibles
+    if (typeof firebase === 'undefined' || !firebase.firestore) {
+      throw new Error('Firebase no está inicializado correctamente.');
+    }
+    const timestamp = firebase.firestore.FieldValue.serverTimestamp();
+
     await db.collection('mensajes').add({
       nombre,
       email,
       asunto,
       mensaje,
       leido: false,
-      fecha: firebase.firestore.FieldValue.serverTimestamp()
+      fecha: timestamp
     });
 
     respuesta.textContent = '¡Mensaje enviado con éxito! Te responderemos pronto.';
@@ -176,8 +192,8 @@ document.getElementById('formContacto')?.addEventListener('submit', async (e) =>
     document.getElementById('formContacto').reset();
     setTimeout(cerrarModalContacto, 3000);
   } catch (error) {
-    console.error('Error al enviar mensaje:', error);
-    respuesta.textContent = 'Hubo un error al enviar. Intenta nuevamente.';
+    console.error('❌ Error detallado al enviar mensaje:', error);
+    respuesta.textContent = `Error: ${error.message || 'No se pudo enviar el mensaje. Intenta nuevamente.'}`;
     respuesta.className = 'mt-4 text-red-600 text-sm font-medium block';
     respuesta.classList.remove('hidden');
   } finally {
