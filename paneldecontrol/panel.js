@@ -121,7 +121,7 @@ if (auth) {
         cargarResumen();
         cargarAutores();
         cargarLibros();
-        cargarMensajes();
+        cargarMensajes(); // 🔥 Se llama al cargar el panel
       } catch (error) {
         console.error('Error al validar permisos:', error);
         await auth.signOut();
@@ -199,9 +199,10 @@ async function cargarResumen() {
     const totalLibros = snapLibros.docs.filter(doc => doc.data().publicado !== false).length;
     document.getElementById('statLibros').textContent = totalLibros;
 
-    // Mensajes no leídos
-    const snapMensajes = await db.collection('mensajes').where('leido', '==', false).get();
-    document.getElementById('statMensajes').textContent = snapMensajes.size;
+    // Mensajes no leídos (CORREGIDO: sin orderBy para evitar índice)
+    const snapMensajes = await db.collection('mensajes').get();
+    const noLeidos = snapMensajes.docs.filter(doc => !doc.data().leido).length;
+    document.getElementById('statMensajes').textContent = noLeidos;
   } catch (error) { console.warn('No se pudo cargar el resumen:', error); }
 }
 
@@ -666,84 +667,61 @@ document.getElementById('formNoticia')?.addEventListener('submit', async (e) => 
 });
 
 // ================================================================
-// 6. GESTIÓN DE MENSAJES
-// ================================================================
-
-// ================================================================
-// 6. GESTIÓN DE MENSAJES (corregida)
+// 6. GESTIÓN DE MENSAJES (CORREGIDO)
 // ================================================================
 
 async function cargarMensajes() {
   const container = document.getElementById('listaMensajes');
   if (!container || !db) {
-    console.error('❌ No se encontró el contenedor o la base de datos');
+    console.warn('No se puede cargar mensajes: container o db no disponibles');
     return;
   }
 
-  container.innerHTML = '<div class="text-center py-12"><i class="fas fa-spinner fa-spin text-primary text-2xl"></i><p class="text-darktext/50 mt-2">Cargando mensajes...</p></div>';
+  container.innerHTML = '<div class="text-center py-12 text-darktext/50">Cargando mensajes...</div>';
 
   try {
-    console.log('📩 Cargando mensajes...');
-    
-    // Primero, verificar si la colección existe intentando obtener un documento
-    const testSnapshot = await db.collection('mensajes').limit(1).get();
-    if (testSnapshot.empty) {
-      console.log('ℹ️ No hay mensajes aún.');
-      container.innerHTML = `
-        <div class="text-center py-12 bg-white rounded-2xl border border-dorado/10">
-          <i class="fa-regular fa-envelope text-4xl text-primary/30 mb-3"></i>
-          <p class="text-darktext/50">No hay mensajes aún.</p>
-          <p class="text-sm text-darktext/30 mt-1">Los mensajes del formulario de contacto aparecerán aquí.</p>
-        </div>
-      `;
-      document.getElementById('statMensajes').textContent = '0';
-      return;
-    }
+    // 🔥 CORREGIDO: Eliminamos orderBy para evitar índice, ordenamos en el frontend
+    const snapshot = await db.collection('mensajes').get();
 
-    // Obtener todos los mensajes ordenados por fecha (descendente)
-    const snapshot = await db.collection('mensajes')
-      .orderBy('fecha', 'desc')
-      .get();
-
-    console.log(`📩 Mensajes encontrados: ${snapshot.size}`);
+    console.log('📬 Mensajes obtenidos de Firestore:', snapshot.size);
 
     if (snapshot.empty) {
-      container.innerHTML = `
-        <div class="text-center py-12 bg-white rounded-2xl border border-dorado/10">
-          <i class="fa-regular fa-envelope text-4xl text-primary/30 mb-3"></i>
-          <p class="text-darktext/50">No hay mensajes aún.</p>
-        </div>
-      `;
+      container.innerHTML = '<div class="text-center py-12 text-darktext/50">No hay mensajes aún. Los mensajes del formulario de contacto aparecerán aquí.</div>';
+      // Actualizar contador del dashboard
       document.getElementById('statMensajes').textContent = '0';
       return;
     }
 
-    let html = '';
-    let noLeidos = 0;
+    // Convertir a array y ordenar por fecha (más reciente primero)
+    let mensajes = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    mensajes.sort((a, b) => {
+      const fechaA = a.fecha ? a.fecha.toMillis() : 0;
+      const fechaB = b.fecha ? b.fecha.toMillis() : 0;
+      return fechaB - fechaA;
+    });
 
-    snapshot.forEach(doc => {
-      const msg = { id: doc.id, ...doc.data() };
+    // Actualizar contador de no leídos
+    const noLeidos = mensajes.filter(m => !m.leido).length;
+    document.getElementById('statMensajes').textContent = noLeidos;
+
+    let html = '';
+    mensajes.forEach(msg => {
       const fecha = msg.fecha ? new Date(msg.fecha.toMillis()).toLocaleString('es-CO') : 'Fecha desconocida';
       const leido = msg.leido || false;
-      if (!leido) noLeidos++;
       const claseLeido = leido ? 'mensaje-leido' : 'mensaje-no-leido';
 
       html += `
-        <div class="panel-card p-5 rounded-xl border border-lightbg ${claseLeido} transition hover:shadow-md">
+        <div class="panel-card p-5 rounded-xl border border-lightbg ${claseLeido}">
           <div class="flex flex-col md:flex-row md:items-center justify-between gap-3">
-            <div class="flex-1 min-w-0">
-              <div class="flex items-center gap-3 flex-wrap">
-                <p class="font-bold text-secondary">${msg.nombre || 'Anónimo'}</p>
-                <span class="text-xs text-darktext/40">${fecha}</span>
-                ${!leido ? '<span class="text-xs bg-primary/20 text-primary px-2 py-0.5 rounded-full font-medium">Nuevo</span>' : ''}
-              </div>
+            <div class="flex-1">
+              <p class="font-bold text-secondary">${msg.nombre || 'Anónimo'} <span class="text-xs font-normal text-darktext/50">${fecha}</span></p>
               <p class="text-sm text-primary">${msg.email || ''}</p>
               <p class="text-sm font-medium text-secondary mt-1">${msg.asunto || 'Sin asunto'}</p>
-              <p class="text-sm text-darktext/70 mt-1">${msg.mensaje || ''}</p>
+              <p class="text-sm text-darktext/70 mt-1 line-clamp-3">${msg.mensaje || ''}</p>
             </div>
             <div class="flex gap-2 flex-shrink-0">
-              ${!leido ? `<button onclick="marcarLeido('${msg.id}')" class="px-3 py-1.5 bg-green-100 text-green-700 hover:bg-green-200 rounded-lg text-xs font-medium transition">Marcar leído</button>` : ''}
-              <button onclick="eliminarMensaje('${msg.id}')" class="px-3 py-1.5 bg-red-50 text-red-600 hover:bg-red-100 rounded-lg text-xs font-medium transition">Eliminar</button>
+              ${!leido ? `<button onclick="marcarLeido('${msg.id}')" class="px-3 py-1 bg-green-100 text-green-700 hover:bg-green-200 rounded text-xs font-medium transition">Marcar leído</button>` : ''}
+              <button onclick="eliminarMensaje('${msg.id}')" class="px-3 py-1 bg-red-50 text-red-600 hover:bg-red-100 rounded text-xs font-medium transition">Eliminar</button>
             </div>
           </div>
         </div>
@@ -751,23 +729,40 @@ async function cargarMensajes() {
     });
 
     container.innerHTML = html;
-    document.getElementById('statMensajes').textContent = noLeidos;
-    console.log(`✅ Mensajes cargados: ${snapshot.size}, no leídos: ${noLeidos}`);
 
   } catch (error) {
     console.error('❌ Error al cargar mensajes:', error);
-    container.innerHTML = `
-      <div class="text-center py-12 bg-white rounded-2xl border border-red-200">
-        <i class="fa-solid fa-exclamation-triangle text-red-400 text-3xl mb-3"></i>
-        <p class="text-red-500 font-medium">Error al cargar los mensajes</p>
-        <p class="text-sm text-darktext/50 mt-1">${error.message || 'Intenta recargar la página.'}</p>
-        <button onclick="cargarMensajes()" class="mt-4 px-4 py-2 bg-primary text-white rounded-lg text-sm font-medium hover:bg-primary/90 transition">
-          <i class="fa-solid fa-rotate mr-2"></i> Reintentar
-        </button>
-      </div>
-    `;
+    container.innerHTML = `<div class="text-center py-12 text-red-500">Error al cargar los mensajes: ${error.message || 'Intenta nuevamente.'}</div>`;
   }
 }
+
+// Función para marcar como leído
+async function marcarLeido(id) {
+  if (!db) return;
+  try {
+    await db.collection('mensajes').doc(id).update({ leido: true });
+    cargarMensajes(); // Recargar la lista
+  } catch (error) {
+    console.error('Error al marcar como leído:', error);
+    alert('Error al marcar como leído.');
+  }
+}
+
+// Función para eliminar mensaje
+async function eliminarMensaje(id) {
+  if (!confirm('¿Eliminar este mensaje?')) return;
+  try {
+    await db.collection('mensajes').doc(id).delete();
+    cargarMensajes(); // Recargar la lista
+  } catch (error) {
+    console.error('Error al eliminar mensaje:', error);
+    alert('Error al eliminar el mensaje.');
+  }
+}
+
+// Botón de recarga manual
+document.getElementById('btnRecargarMensajes')?.addEventListener('click', cargarMensajes);
+
 // ================================================================
 // 7. CONFIGURACIÓN DE PERFIL
 // ================================================================
@@ -838,4 +833,4 @@ window.cargarMensajes = cargarMensajes;
 window.marcarLeido = marcarLeido;
 window.eliminarMensaje = eliminarMensaje;
 
-console.log('Funciones globales expuestas correctamente.');
+console.log('✅ Funciones globales expuestas correctamente.');
