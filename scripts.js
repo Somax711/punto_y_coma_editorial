@@ -581,3 +581,15 @@ const observer = new IntersectionObserver((entries) => {
 document.addEventListener('DOMContentLoaded', () => {
   document.querySelectorAll('.reveal-up, .reveal-left, .reveal-right, .reveal-zoom').forEach(el => observer.observe(el));
 });
+
+
+// Dentro de la navegación
+document.querySelectorAll('.nav-link').forEach(link => {
+  link.addEventListener('click', (e) => {
+    // ... código existente ...
+    if (section === 'mensajes') {
+      cargarMensajes(); // Cargar mensajes al entrar
+    }
+    // ... resto ...
+  });
+});
