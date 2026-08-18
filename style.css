@@ -11,7 +11,6 @@ body {
   color: #3B2925;
 }
 
-/* Menú */
 .nav-link {
   color: #5B4540;
   transition: color .2s ease;
@@ -24,7 +23,6 @@ body {
    ANIMACIONES DE REVELADO (entrada al hacer scroll)
    ================================================================ */
 
-/* Base (por si se usa la clase .reveal en algún sitio) */
 .reveal {
   opacity: 0;
   transform: translateY(30px);
@@ -35,7 +33,6 @@ body {
   transform: translateY(0);
 }
 
-/* Variantes con diferentes direcciones */
 .reveal-up {
   opacity: 0;
   transform: translateY(40px);
@@ -77,10 +74,9 @@ body {
 }
 
 /* ================================================================
-   EFECTOS WOW (llamativos)
+   EFECTOS WOW
    ================================================================ */
 
-/* Fondo animado en el Hero */
 #inicio {
   position: relative;
   overflow: hidden;
@@ -102,7 +98,6 @@ body {
   100% { transform: translate(-5%, -5%) scale(1.1); }
 }
 
-/* Botones con efecto brillo */
 .btn-glow {
   position: relative;
   overflow: hidden;
@@ -129,9 +124,6 @@ body {
   100% { transform: translateX(100%) rotate(30deg); }
 }
 
-/* ================================================================
-   HERO TITLE (animación de palabras)
-   ================================================================ */
 .hero-title span {
   display: inline-block;
   opacity: 0;
@@ -180,7 +172,151 @@ body {
 }
 
 /* ================================================================
-   TARJETAS DE AUTORES (página pública)
+   SERVICIOS (MEJORADOS)
+   ================================================================ */
+
+.service-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2rem;
+}
+
+.service-card {
+  background: #FFFFFF;
+  border: 1px solid rgba(184, 92, 74, 0.16);
+  border-radius: 1rem;
+  padding: 2.5rem 2rem;
+  box-shadow: 0 8px 25px rgba(59, 41, 37, 0.06);
+  transition: all 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.service-card:hover {
+  transform: translateY(-8px);
+  border-color: #B85C4A;
+  box-shadow: 0 20px 40px rgba(184, 92, 74, 0.15);
+}
+
+.service-icon {
+  width: 4.5rem;
+  height: 4.5rem;
+  background: #B85C4A;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1.5rem;
+  transition: transform 0.3s ease;
+}
+.service-card:hover .service-icon {
+  transform: scale(1.08) rotate(-3deg);
+}
+.service-icon i {
+  font-size: 2rem;
+  color: #FFFFFF;
+}
+
+.service-card h3 {
+  font: 700 1.6rem 'Playfair Display', serif;
+  color: #3B2925;
+  margin-bottom: 1.2rem;
+}
+
+.service-card ul {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 1.8rem 0;
+  width: 100%;
+  text-align: left;
+}
+.service-card li {
+  color: #5B4540;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  padding: 0.4rem 0 0.4rem 2rem;
+  position: relative;
+  border-bottom: 1px solid rgba(184, 92, 74, 0.06);
+}
+.service-card li:last-child {
+  border-bottom: none;
+}
+.service-card li::before {
+  content: "✓";
+  color: #B85C4A;
+  font-weight: 700;
+  position: absolute;
+  left: 0;
+  top: 0.4rem;
+}
+
+.service-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-top: auto;
+  padding: 0.6rem 1.5rem;
+  border: 1px solid #B85C4A;
+  color: #B85C4A;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  border-radius: 50px;
+  transition: all 0.3s ease;
+}
+.service-cta:hover {
+  background: #B85C4A;
+  color: #FFFFFF;
+  transform: translateX(4px);
+}
+.service-cta i {
+  transition: transform 0.3s ease;
+}
+.service-cta:hover i {
+  transform: translateX(4px);
+}
+
+.service-price {
+  margin-top: 3rem;
+  padding: 1.8rem 2rem;
+  background: linear-gradient(135deg, #FFF9F2 0%, #F5E6E0 100%);
+  border: 1px solid rgba(184, 92, 74, 0.25);
+  border-radius: 1rem;
+  text-align: center;
+  box-shadow: 0 4px 15px rgba(184, 92, 74, 0.08);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+.service-price p {
+  font-size: 1.25rem;
+  color: #3B2925;
+  margin: 0;
+}
+.service-price strong {
+  color: #B85C4A;
+  font-size: 1.8rem;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+}
+.price-badge {
+  display: inline-block;
+  background: #B85C4A;
+  color: #FFFFFF;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  padding: 0.3rem 1.2rem;
+  border-radius: 50px;
+}
+
+/* ================================================================
+   AUTORES
    ================================================================ */
 .author-card {
   background: #fff;
@@ -259,162 +395,7 @@ body {
 }
 
 /* ================================================================
-   SERVICIOS
-   ================================================================ */
-/* ================================================================
-   SERVICIOS - MEJORA VISUAL
-   ================================================================ */
-
-.service-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 2rem; /* Más separación entre tarjetas */
-}
-
-/* Tarjeta individual */
-.service-card {
-  background: #FFFFFF;
-  border: 1px solid rgba(184, 92, 74, 0.16);
-  border-radius: 1rem; /* Más redondeado */
-  padding: 2.5rem 2rem;
-  box-shadow: 0 8px 25px rgba(59, 41, 37, 0.06);
-  transition: all 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-  text-align: center;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-/* Efecto hover */
-.service-card:hover {
-  transform: translateY(-8px);
-  border-color: #B85C4A;
-  box-shadow: 0 20px 40px rgba(184, 92, 74, 0.15);
-}
-
-/* Icono circular */
-.service-icon {
-  width: 4.5rem;
-  height: 4.5rem;
-  background: #B85C4A;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: 1.5rem;
-  transition: transform 0.3s ease;
-}
-.service-card:hover .service-icon {
-  transform: scale(1.08) rotate(-3deg);
-}
-.service-icon i {
-  font-size: 2rem;
-  color: #FFFFFF;
-}
-
-/* Título */
-.service-card h3 {
-  font: 700 1.6rem 'Playfair Display', serif;
-  color: #3B2925;
-  margin-bottom: 1.2rem;
-}
-
-/* Lista de servicios */
-.service-card ul {
-  list-style: none;
-  padding: 0;
-  margin: 0 0 1.8rem 0;
-  width: 100%;
-  text-align: left;
-}
-.service-card li {
-  color: #5B4540;
-  font-size: 0.95rem;
-  line-height: 1.6;
-  padding: 0.4rem 0 0.4rem 2rem;
-  position: relative;
-  border-bottom: 1px solid rgba(184, 92, 74, 0.06);
-}
-.service-card li:last-child {
-  border-bottom: none;
-}
-/* Viñeta personalizada (check) */
-.service-card li::before {
-  content: "✓";
-  color: #B85C4A;
-  font-weight: 700;
-  position: absolute;
-  left: 0;
-  top: 0.4rem;
-}
-
-/* Botón CTA dentro de la tarjeta */
-.service-cta {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.6rem;
-  margin-top: auto;
-  padding: 0.6rem 1.5rem;
-  border: 1px solid #B85C4A;
-  color: #B85C4A;
-  font-size: 0.75rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  border-radius: 50px;
-  transition: all 0.3s ease;
-}
-.service-cta:hover {
-  background: #B85C4A;
-  color: #FFFFFF;
-  transform: translateX(4px);
-}
-.service-cta i {
-  transition: transform 0.3s ease;
-}
-.service-cta:hover i {
-  transform: translateX(4px);
-}
-
-/* Bloque de precio mejorado */
-.service-price {
-  margin-top: 3rem;
-  padding: 1.8rem 2rem;
-  background: linear-gradient(135deg, #FFF9F2 0%, #F5E6E0 100%);
-  border: 1px solid rgba(184, 92, 74, 0.25);
-  border-radius: 1rem;
-  text-align: center;
-  box-shadow: 0 4px 15px rgba(184, 92, 74, 0.08);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.5rem;
-}
-.service-price p {
-  font-size: 1.25rem;
-  color: #3B2925;
-  margin: 0;
-}
-.service-price strong {
-  color: #B85C4A;
-  font-size: 1.8rem;
-  font-weight: 700;
-  letter-spacing: -0.5px;
-}
-.price-badge {
-  display: inline-block;
-  background: #B85C4A;
-  color: #FFFFFF;
-  font-size: 0.7rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  padding: 0.3rem 1.2rem;
-  border-radius: 50px;
-}
-
-/* ================================================================
-   LIBROS (página pública)
+   LIBROS
    ================================================================ */
 .book-grid {
   display: grid;
@@ -435,12 +416,11 @@ body {
 }
 
 /* ================================================================
-   NOTICIAS: Imagen más grande
+   NOTICIAS
    ================================================================ */
 #newsGrid .h-64 {
-  height: 260px; /* Aumentamos altura para que se vea mejor */
+  height: 260px;
 }
-/* Carrusel de noticias */
 .carousel-container {
   position: relative;
   overflow: hidden;
@@ -502,7 +482,7 @@ body {
 }
 
 /* ================================================================
-   MODAL AUTOR (página pública)
+   MODALES
    ================================================================ */
 #author-modal-content {
   display: flex;
@@ -518,6 +498,11 @@ body {
 #author-modal-photo {
   border: 4px solid #B85C4A;
   box-shadow: 0 8px 20px rgba(59, 41, 37, 0.15);
+}
+
+/* Modal de contacto */
+#contacto-modal .bg-cardbg {
+  background: #FFFFFF;
 }
 
 /* ================================================================
@@ -551,28 +536,5 @@ body {
 @media (max-width: 640px) {
   .book-grid {
     grid-template-columns: 1fr;
-  }
-}
-
-
-/* Ajustes para tablets */
-@media (max-width: 1024px) {
-  .service-grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 1.5rem;
-  }
-}
-
-/* Ajustes para móviles */
-@media (max-width: 768px) {
-  .service-grid {
-    grid-template-columns: 1fr;
-    gap: 1.5rem;
-  }
-  .service-card {
-    padding: 2rem 1.5rem;
-  }
-  .service-price strong {
-    font-size: 1.5rem;
   }
 }

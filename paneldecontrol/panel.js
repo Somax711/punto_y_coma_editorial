@@ -1,11 +1,9 @@
 // ================================================================
 // PANEL DE CONTROL - EDITORIAL PUNTO Y COMA
 // Archivo: panel.js
-// Gestiona noticias, autores, libros, autenticación y perfil.
-// Todos los datos se sincronizan con Firebase Firestore y Storage.
+// Gestiona noticias, autores, libros, mensajes, autenticación y perfil.
 // ================================================================
 
-// Usar las instancias globales definidas en firebase-config.js
 const auth = window.auth;
 const db = window.db;
 const storage = window.storage;
@@ -21,82 +19,55 @@ console.log('panel.js cargado. db:', db ? 'OK' : 'NO');
 // 1. AUTENTICACIÓN Y ROLES
 // ================================================================
 
-// Login
-const loginForm = document.getElementById('loginForm');
-if (loginForm) {
-  loginForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    if (!auth || !db) {
-      mostrarErrorAcceso('Firebase no está configurado. Revisa firebase-config.js');
-      return;
-    }
-    const email = document.getElementById('loginEmail').value;
-    const password = document.getElementById('loginPassword').value;
-    const loginBtn = document.getElementById('loginBtn');
-    const errorDiv = document.getElementById('loginError');
+document.getElementById('loginForm')?.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  if (!auth || !db) { mostrarErrorAcceso('Firebase no configurado.'); return; }
+  const email = document.getElementById('loginEmail').value;
+  const password = document.getElementById('loginPassword').value;
+  const loginBtn = document.getElementById('loginBtn');
+  const errorDiv = document.getElementById('loginError');
+  loginBtn.textContent = 'Iniciando sesión...';
+  loginBtn.disabled = true;
+  errorDiv.classList.add('hidden');
+  try {
+    await auth.signInWithEmailAndPassword(email, password);
+  } catch (error) {
+    console.error('Error en login:', error);
+    errorDiv.classList.remove('hidden');
+    errorDiv.querySelector('div').textContent = obtenerMensajeError(error.code);
+  } finally {
+    loginBtn.textContent = 'Iniciar Sesión';
+    loginBtn.disabled = false;
+  }
+});
 
-    loginBtn.textContent = 'Iniciando sesión...';
-    loginBtn.disabled = true;
-    errorDiv.classList.add('hidden');
+document.getElementById('logoutBtn')?.addEventListener('click', async () => {
+  if (confirm('¿Seguro que deseas cerrar sesión?')) {
+    try { await auth.signOut(); mostrarLogin(); } catch (error) { console.error(error); alert('Error al cerrar sesión.'); }
+  }
+});
 
-    try {
-      await auth.signInWithEmailAndPassword(email, password);
-    } catch (error) {
-      console.error('Error en login:', error);
-      errorDiv.classList.remove('hidden');
-      errorDiv.querySelector('div').textContent = obtenerMensajeError(error.code);
-    } finally {
-      loginBtn.textContent = 'Iniciar Sesión';
-      loginBtn.disabled = false;
-    }
-  });
-}
-
-// Logout
-const logoutBtn = document.getElementById('logoutBtn');
-if (logoutBtn) {
-  logoutBtn.addEventListener('click', async () => {
-    if (confirm('¿Seguro que deseas cerrar sesión?')) {
-      try {
-        await auth.signOut();
-        mostrarLogin();
-      } catch (error) {
-        console.error('Error al cerrar sesión:', error);
-        alert('Error al cerrar sesión. Intenta nuevamente.');
-      }
-    }
-  });
-}
-
-// Obtener o crear perfil de usuario con rol
 async function obtenerPerfilUsuario(user) {
   if (!db || !user) return null;
   const usuarioRef = db.collection('usuarios').doc(user.uid);
   const usuarioDoc = await usuarioRef.get();
   const correo = (user.email || '').toLowerCase();
-
   const esAdminPorCorreo = Array.isArray(window.FIREBASE_ADMIN_EMAILS) &&
     window.FIREBASE_ADMIN_EMAILS.some(email => (email || '').toLowerCase() === correo);
-
   const datos = usuarioDoc.exists ? usuarioDoc.data() : {};
-
   if (!usuarioDoc.exists) {
     const nombreBase = user.displayName || correo.split('@')[0] || 'Usuario';
     await usuarioRef.set({
-      nombre: nombreBase,
-      email: correo,
-      telefono: '',
+      nombre: nombreBase, email: correo, telefono: '',
       rol: esAdminPorCorreo ? 'admin' : 'editor',
       creado_en: firebase.firestore.FieldValue.serverTimestamp()
     }, { merge: true });
     return { nombre: nombreBase, email: correo, telefono: '', rol: esAdminPorCorreo ? 'admin' : 'editor' };
   }
-
   if (esAdminPorCorreo && datos.rol !== 'admin') {
     await usuarioRef.set({ rol: 'admin' }, { merge: true });
     datos.rol = 'admin';
   }
-
   return {
     ...datos,
     nombre: datos.nombre || user.displayName || correo.split('@')[0] || 'Usuario',
@@ -109,27 +80,13 @@ async function cargarDatosUsuario(user) {
   try {
     const userData = await obtenerPerfilUsuario(user);
     if (!userData) return;
-    const elName = document.getElementById('userName');
-    const elEmail = document.getElementById('userEmail');
-    if (elName) elName.textContent = userData.nombre || user.email;
-    if (elEmail) elEmail.textContent = userData.email || user.email;
-
-    const initials = (userData.nombre || user.email || 'U')
-      .split(' ')
-      .map(n => n[0])
-      .join('')
-      .substring(0, 2)
-      .toUpperCase();
-    const elInitials = document.getElementById('userInitials');
-    if (elInitials) elInitials.textContent = initials;
-
-    const inputNombre = document.getElementById('inputNombre');
-    const inputTelefono = document.getElementById('inputTelefono');
-    if (inputNombre) inputNombre.value = userData.nombre || '';
-    if (inputTelefono) inputTelefono.value = userData.telefono || '';
-  } catch (error) {
-    console.error('Error al cargar datos del usuario:', error);
-  }
+    document.getElementById('userName').textContent = userData.nombre || user.email;
+    document.getElementById('userEmail').textContent = userData.email || user.email;
+    const initials = (userData.nombre || user.email || 'U').split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+    document.getElementById('userInitials').textContent = initials;
+    document.getElementById('inputNombre').value = userData.nombre || '';
+    document.getElementById('inputTelefono').value = userData.telefono || '';
+  } catch (error) { console.error('Error al cargar datos del usuario:', error); }
 }
 
 async function esAdministrador(user) {
@@ -139,11 +96,7 @@ async function esAdministrador(user) {
 
 function mostrarErrorAcceso(mensaje) {
   const errorDiv = document.getElementById('loginError');
-  if (errorDiv) {
-    errorDiv.classList.remove('hidden');
-    const inner = errorDiv.querySelector('div');
-    if (inner) inner.textContent = mensaje;
-  }
+  if (errorDiv) { errorDiv.classList.remove('hidden'); errorDiv.querySelector('div').textContent = mensaje; }
 }
 
 function mostrarLogin() {
@@ -156,16 +109,11 @@ function mostrarPanel() {
   document.getElementById('panelScreen').classList.remove('hidden');
 }
 
-// Listener de estado de sesión
 if (auth) {
   auth.onAuthStateChanged(async (user) => {
     if (user) {
       try {
-        if (!await esAdministrador(user)) {
-          await auth.signOut();
-          mostrarErrorAcceso('Esta cuenta no tiene permisos de administración.');
-          return;
-        }
+        if (!await esAdministrador(user)) { await auth.signOut(); mostrarErrorAcceso('Sin permisos de administración.'); return; }
         usuarioActual = user;
         await cargarDatosUsuario(user);
         mostrarPanel();
@@ -173,17 +121,16 @@ if (auth) {
         cargarResumen();
         cargarAutores();
         cargarLibros();
+        cargarMensajes();
       } catch (error) {
         console.error('Error al validar permisos:', error);
         await auth.signOut();
-        mostrarErrorAcceso('No fue posible validar los permisos de esta cuenta.');
+        mostrarErrorAcceso('No fue posible validar los permisos.');
       }
-    } else {
-      mostrarLogin();
-    }
+    } else { mostrarLogin(); }
   });
 } else {
-  mostrarErrorAcceso('No se pudo inicializar la autenticación de Firebase.');
+  mostrarErrorAcceso('No se pudo inicializar la autenticación.');
   mostrarLogin();
 }
 
@@ -237,7 +184,6 @@ document.querySelectorAll('.quick-link').forEach(link => {
   });
 });
 
-// Estadísticas del dashboard
 async function cargarResumen() {
   if (!db || !usuarioActual) return;
   try {
@@ -253,11 +199,10 @@ async function cargarResumen() {
     const totalLibros = snapLibros.docs.filter(doc => doc.data().publicado !== false).length;
     document.getElementById('statLibros').textContent = totalLibros;
 
-    // Mensajes (placeholder)
-    document.getElementById('statMensajes').textContent = '0';
-  } catch (error) {
-    console.warn('No se pudo cargar el resumen:', error);
-  }
+    // Mensajes no leídos
+    const snapMensajes = await db.collection('mensajes').where('leido', '==', false).get();
+    document.getElementById('statMensajes').textContent = snapMensajes.size;
+  } catch (error) { console.warn('No se pudo cargar el resumen:', error); }
 }
 
 function prepararFormulario(id, abierto) {
@@ -277,32 +222,23 @@ document.querySelectorAll('.cancel-form').forEach(button => {
 });
 
 // ================================================================
-// 3. GESTIÓN DE AUTORES (muestra TODOS)
+// 3. GESTIÓN DE AUTORES
 // ================================================================
 
 async function cargarAutores() {
   const container = document.getElementById('listaAutores');
   if (!container || !db) return;
   container.innerHTML = '<div class="col-span-full text-center py-8"><i class="fas fa-spinner fa-spin text-primary text-2xl"></i><p class="text-xs text-darktext/60 mt-2">Cargando autores...</p></div>';
-
   try {
     const snapshot = await db.collection('autores').get();
-    if (snapshot.empty) {
-      container.innerHTML = '<div class="col-span-full text-center py-8 text-darktext/50 text-sm">No hay autores registrados aún.</div>';
-      return;
-    }
-
+    if (snapshot.empty) { container.innerHTML = '<div class="col-span-full text-center py-8 text-darktext/50 text-sm">No hay autores registrados aún.</div>'; return; }
     let html = '';
     snapshot.forEach(doc => {
       const autor = { id: doc.id, ...doc.data() };
-      if (!autor.id) {
-        console.warn('Autor sin ID:', autor);
-        return;
-      }
+      if (!autor.id) return;
       html += crearTarjetaAutorAdmin(autor);
     });
     container.innerHTML = html;
-    console.log('Autores cargados en panel:', snapshot.size);
   } catch (error) {
     console.error('Error al cargar autores:', error);
     container.innerHTML = '<div class="col-span-full text-center py-8 text-red-500 text-sm">Error al cargar la lista de autores.</div>';
@@ -310,11 +246,10 @@ async function cargarAutores() {
 }
 
 function crearTarjetaAutorAdmin(autor) {
-  if (!autor.id) return '<div class="text-red-500">Error: autor sin ID</div>';
+  if (!autor.id) return '';
   let foto = autor.foto || '';
   if (!foto.startsWith('http') && foto) foto = 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?q=80&w=200&auto=format&fit=crop';
   if (!foto) foto = 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?q=80&w=200&auto=format&fit=crop';
-
   return `
     <div class="panel-card p-5 rounded-xl border border-lightbg flex flex-col justify-between bg-white shadow-sm">
       <div class="flex items-start gap-4">
@@ -339,15 +274,8 @@ function crearTarjetaAutorAdmin(autor) {
   `;
 }
 
-// ================================================================
-// 4. EDICIÓN Y ELIMINACIÓN DE AUTORES
-// ================================================================
-
 async function editarAutor(id) {
-  if (!id || id.trim() === '') {
-    alert('No se puede editar: el ID del autor está vacío.');
-    return;
-  }
+  if (!id || id.trim() === '') { alert('ID inválido.'); return; }
   if (!db) return;
   try {
     const doc = await db.collection('autores').doc(id).get();
@@ -356,7 +284,6 @@ async function editarAutor(id) {
     const form = document.getElementById('formAutor');
     if (!form) return;
     form.classList.remove('hidden');
-
     form.querySelector('input[name="id"]').value = id;
     form.querySelector('[name="nombre"]').value = autor.nombre || '';
     form.querySelector('[name="genero"]').value = autor.genero || '';
@@ -364,33 +291,20 @@ async function editarAutor(id) {
     form.querySelector('[name="instagram"]').value = autor.redes?.instagram || autor.instagram || '';
     form.querySelector('[name="twitter"]').value = autor.redes?.twitter || autor.twitter || '';
     form.querySelector('[name="web"]').value = autor.web || autor.redes?.web || '';
-    const pubCheck = document.getElementById('autor-publicado');
-    if (pubCheck) pubCheck.checked = autor.publicado !== false;
-
+    document.getElementById('autor-publicado').checked = autor.publicado !== false;
     form.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  } catch (error) {
-    console.error('Error al cargar autor para edición:', error);
-    alert('Error al cargar los datos del autor.');
-  }
+  } catch (error) { console.error(error); alert('Error al cargar el autor.'); }
 }
 
 async function eliminarAutor(id) {
   if (!id || id.trim() === '') { alert('ID inválido.'); return; }
   if (!confirm('¿Estás seguro de eliminar este autor?')) return;
-  if (!db) return;
   try {
     await db.collection('autores').doc(id).delete();
     alert('Autor eliminado.');
     cargarAutores();
-  } catch (error) {
-    console.error('Error al eliminar autor:', error);
-    alert('No se pudo eliminar el autor.');
-  }
+  } catch (error) { console.error(error); alert('Error al eliminar.'); }
 }
-
-// ================================================================
-// 5. GUARDAR AUTOR (con subida de foto a Storage)
-// ================================================================
 
 document.getElementById('formAutor')?.addEventListener('submit', async (e) => {
   e.preventDefault();
@@ -399,7 +313,6 @@ document.getElementById('formAutor')?.addEventListener('submit', async (e) => {
   const textoOriginal = btnGuardar.textContent;
   btnGuardar.disabled = true;
   btnGuardar.textContent = 'Guardando...';
-
   try {
     const inputId = form.querySelector('input[name="id"]');
     const docId = inputId ? inputId.value.trim() : '';
@@ -412,7 +325,6 @@ document.getElementById('formAutor')?.addEventListener('submit', async (e) => {
     const publicadoCheck = document.getElementById('autor-publicado');
     const estaPublicado = publicadoCheck ? publicadoCheck.checked : true;
 
-    // Subir foto si se seleccionó un archivo
     let fotoUrl = '';
     const fotoInput = document.getElementById('autor-foto');
     if (fotoInput && fotoInput.files && fotoInput.files.length > 0) {
@@ -424,11 +336,7 @@ document.getElementById('formAutor')?.addEventListener('submit', async (e) => {
     }
 
     const datosAutor = {
-      nombre,
-      genero,
-      biografia,
-      bio: biografia,
-      publicado: estaPublicado,
+      nombre, genero, biografia, bio: biografia, publicado: estaPublicado,
       usuario_id: usuarioActual ? usuarioActual.uid : '',
       redes: { instagram, twitter, web },
       actualizado_en: firebase.firestore.FieldValue.serverTimestamp()
@@ -444,22 +352,18 @@ document.getElementById('formAutor')?.addEventListener('submit', async (e) => {
       await db.collection('autores').add(datosAutor);
       alert('Autor creado.');
     }
-
     form.reset();
     if (inputId) inputId.value = '';
     form.classList.add('hidden');
     cargarAutores();
-  } catch (error) {
-    console.error('Error al guardar autor:', error);
-    alert('Error al guardar el autor.');
-  } finally {
+  } catch (error) { console.error(error); alert('Error al guardar.'); } finally {
     btnGuardar.disabled = false;
     btnGuardar.textContent = textoOriginal;
   }
 });
 
 // ================================================================
-// 6. GESTIÓN DE LIBROS (con subida de portada)
+// 4. GESTIÓN DE LIBROS
 // ================================================================
 
 async function cargarLibros() {
@@ -467,15 +371,9 @@ async function cargarLibros() {
   if (!usuarioActual || !container || !db) return;
   try {
     const snapshot = await db.collection('libros').where('usuario_id', '==', usuarioActual.uid).get();
-    if (snapshot.empty) {
-      container.innerHTML = '<p class="text-darktext md:col-span-2 xl:col-span-3 py-5">Aún no has agregado libros al catálogo.</p>';
-      return;
-    }
+    if (snapshot.empty) { container.innerHTML = '<p class="text-darktext md:col-span-2 xl:col-span-3 py-5">Aún no has agregado libros al catálogo.</p>'; return; }
     container.innerHTML = snapshot.docs.map(doc => crearTarjetaLibro({ id: doc.id, ...doc.data() })).join('');
-  } catch (error) {
-    console.error('Error al cargar libros:', error);
-    container.innerHTML = '<p class="text-red-400">No se pudieron cargar los libros.</p>';
-  }
+  } catch (error) { console.error(error); container.innerHTML = '<p class="text-red-400">No se pudieron cargar los libros.</p>'; }
 }
 
 function crearTarjetaLibro(libro) {
@@ -505,7 +403,6 @@ document.getElementById('formLibro')?.addEventListener('submit', async (e) => {
   const btnGuardar = form.querySelector('button[type="submit"]');
   btnGuardar.disabled = true;
   btnGuardar.textContent = 'Guardando...';
-
   try {
     const id = form.querySelector('input[name="id"]')?.value || '';
     const titulo = form.querySelector('[name="titulo"]')?.value?.trim() || '';
@@ -514,8 +411,6 @@ document.getElementById('formLibro')?.addEventListener('submit', async (e) => {
     const enlace_compra = form.querySelector('[name="enlace_compra"]')?.value?.trim() || '';
     const sinopsis = form.querySelector('[name="sinopsis"]')?.value?.trim() || '';
     const publicado = form.querySelector('[name="publicado"]')?.checked !== false;
-
-    // Subir portada si se seleccionó archivo
     let portadaUrl = form.querySelector('[name="portada"]')?.value?.trim() || '';
     const portadaFile = document.getElementById('portada-file');
     if (portadaFile && portadaFile.files && portadaFile.files.length > 0) {
@@ -525,30 +420,13 @@ document.getElementById('formLibro')?.addEventListener('submit', async (e) => {
       const snapshot = await storageRef.put(archivo);
       portadaUrl = await snapshot.ref.getDownloadURL();
     }
-
-    const data = {
-      titulo, autor, precio, enlace_compra, sinopsis, publicado,
-      portada: portadaUrl,
-      usuario_id: usuarioActual.uid,
-      actualizado_en: firebase.firestore.FieldValue.serverTimestamp()
-    };
-
-    if (id) {
-      await db.collection('libros').doc(id).update(data);
-      alert('Libro actualizado.');
-    } else {
-      data.creado_en = firebase.firestore.FieldValue.serverTimestamp();
-      await db.collection('libros').add(data);
-      alert('Libro creado.');
-    }
-
+    const data = { titulo, autor, precio, enlace_compra, sinopsis, publicado, portada: portadaUrl, usuario_id: usuarioActual.uid, actualizado_en: firebase.firestore.FieldValue.serverTimestamp() };
+    if (id) { await db.collection('libros').doc(id).update(data); alert('Libro actualizado.'); }
+    else { data.creado_en = firebase.firestore.FieldValue.serverTimestamp(); await db.collection('libros').add(data); alert('Libro creado.'); }
     form.reset();
     form.classList.add('hidden');
     cargarLibros();
-  } catch (error) {
-    console.error('Error al guardar libro:', error);
-    alert('Error al guardar el libro.');
-  } finally {
+  } catch (error) { console.error(error); alert('Error al guardar.'); } finally {
     btnGuardar.disabled = false;
     btnGuardar.textContent = 'Guardar libro';
   }
@@ -562,10 +440,7 @@ async function editarLibro(id) {
   const data = { id: doc.id, ...doc.data() };
   Object.entries(data).forEach(([key, value]) => {
     const field = form.querySelector(`[name="${key}"]`);
-    if (field) {
-      if (field.type === 'checkbox') field.checked = Boolean(value);
-      else field.value = value || '';
-    }
+    if (field) { if (field.type === 'checkbox') field.checked = Boolean(value); else field.value = value || ''; }
   });
   form.classList.remove('hidden');
 }
@@ -578,67 +453,40 @@ async function eliminarLibro(id) {
 }
 
 // ================================================================
-// 7. GESTIÓN DE NOTICIAS
+// 5. GESTIÓN DE NOTICIAS
 // ================================================================
 
 async function cargarNoticiasUsuario() {
   const container = document.getElementById('listaNoticias');
   if (!container || !db || !usuarioActual) return;
   container.innerHTML = '<div class="col-span-full flex justify-center py-12"><div class="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div></div>';
-
   try {
     const snapshot = await db.collection('noticias').where('usuario_id', '==', usuarioActual.uid).get();
-    if (snapshot.empty) {
-      container.innerHTML = '<div class="col-span-full text-center py-12"><p class="text-darktext/40 mb-4">No tienes noticias publicadas</p></div>';
-      return;
-    }
-
+    if (snapshot.empty) { container.innerHTML = '<div class="col-span-full text-center py-12"><p class="text-darktext/40 mb-4">No tienes noticias publicadas</p></div>'; return; }
     let noticias = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
     noticias.sort((a, b) => {
       const fa = a.fecha_creacion ? a.fecha_creacion.toMillis() : 0;
       const fb = b.fecha_creacion ? b.fecha_creacion.toMillis() : 0;
       return fb - fa;
     });
-
     container.innerHTML = noticias.map(crearTarjetaNoticiaAdmin).join('');
-  } catch (error) {
-    console.error('Error al cargar noticias:', error);
-    container.innerHTML = '<div class="col-span-full text-center py-12"><p class="text-red-500">Error al cargar las noticias</p></div>';
-  }
+  } catch (error) { console.error(error); container.innerHTML = '<div class="col-span-full text-center py-12"><p class="text-red-500">Error al cargar las noticias</p></div>'; }
 }
 
 function crearTarjetaNoticiaAdmin(noticia) {
   const imagenPrincipal = noticia.imagenes && noticia.imagenes.length > 0
     ? noticia.imagenes.find(img => img.orden === 0)?.url || noticia.imagenes[0].url
     : '';
-  const estadoClases = {
-    publicado: 'bg-green-100 text-green-700',
-    borrador: 'bg-yellow-100 text-yellow-700'
-  };
-
+  const estadoClases = { publicado: 'bg-green-100 text-green-700', borrador: 'bg-yellow-100 text-yellow-700' };
   return `
     <div class="bg-white rounded-2xl shadow-sm overflow-hidden hover:shadow-lg transition border border-lightbg flex flex-col justify-between">
       <div>
-        ${imagenPrincipal ? `
-          <div class="h-40 bg-lightbg">
-            <img src="${imagenPrincipal}" alt="${noticia.titulo}" class="w-full h-full object-cover">
-          </div>
-        ` : `
-          <div class="h-40 bg-lightbg flex items-center justify-center">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-accent" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6M8 6h8a2 2 0 012 2v12l-4-2-4 2-4-2-4 2V8a2 2 0 012-2z" />
-            </svg>
-          </div>
-        `}
+        ${imagenPrincipal ? `<div class="h-40 bg-lightbg"><img src="${imagenPrincipal}" alt="${noticia.titulo}" class="w-full h-full object-cover"></div>` :
+          `<div class="h-40 bg-lightbg flex items-center justify-center"><svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-accent" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6M8 6h8a2 2 0 012 2v12l-4-2-4 2-4-2-4 2V8a2 2 0 012-2z"/></svg></div>`}
         <div class="p-5">
           <div class="flex items-start justify-between mb-3 gap-2">
-            <div class="flex-1 min-w-0">
-              <h3 class="font-semibold text-secondary truncate mb-1">${noticia.titulo}</h3>
-              <p class="text-sm text-darktext/40 truncate">${noticia.categoria || 'Sin categoría'}</p>
-            </div>
-            <span class="px-2 py-1 rounded-full text-xs font-medium ${estadoClases[noticia.estado] || 'bg-gray-100 text-gray-700'}">
-              ${noticia.estado || 'borrador'}
-            </span>
+            <div class="flex-1 min-w-0"><h3 class="font-semibold text-secondary truncate mb-1">${noticia.titulo}</h3><p class="text-sm text-darktext/40 truncate">${noticia.categoria || 'Sin categoría'}</p></div>
+            <span class="px-2 py-1 rounded-full text-xs font-medium ${estadoClases[noticia.estado] || 'bg-gray-100 text-gray-700'}">${noticia.estado || 'borrador'}</span>
           </div>
           <p class="text-xs text-darktext/50 mb-4 line-clamp-2">${noticia.resumen || ''}</p>
         </div>
@@ -651,7 +499,6 @@ function crearTarjetaNoticiaAdmin(noticia) {
   `;
 }
 
-// Modal de noticias
 document.getElementById('btnNuevaNoticia')?.addEventListener('click', abrirModalNueva);
 document.getElementById('btnCerrarModal')?.addEventListener('click', cerrarModal);
 document.getElementById('btnCancelar')?.addEventListener('click', cerrarModal);
@@ -681,7 +528,6 @@ async function editarNoticia(id) {
     noticiaEnEdicion = { id: doc.id, ...doc.data() };
     imagenesExistentes = noticiaEnEdicion.imagenes || [];
     imagenesSeleccionadas = [];
-
     const form = document.getElementById('formNoticia');
     if (form) {
       form.titulo.value = noticiaEnEdicion.titulo || '';
@@ -698,10 +544,7 @@ async function editarNoticia(id) {
     document.getElementById('modalTitulo').textContent = 'Editar Noticia';
     mostrarPreviewImagenes();
     document.getElementById('modalNoticia').classList.add('active');
-  } catch (error) {
-    console.error('Error al cargar noticia:', error);
-    alert('Error al cargar la noticia.');
-  }
+  } catch (error) { console.error(error); alert('Error al cargar la noticia.'); }
 }
 
 async function eliminarNoticia(id) {
@@ -722,13 +565,9 @@ async function eliminarNoticia(id) {
     await db.collection('noticias').doc(id).delete();
     alert('Noticia eliminada.');
     cargarNoticiasUsuario();
-  } catch (error) {
-    console.error('Error al eliminar noticia:', error);
-    alert('Error al eliminar la noticia.');
-  }
+  } catch (error) { console.error(error); alert('Error al eliminar.'); }
 }
 
-// Control de imágenes en noticias
 document.getElementById('inputImagenes')?.addEventListener('change', (e) => {
   const files = Array.from(e.target.files);
   files.forEach(file => {
@@ -744,28 +583,18 @@ function mostrarPreviewImagenes() {
   const container = document.getElementById('previewImagenes');
   if (!container) return;
   container.innerHTML = '';
-
   imagenesExistentes.forEach((img, index) => {
     const div = document.createElement('div');
     div.className = 'image-preview-item relative inline-block mr-2 mb-2';
-    div.innerHTML = `
-      <img src="${img.url}" class="w-20 h-20 object-cover rounded-lg">
-      <button type="button" class="remove-btn absolute -top-2 -right-2 bg-red-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs" onclick="eliminarImagenExistente(${index})">&times;</button>
-      <div class="absolute bottom-1 left-1 bg-black/50 text-white text-[9px] px-1 rounded">Actual</div>
-    `;
+    div.innerHTML = `<img src="${img.url}" class="w-20 h-20 object-cover rounded-lg"><button type="button" class="remove-btn absolute -top-2 -right-2 bg-red-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs" onclick="eliminarImagenExistente(${index})">&times;</button><div class="absolute bottom-1 left-1 bg-black/50 text-white text-[9px] px-1 rounded">Actual</div>`;
     container.appendChild(div);
   });
-
   imagenesSeleccionadas.forEach((file, index) => {
     const reader = new FileReader();
     reader.onload = (e) => {
       const div = document.createElement('div');
       div.className = 'image-preview-item relative inline-block mr-2 mb-2';
-      div.innerHTML = `
-        <img src="${e.target.result}" class="w-20 h-20 object-cover rounded-lg">
-        <button type="button" class="remove-btn absolute -top-2 -right-2 bg-red-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs" onclick="eliminarImagenNueva(${index})">&times;</button>
-        <div class="absolute bottom-1 left-1 bg-primary text-white text-[9px] px-1 rounded">Nueva</div>
-      `;
+      div.innerHTML = `<img src="${e.target.result}" class="w-20 h-20 object-cover rounded-lg"><button type="button" class="remove-btn absolute -top-2 -right-2 bg-red-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs" onclick="eliminarImagenNueva(${index})">&times;</button><div class="absolute bottom-1 left-1 bg-primary text-white text-[9px] px-1 rounded">Nueva</div>`;
       container.appendChild(div);
     };
     reader.readAsDataURL(file);
@@ -786,10 +615,7 @@ async function subirImagenes(noticiaId) {
       const snapshot = await storageRef.put(file);
       const url = await snapshot.ref.getDownloadURL();
       urlsImagenes.push({ url, nombre: fileName, orden: urlsImagenes.length });
-    } catch (error) {
-      console.error('Error al subir imagen:', error);
-      alert(`Error al subir la imagen ${file.name}. Se omitirá.`);
-    }
+    } catch (error) { console.error('Error al subir imagen:', error); alert(`Error al subir la imagen ${file.name}. Se omitirá.`); }
   }
   return urlsImagenes;
 }
@@ -800,10 +626,8 @@ document.getElementById('formNoticia')?.addEventListener('submit', async (e) => 
   const btnGuardar = document.getElementById('btnGuardar');
   const noticiaIdInput = document.getElementById('noticiaId');
   const noticiaId = noticiaIdInput ? noticiaIdInput.value : '';
-
   btnGuardar.textContent = 'Guardando...';
   btnGuardar.disabled = true;
-
   try {
     const datos = {
       titulo: form.titulo.value.trim(),
@@ -818,7 +642,6 @@ document.getElementById('formNoticia')?.addEventListener('submit', async (e) => 
       usuario_id: usuarioActual.uid,
       fecha_actualizacion: firebase.firestore.FieldValue.serverTimestamp()
     };
-
     let docId;
     if (noticiaId) {
       docId = noticiaId;
@@ -834,44 +657,97 @@ document.getElementById('formNoticia')?.addEventListener('submit', async (e) => 
       await db.collection('noticias').doc(docId).update({ imagenes });
       alert('Noticia publicada.');
     }
-
     cerrarModal();
     cargarNoticiasUsuario();
-  } catch (error) {
-    console.error('Error al guardar noticia:', error);
-    alert('Error al guardar la noticia.');
-  } finally {
+  } catch (error) { console.error(error); alert('Error al guardar.'); } finally {
     btnGuardar.textContent = 'Guardar Noticia';
     btnGuardar.disabled = false;
   }
 });
 
 // ================================================================
-// 8. CONFIGURACIÓN DE PERFIL
+// 6. GESTIÓN DE MENSAJES
+// ================================================================
+
+async function cargarMensajes() {
+  const container = document.getElementById('listaMensajes');
+  if (!container || !db) return;
+  container.innerHTML = '<div class="text-center py-12 text-darktext/50">Cargando mensajes...</div>';
+  try {
+    const snapshot = await db.collection('mensajes').orderBy('fecha', 'desc').get();
+    if (snapshot.empty) {
+      container.innerHTML = '<div class="text-center py-12 text-darktext/50">No hay mensajes aún.</div>';
+      return;
+    }
+    let html = '';
+    snapshot.forEach(doc => {
+      const msg = { id: doc.id, ...doc.data() };
+      const fecha = msg.fecha ? new Date(msg.fecha.toMillis()).toLocaleString('es-CO') : 'Fecha desconocida';
+      const leido = msg.leido || false;
+      const claseLeido = leido ? 'mensaje-leido' : 'mensaje-no-leido';
+      html += `
+        <div class="panel-card p-5 rounded-xl border border-lightbg ${claseLeido}">
+          <div class="flex flex-col md:flex-row md:items-center justify-between gap-3">
+            <div class="flex-1">
+              <p class="font-bold text-secondary">${msg.nombre || 'Anónimo'} <span class="text-xs font-normal text-darktext/50">${fecha}</span></p>
+              <p class="text-sm text-primary">${msg.email || ''}</p>
+              <p class="text-sm font-medium text-secondary mt-1">${msg.asunto || 'Sin asunto'}</p>
+              <p class="text-sm text-darktext/70 mt-1 line-clamp-2">${msg.mensaje || ''}</p>
+            </div>
+            <div class="flex gap-2 flex-shrink-0">
+              ${!leido ? `<button onclick="marcarLeido('${msg.id}')" class="px-3 py-1 bg-green-100 text-green-700 hover:bg-green-200 rounded text-xs font-medium transition">Marcar leído</button>` : ''}
+              <button onclick="eliminarMensaje('${msg.id}')" class="px-3 py-1 bg-red-50 text-red-600 hover:bg-red-100 rounded text-xs font-medium transition">Eliminar</button>
+            </div>
+          </div>
+        </div>
+      `;
+    });
+    container.innerHTML = html;
+    // Actualizar el contador del dashboard
+    const noLeidos = snapshot.docs.filter(doc => !doc.data().leido).length;
+    document.getElementById('statMensajes').textContent = noLeidos;
+  } catch (error) {
+    console.error('Error al cargar mensajes:', error);
+    container.innerHTML = '<div class="text-center py-12 text-red-500">Error al cargar los mensajes.</div>';
+  }
+}
+
+async function marcarLeido(id) {
+  if (!db) return;
+  try {
+    await db.collection('mensajes').doc(id).update({ leido: true });
+    cargarMensajes();
+  } catch (error) { console.error(error); alert('Error al marcar como leído.'); }
+}
+
+async function eliminarMensaje(id) {
+  if (!confirm('¿Eliminar este mensaje?')) return;
+  try {
+    await db.collection('mensajes').doc(id).delete();
+    cargarMensajes();
+  } catch (error) { console.error(error); alert('Error al eliminar.'); }
+}
+
+document.getElementById('btnRecargarMensajes')?.addEventListener('click', cargarMensajes);
+
+// ================================================================
+// 7. CONFIGURACIÓN DE PERFIL
 // ================================================================
 
 document.getElementById('btnActualizarPerfil')?.addEventListener('click', async () => {
   const nombre = document.getElementById('inputNombre').value.trim();
   const telefono = document.getElementById('inputTelefono').value.trim();
   if (!nombre) { alert('El nombre es obligatorio'); return; }
-
   try {
-    if (auth && auth.currentUser) {
-      await auth.currentUser.updateProfile({ displayName: nombre });
-    }
-    await db.collection('usuarios').doc(usuarioActual.uid).set({
-      nombre, telefono, email: usuarioActual.email
-    }, { merge: true });
+    if (auth && auth.currentUser) { await auth.currentUser.updateProfile({ displayName: nombre }); }
+    await db.collection('usuarios').doc(usuarioActual.uid).set({ nombre, telefono, email: usuarioActual.email }, { merge: true });
     alert('Perfil actualizado.');
     await cargarDatosUsuario(usuarioActual);
-  } catch (error) {
-    console.error('Error al actualizar perfil:', error);
-    alert('Error al actualizar el perfil.');
-  }
+  } catch (error) { console.error(error); alert('Error al actualizar.'); }
 });
 
 // ================================================================
-// 9. FILTROS DE NOTICIAS
+// 8. FILTROS DE NOTICIAS
 // ================================================================
 
 document.getElementById('btnAplicarFiltros')?.addEventListener('click', async () => {
@@ -880,29 +756,20 @@ document.getElementById('btnAplicarFiltros')?.addEventListener('click', async ()
   const estado = document.getElementById('filtroEstado').value;
   const container = document.getElementById('listaNoticias');
   container.innerHTML = '<div class="col-span-full flex justify-center py-12"><div class="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div></div>';
-
   try {
     let query = db.collection('noticias').where('usuario_id', '==', usuarioActual.uid);
     if (categoria) query = query.where('categoria', '==', categoria);
     if (estado) query = query.where('estado', '==', estado);
-
     const snapshot = await query.get();
     let noticias = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
     if (titulo) noticias = noticias.filter(n => (n.titulo || '').toLowerCase().includes(titulo));
-
-    if (noticias.length === 0) {
-      container.innerHTML = '<div class="col-span-full text-center py-12"><p class="text-darktext/40">No se encontraron noticias</p></div>';
-      return;
-    }
+    if (noticias.length === 0) { container.innerHTML = '<div class="col-span-full text-center py-12"><p class="text-darktext/40">No se encontraron noticias</p></div>'; return; }
     container.innerHTML = noticias.map(crearTarjetaNoticiaAdmin).join('');
-  } catch (error) {
-    console.error('Error al filtrar:', error);
-    container.innerHTML = '<div class="col-span-full text-center py-12"><p class="text-red-500">Error al aplicar filtros</p></div>';
-  }
+  } catch (error) { console.error(error); container.innerHTML = '<div class="col-span-full text-center py-12"><p class="text-red-500">Error al aplicar filtros</p></div>'; }
 });
 
 // ================================================================
-// 10. UTILIDADES Y EXPOSICIÓN GLOBAL
+// 9. UTILIDADES Y EXPOSICIÓN GLOBAL
 // ================================================================
 
 function obtenerMensajeError(code) {
@@ -916,7 +783,7 @@ function obtenerMensajeError(code) {
   return errores[code] || 'Error al iniciar sesión.';
 }
 
-// Exponer funciones globalmente para onclick en HTML
+// Exponer funciones globalmente
 window.editarAutor = editarAutor;
 window.eliminarAutor = eliminarAutor;
 window.editarLibro = editarLibro;
@@ -929,5 +796,8 @@ window.eliminarImagenNueva = eliminarImagenNueva;
 window.cargarAutores = cargarAutores;
 window.cargarLibros = cargarLibros;
 window.cargarNoticiasUsuario = cargarNoticiasUsuario;
+window.cargarMensajes = cargarMensajes;
+window.marcarLeido = marcarLeido;
+window.eliminarMensaje = eliminarMensaje;
 
 console.log('Funciones globales expuestas correctamente.');

@@ -3,8 +3,52 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Editorial Punto y Coma | Inicio</title>
-  <meta name="description" content="Editorial Punto y Coma: historias, autores y servicios editoriales." />
+  <title>Editorial Punto y Coma | Publica tu libro con nosotros</title>
+  <meta name="description" content="Editorial Punto y Coma: te ayudamos a publicar tu libro, desde la edición hasta la distribución. Conoce a nuestros autores y novedades.">
+  <meta name="keywords" content="editorial, publicar libro, corrección de estilo, diagramación, Amazon KDP, autores colombianos">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://puntoycomaeditorial.com/">
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="Editorial Punto y Coma | Publica tu libro">
+  <meta property="og:description" content="Editorial Punto y Coma: edición, publicación y distribución de libros. Descubre nuestros autores y servicios.">
+  <meta property="og:image" content="https://puntoycomaeditorial.com/logovector.png">
+  <meta property="og:url" content="https://puntoycomaeditorial.com/">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Editorial Punto y Coma">
+
+  <!-- Twitter Cards -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Editorial Punto y Coma | Publica tu libro">
+  <meta name="twitter:description" content="Edición, publicación y distribución de libros. Conoce a nuestros autores y servicios.">
+  <meta name="twitter:image" content="https://puntoycomaeditorial.com/logovector.png">
+
+  <!-- Schema.org Organization -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    "name": "Editorial Punto y Coma",
+    "url": "https://puntoycomaeditorial.com/",
+    "logo": "https://puntoycomaeditorial.com/logovector.png",
+    "description": "Editorial especializada en la publicación de libros, desde la edición hasta la distribución.",
+    "address": {
+      "@type": "PostalAddress",
+      "addressCountry": "CO"
+    },
+    "contactPoint": {
+      "@type": "ContactPoint",
+      "telephone": "+573116060210",
+      "contactType": "sales",
+      "availableLanguage": "Spanish"
+    },
+    "sameAs": [
+      "https://web.facebook.com/puntoycoma.eyrtextos",
+      "https://www.instagram.com/puntoycomaj"
+    ]
+  }
+  </script>
+
   <!-- Fuentes y Font Awesome -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -45,7 +89,7 @@
     <div class="absolute inset-0 bg-vinodark/95 backdrop-blur-md border-b border-dorado/10"></div>
     <div class="max-w-7xl mx-auto px-6 lg:px-8 relative z-10">
       <div class="flex items-center justify-between h-20">
-        <a href="#inicio" class="font-serif text-2xl tracking-wide text-crema"><img src="logovector.png" alt="Logo" class="h-16" /></a>
+        <a href="#inicio" class="font-serif text-2xl tracking-wide text-crema"><img src="logovector.png" alt="Logo Editorial Punto y Coma" class="h-16" /></a>
         <div class="hidden md:flex items-center gap-5 text-sm uppercase tracking-widest font-semibold">
           <a href="#inicio" class="nav-link">Inicio</a>
           <a href="#noticias" class="nav-link">Noticias</a>
@@ -53,7 +97,8 @@
           <a href="#autores" class="nav-link">Autores</a>
           <a href="#libreria" class="nav-link">Librería</a>
           <a href="https://puntoycomaeyrtextos.blogspot.com/" class="nav-link">Blog</a>
-          <a href="#contacto" class="border border-dorado text-dorado hover:bg-dorado hover:text-vinodark transition-colors px-5 py-2">Contacto</a>
+          <!-- El botón Contacto ahora abre el modal -->
+          <button onclick="abrirModalContacto()" class="border border-dorado text-dorado hover:bg-dorado hover:text-vinodark transition-colors px-5 py-2">Contacto</button>
         </div>
         <button id="mobile-menu-button" class="md:hidden text-crema hover:text-dorado text-2xl" aria-label="Abrir menú"><i class="fa-solid fa-bars"></i></button>
       </div>
@@ -64,7 +109,7 @@
         <a href="#autores" class="block">Autores</a>
         <a href="#libreria" class="block">Librería</a>
         <a href="https://puntoycomaeyrtextos.blogspot.com/" class="block">Blog</a>
-        <a href="#contacto" class="block text-dorado">Contacto</a>
+        <button onclick="abrirModalContacto()" class="block text-dorado w-full text-center">Contacto</button>
       </div>
     </div>
   </nav>
@@ -99,6 +144,58 @@
       </div>
     </section>
 
+    <!-- ==================== SERVICIOS (MEJORADOS) ==================== -->
+    <section id="servicios" class="py-24 bg-vino/30 border-y border-dorado/10">
+      <div class="max-w-7xl mx-auto px-6 lg:px-8">
+        <div class="text-center max-w-3xl mx-auto mb-14 reveal reveal-up">
+          <span class="eyebrow">Edición que acompaña</span>
+          <h2 class="section-title">Servicios <span>editoriales integrales</span></h2>
+          <p class="section-copy">Del manuscrito a los lectores, construimos una publicación profesional, cuidada y capaz de llegar más lejos.</p>
+        </div>
+
+        <div class="service-grid reveal reveal-up">
+          <div class="service-card">
+            <div class="service-icon"><i class="fa-solid fa-file-pen"></i></div>
+            <h3>Edición y producción</h3>
+            <ul>
+              <li>Informe editorial y viabilidad comercial</li>
+              <li>Corrección de estilo y ortotipográfica</li>
+              <li>Diagramación, portada y revisión de pruebas</li>
+              <li>Adaptación digital para EPUB y Kindle</li>
+            </ul>
+            <a href="#contacto" class="service-cta">Solicitar información <i class="fa-solid fa-arrow-right"></i></a>
+          </div>
+          <div class="service-card">
+            <div class="service-icon"><i class="fa-solid fa-book-open"></i></div>
+            <h3>Publicación y distribución</h3>
+            <ul>
+              <li>Publicación en Amazon KDP</li>
+              <li>ISBN y orientación en derechos de autor</li>
+              <li>Impresión bajo demanda desde un ejemplar</li>
+              <li>Consignación en librerías y espacios aliados</li>
+            </ul>
+            <a href="#contacto" class="service-cta">Solicitar información <i class="fa-solid fa-arrow-right"></i></a>
+          </div>
+          <div class="service-card">
+            <div class="service-icon"><i class="fa-solid fa-bullhorn"></i></div>
+            <h3>Visibilidad y ventas</h3>
+            <ul>
+              <li>Marca personal y presencia digital</li>
+              <li>Promoción, reseñas y medios especializados</li>
+              <li>Ferias, lanzamientos y presentaciones</li>
+              <li>Reportes de venta y estrategia comercial</li>
+            </ul>
+            <a href="#contacto" class="service-cta">Solicitar información <i class="fa-solid fa-arrow-right"></i></a>
+          </div>
+        </div>
+
+        <div class="service-price reveal reveal-up">
+          <p>Inversión referencial del programa editorial: <strong>$3.200.000</strong></p>
+          <span class="price-badge">Incluye todos los servicios</span>
+        </div>
+      </div>
+    </section>
+
     <!-- ==================== AUTORES ==================== -->
     <section id="autores" class="py-24">
       <div class="max-w-7xl mx-auto px-6 lg:px-8">
@@ -118,64 +215,6 @@
         </div>
       </div>
     </section>
-
-    <!-- ==================== SERVICIOS ==================== -->
-  <!-- ==================== SERVICIOS ==================== -->
-<section id="servicios" class="py-24 bg-vino/30 border-y border-dorado/10">
-  <div class="max-w-7xl mx-auto px-6 lg:px-8">
-    <div class="text-center max-w-3xl mx-auto mb-14 reveal reveal-up">
-      <span class="eyebrow">Edición que acompaña</span>
-      <h2 class="section-title">Servicios <span>editoriales integrales</span></h2>
-      <p class="section-copy">Del manuscrito a los lectores, construimos una publicación profesional, cuidada y capaz de llegar más lejos.</p>
-    </div>
-
-    <!-- MEJORA: Grid con tarjetas mejoradas -->
-    <div class="service-grid reveal reveal-up">
-      <!-- Tarjeta 1 -->
-      <div class="service-card">
-        <div class="service-icon"><i class="fa-solid fa-file-pen"></i></div>
-        <h3>Edición y producción</h3>
-        <ul>
-          <li>Informe editorial y viabilidad comercial</li>
-          <li>Corrección de estilo y ortotipográfica</li>
-          <li>Diagramación, portada y revisión de pruebas</li>
-          <li>Adaptación digital para EPUB y Kindle</li>
-        </ul>
-        <a href="#contacto" class="service-cta">Solicitar información <i class="fa-solid fa-arrow-right"></i></a>
-      </div>
-      <!-- Tarjeta 2 -->
-      <div class="service-card">
-        <div class="service-icon"><i class="fa-solid fa-book-open"></i></div>
-        <h3>Publicación y distribución</h3>
-        <ul>
-          <li>Publicación en Amazon KDP</li>
-          <li>ISBN y orientación en derechos de autor</li>
-          <li>Impresión bajo demanda desde un ejemplar</li>
-          <li>Consignación en librerías y espacios aliados</li>
-        </ul>
-        <a href="#contacto" class="service-cta">Solicitar información <i class="fa-solid fa-arrow-right"></i></a>
-      </div>
-      <!-- Tarjeta 3 -->
-      <div class="service-card">
-        <div class="service-icon"><i class="fa-solid fa-bullhorn"></i></div>
-        <h3>Visibilidad y ventas</h3>
-        <ul>
-          <li>Marca personal y presencia digital</li>
-          <li>Promoción, reseñas y medios especializados</li>
-          <li>Ferias, lanzamientos y presentaciones</li>
-          <li>Reportes de venta y estrategia comercial</li>
-        </ul>
-        <a href="#contacto" class="service-cta">Solicitar información <i class="fa-solid fa-arrow-right"></i></a>
-      </div>
-    </div>
-
-    <!-- MEJORA: Precio destacado con diseño renovado -->
-    <div class="service-price reveal reveal-up">
-      <p>Inversión referencial del programa editorial: <strong>$3.200.000</strong></p>
-      <span class="price-badge">Incluye todos los servicios</span>
-    </div>
-  </div>
-</section>
 
     <!-- ==================== CÍRCULO ==================== -->
     <section id="circulo" class="py-24">
@@ -207,9 +246,14 @@
         <span class="text-dorado uppercase tracking-widest text-sm font-bold">Hablemos de tu libro</span>
         <h2 class="font-serif text-4xl md:text-5xl mt-3 mb-5">Tu historia merece <span class="italic text-dorado font-light">ser leída.</span></h2>
         <p class="text-cremadark font-light mb-8">Cuéntanos sobre tu proyecto editorial y te acompañaremos en el siguiente capítulo.</p>
-        <a id="whatsapp-hero-link" target="_blank" rel="noopener" class="inline-flex items-center gap-3 border border-dorado text-dorado px-7 py-3 uppercase tracking-widest text-sm font-bold hover:bg-dorado hover:text-vinodark transition btn-glow">
-          <i class="fa-brands fa-whatsapp text-lg"></i> Escribir por WhatsApp
-        </a>
+        <div class="flex flex-col sm:flex-row gap-4 justify-center">
+          <button onclick="abrirModalContacto()" class="inline-flex items-center justify-center gap-3 border border-dorado text-dorado px-7 py-3 uppercase tracking-widest text-sm font-bold hover:bg-dorado hover:text-vinodark transition btn-glow">
+            <i class="fa-regular fa-envelope"></i> Enviar mensaje
+          </button>
+          <a id="whatsapp-hero-link" target="_blank" rel="noopener" class="inline-flex items-center justify-center gap-3 border border-dorado text-dorado px-7 py-3 uppercase tracking-widest text-sm font-bold hover:bg-dorado hover:text-vinodark transition btn-glow">
+            <i class="fa-brands fa-whatsapp text-lg"></i> Escribir por WhatsApp
+          </a>
+        </div>
       </div>
     </section>
   </main>
@@ -231,6 +275,43 @@
   <button id="whatsapp-float" class="fixed bottom-5 right-5 z-40 w-12 h-12 rounded-full bg-[#25D366] text-white shadow-xl hover:scale-105 transition" aria-label="Escríbenos por WhatsApp">
     <i class="fa-brands fa-whatsapp text-2xl"></i>
   </button>
+
+  <!-- ==================== MODAL DE CONTACTO ==================== -->
+  <div id="contacto-modal" class="fixed inset-0 z-[130] bg-secondary/80 hidden items-center justify-center p-4 opacity-0 transition-opacity">
+    <div class="bg-cardbg border border-dorado/30 max-w-lg w-full max-h-[90vh] overflow-y-auto relative shadow-2xl scale-95 transition-transform rounded-xl">
+      <button onclick="cerrarModalContacto()" class="absolute top-3 right-3 z-10 w-9 h-9 rounded-full bg-vinodark text-dorado border border-dorado/30 flex items-center justify-center">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+      <div class="p-6 md:p-8">
+        <h2 class="font-serif text-3xl text-crema mb-2">Escríbenos</h2>
+        <p class="text-cremadark text-sm mb-6">Cuéntanos sobre tu proyecto, duda o lo que necesites.</p>
+        <form id="formContacto">
+          <div class="space-y-4">
+            <div>
+              <label class="block text-sm font-medium text-crema mb-1">Nombre completo *</label>
+              <input type="text" id="contacto-nombre" required class="w-full px-4 py-2.5 border border-dorado/20 rounded-xl focus:ring-2 focus:ring-dorado outline-none bg-vinodark text-crema" placeholder="Tu nombre">
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-crema mb-1">Correo electrónico *</label>
+              <input type="email" id="contacto-email" required class="w-full px-4 py-2.5 border border-dorado/20 rounded-xl focus:ring-2 focus:ring-dorado outline-none bg-vinodark text-crema" placeholder="tu@correo.com">
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-crema mb-1">Asunto *</label>
+              <input type="text" id="contacto-asunto" required class="w-full px-4 py-2.5 border border-dorado/20 rounded-xl focus:ring-2 focus:ring-dorado outline-none bg-vinodark text-crema" placeholder="¿De qué trata tu mensaje?">
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-crema mb-1">Mensaje *</label>
+              <textarea id="contacto-mensaje" rows="4" required class="w-full px-4 py-2.5 border border-dorado/20 rounded-xl focus:ring-2 focus:ring-dorado outline-none bg-vinodark text-crema" placeholder="Escribe aquí tu mensaje..."></textarea>
+            </div>
+            <button type="submit" id="btnEnviarContacto" class="w-full bg-dorado text-vinodark py-3 rounded-xl font-bold uppercase tracking-widest text-sm hover:bg-crema transition">
+              Enviar mensaje
+            </button>
+          </div>
+          <div id="contacto-respuesta" class="mt-4 hidden"></div>
+        </form>
+      </div>
+    </div>
+  </div>
 
   <!-- ==================== MODAL NOTICIA ==================== -->
   <div id="news-modal" class="fixed inset-0 z-[100] bg-secondary/80 hidden items-center justify-center p-4 opacity-0 transition-opacity">

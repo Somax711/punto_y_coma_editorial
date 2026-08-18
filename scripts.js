@@ -1,7 +1,5 @@
 // ================================================================
 // SCRIPTS PÚBLICOS - Editorial Punto y Coma
-// Carga de noticias, autores y libros desde Firebase.
-// También maneja los modales, WhatsApp y efectos.
 // ================================================================
 
 // ================================================================
@@ -17,7 +15,7 @@ function linkWhatsapp(mensaje) {
 // ================================================================
 // VARIABLES GLOBALES
 // ================================================================
-let autoresData = [];   // Almacena todos los autores para el modal
+let autoresData = [];
 
 // ================================================================
 // DOMContentLoaded - Asignación de eventos y carga inicial
@@ -56,7 +54,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // Cerrar modal de noticias
+  // Cerrar modales
   const modalNews = document.getElementById('news-modal');
   const closeNews = document.getElementById('close-modal');
   if (closeNews) closeNews.addEventListener('click', closeNewsModal);
@@ -66,7 +64,6 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // Cerrar modal de autor
   const modalAuthor = document.getElementById('author-modal');
   const closeAuthor = document.getElementById('close-author-modal');
   if (closeAuthor) closeAuthor.addEventListener('click', closeAuthorModal);
@@ -76,7 +73,6 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // Cerrar QR
   const qrModal = document.getElementById('qr-modal');
   if (qrModal) {
     qrModal.addEventListener('click', (e) => {
@@ -84,12 +80,110 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // Cargar datos desde Firebase (con pequeño retraso para asegurar conexión)
+  // Cerrar modal de contacto con clic fuera
+  const contactoModal = document.getElementById('contacto-modal');
+  if (contactoModal) {
+    contactoModal.addEventListener('click', (e) => {
+      if (e.target === contactoModal) cerrarModalContacto();
+    });
+  }
+
+  // Cargar datos
   setTimeout(() => {
     cargarNoticiasPublicas();
     cargarAutoresPublicos();
     cargarLibrosPublicos();
   }, 500);
+});
+
+// ================================================================
+// CONTACTO - MODAL Y ENVÍO A FIRESTORE
+// ================================================================
+
+// Abrir modal de contacto
+window.abrirModalContacto = function() {
+  const modal = document.getElementById('contacto-modal');
+  if (!modal) return;
+  modal.classList.remove('hidden');
+  modal.classList.add('flex');
+  setTimeout(() => {
+    modal.classList.remove('opacity-0');
+    modal.firstElementChild.classList.remove('scale-95');
+  }, 10);
+  // Limpiar mensajes anteriores
+  document.getElementById('contacto-respuesta').classList.add('hidden');
+  document.getElementById('formContacto').reset();
+};
+
+// Cerrar modal de contacto
+window.cerrarModalContacto = function() {
+  const modal = document.getElementById('contacto-modal');
+  if (!modal) return;
+  modal.classList.add('opacity-0');
+  modal.firstElementChild.classList.add('scale-95');
+  setTimeout(() => {
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+  }, 250);
+};
+
+// Enviar mensaje de contacto
+document.getElementById('formContacto')?.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const btn = document.getElementById('btnEnviarContacto');
+  const respuesta = document.getElementById('contacto-respuesta');
+  btn.disabled = true;
+  btn.textContent = 'Enviando...';
+  respuesta.classList.add('hidden');
+
+  const nombre = document.getElementById('contacto-nombre').value.trim();
+  const email = document.getElementById('contacto-email').value.trim();
+  const asunto = document.getElementById('contacto-asunto').value.trim();
+  const mensaje = document.getElementById('contacto-mensaje').value.trim();
+
+  if (!nombre || !email || !asunto || !mensaje) {
+    respuesta.textContent = 'Por favor, completa todos los campos.';
+    respuesta.className = 'mt-4 text-red-600 text-sm font-medium block';
+    respuesta.classList.remove('hidden');
+    btn.disabled = false;
+    btn.textContent = 'Enviar mensaje';
+    return;
+  }
+
+  const db = window.db || (typeof db !== 'undefined' ? db : null);
+  if (!db) {
+    respuesta.textContent = 'Error de conexión. Intenta más tarde.';
+    respuesta.className = 'mt-4 text-red-600 text-sm font-medium block';
+    respuesta.classList.remove('hidden');
+    btn.disabled = false;
+    btn.textContent = 'Enviar mensaje';
+    return;
+  }
+
+  try {
+    await db.collection('mensajes').add({
+      nombre,
+      email,
+      asunto,
+      mensaje,
+      leido: false,
+      fecha: firebase.firestore.FieldValue.serverTimestamp()
+    });
+
+    respuesta.textContent = '¡Mensaje enviado con éxito! Te responderemos pronto.';
+    respuesta.className = 'mt-4 text-green-600 text-sm font-medium block';
+    respuesta.classList.remove('hidden');
+    document.getElementById('formContacto').reset();
+    setTimeout(cerrarModalContacto, 3000);
+  } catch (error) {
+    console.error('Error al enviar mensaje:', error);
+    respuesta.textContent = 'Hubo un error al enviar. Intenta nuevamente.';
+    respuesta.className = 'mt-4 text-red-600 text-sm font-medium block';
+    respuesta.classList.remove('hidden');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Enviar mensaje';
+  }
 });
 
 // ================================================================
@@ -112,15 +206,12 @@ async function cargarNoticiasPublicas() {
     }
 
     let noticias = snapshot.docs.map(doc => doc.data());
-    // Solo publicadas
     noticias = noticias.filter(n => n.estado === 'publicado');
-    // Ordenar por fecha (más reciente primero)
     noticias.sort((a, b) => {
       const fechaA = a.fecha_creacion ? a.fecha_creacion.toMillis() : 0;
       const fechaB = b.fecha_creacion ? b.fecha_creacion.toMillis() : 0;
       return fechaB - fechaA;
     });
-    // Máximo 6 noticias en la página principal
     noticias = noticias.slice(0, 6);
 
     if (noticias.length === 0) {
@@ -130,7 +221,6 @@ async function cargarNoticiasPublicas() {
 
     let html = '';
     noticias.forEach((noticia, index) => {
-      // Obtener imagen principal (la primera con orden 0 o la primera de la lista)
       const imagenPrincipal = noticia.imagenes && noticia.imagenes.length > 0
         ? noticia.imagenes.find(img => img.orden === 0)?.url || noticia.imagenes[0].url
         : 'https://images.unsplash.com/photo-1532012197267-da84d127e765?q=80&w=600&auto=format&fit=crop';
@@ -142,7 +232,6 @@ async function cargarNoticiasPublicas() {
 
       const delay = index * 0.1;
       const revealClass = index % 3 === 0 ? 'reveal-up' : index % 3 === 1 ? 'reveal-left' : 'reveal-right';
-      // Codificamos la noticia en base64 para pasarla al modal
       const noticiaSegura = btoa(unescape(encodeURIComponent(JSON.stringify(noticia))));
 
       html += `
@@ -171,7 +260,6 @@ async function cargarNoticiasPublicas() {
     });
 
     grid.innerHTML = html;
-    // Activar el observer para los nuevos elementos con clases de revelado
     document.querySelectorAll('#newsGrid .reveal-up, #newsGrid .reveal-left, #newsGrid .reveal-right').forEach(el => observer.observe(el));
 
   } catch (error) {
@@ -205,14 +293,12 @@ async function cargarAutoresPublicos() {
     }
 
     let autores = snapshot.docs.map(doc => doc.data());
-    // Ordenar por fecha de creación
     autores.sort((a, b) => {
       const fechaA = a.creado_en ? a.creado_en.toMillis() : 0;
       const fechaB = b.creado_en ? b.creado_en.toMillis() : 0;
       return fechaB - fechaA;
     });
 
-    // Guardar todos en variable global para el modal
     autoresData = autores.filter(autor => autor.publicado !== false);
 
     if (autoresData.length === 0) {
@@ -227,9 +313,8 @@ async function cargarAutoresPublicos() {
       const biografia = autor.biografia || autor.bio || 'Sin biografía disponible.';
       const revealClass = index % 3 === 0 ? 'reveal-up' : index % 3 === 1 ? 'reveal-left' : 'reveal-right';
       const delay = (index < 4) ? index * 0.1 : 0;
-      const oculto = index >= 4 ? 'hidden' : ''; // Los primeros 4 visibles, el resto ocultos
+      const oculto = index >= 4 ? 'hidden' : '';
 
-      // Redes sociales
       let redesHTML = '';
       if (autor.redes?.instagram || autor.instagram) redesHTML += `<a href="${autor.redes?.instagram || autor.instagram}" target="_blank" aria-label="Instagram"><i class="fa-brands fa-instagram"></i></a>`;
       if (autor.redes?.facebook || autor.facebook) redesHTML += `<a href="${autor.redes?.facebook || autor.facebook}" target="_blank" aria-label="Facebook"><i class="fa-brands fa-facebook"></i></a>`;
@@ -257,11 +342,8 @@ async function cargarAutoresPublicos() {
     });
 
     container.innerHTML = html;
-
-    // Observer para los elementos visibles
     document.querySelectorAll('#autoresGrid .reveal-up, #autoresGrid .reveal-left, #autoresGrid .reveal-right').forEach(el => observer.observe(el));
 
-    // Lógica del botón "Ver más autores"
     if (btnVerMas) {
       if (autoresData.length > 4) {
         btnVerMas.style.display = 'inline-block';
@@ -302,7 +384,6 @@ async function cargarLibrosPublicos() {
 
     let libros = snapshot.docs.map(doc => doc.data());
     libros = libros.filter(libro => libro.publicado !== false);
-    // Ordenar por fecha de creación
     libros.sort((a, b) => {
       const fa = a.fecha_creacion ? a.fecha_creacion.toMillis() : 0;
       const fb = b.fecha_creacion ? b.fecha_creacion.toMillis() : 0;
@@ -343,7 +424,7 @@ async function cargarLibrosPublicos() {
 }
 
 // ================================================================
-// MODAL DE AUTOR (página pública)
+// MODAL AUTOR
 // ================================================================
 function openAuthorModal(index) {
   const autor = autoresData[index];
@@ -371,7 +452,6 @@ function openAuthorModal(index) {
   link.href = autor.enlace_venta || autor.redes?.web || '#libreria';
   link.textContent = 'Ver libros';
 
-  // Mostrar modal con animación
   modal.classList.remove('hidden');
   modal.classList.add('flex');
   setTimeout(() => {
@@ -392,7 +472,7 @@ function closeAuthorModal() {
 }
 
 // ================================================================
-// MODAL DE NOTICIA (página pública)
+// MODAL NOTICIA
 // ================================================================
 window.abrirNoticiaDesdeBase64 = function(base64Data) {
   try {
@@ -471,7 +551,7 @@ window.closeQRModal = function() {
 };
 
 // ================================================================
-// INTERSECTION OBSERVER (para animaciones al hacer scroll)
+// INTERSECTION OBSERVER
 // ================================================================
 const observer = new IntersectionObserver((entries) => {
   entries.forEach(entry => {
@@ -482,7 +562,6 @@ const observer = new IntersectionObserver((entries) => {
   });
 }, { threshold: 0.15 });
 
-// Observar todos los elementos con clases de revelado al cargar la página
 document.addEventListener('DOMContentLoaded', () => {
   document.querySelectorAll('.reveal-up, .reveal-left, .reveal-right, .reveal-zoom').forEach(el => observer.observe(el));
 });
