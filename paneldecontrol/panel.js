@@ -670,20 +670,24 @@ document.getElementById('formNoticia')?.addEventListener('submit', async (e) => 
     btnGuardar.disabled = false;
   }
 });
-
 // ================================================================
-// 6. GESTIÓN DE VIDEOS (NUEVO)
+// GESTIÓN DE VIDEOS (PANEL)
 // ================================================================
 
 async function cargarVideos() {
   const container = document.getElementById('listaVideos');
-  if (!container || !db) return;
+  if (!container || !db) {
+    console.warn('No se puede cargar videos: container o db no disponibles');
+    return;
+  }
+
   container.innerHTML = '<div class="col-span-full text-center py-8"><i class="fas fa-spinner fa-spin text-primary text-2xl"></i><p class="text-xs text-darktext/60 mt-2">Cargando videos...</p></div>';
 
   try {
     const snapshot = await db.collection('videos').get();
+
     if (snapshot.empty) {
-      container.innerHTML = '<div class="col-span-full text-center py-8 text-darktext/50 text-sm">No hay videos aún.</div>';
+      container.innerHTML = '<div class="col-span-full text-center py-8 text-darktext/50 text-sm">📹 No hay videos aún. Crea el primero.</div>';
       return;
     }
 
@@ -696,152 +700,10 @@ async function cargarVideos() {
 
     container.innerHTML = videos.map(video => crearTarjetaVideoAdmin(video)).join('');
   } catch (error) {
-    console.error('Error al cargar videos:', error);
-    container.innerHTML = '<div class="col-span-full text-center py-8 text-red-500 text-sm">Error al cargar los videos.</div>';
+    console.error('❌ Error al cargar videos:', error);
+    container.innerHTML = `<div class="col-span-full text-center py-8 text-red-500 text-sm">Error al cargar los videos: ${error.message}</div>`;
   }
 }
-
-function crearTarjetaVideoAdmin(video) {
-  if (!video.id) return '';
-  const miniatura = video.miniatura || 'https://img.youtube.com/vi/default/hqdefault.jpg';
-  const fecha = video.fecha_publicacion || (video.fecha_creacion ? new Date(video.fecha_creacion.toMillis()).toLocaleDateString('es-CO') : '');
-  const estaPublicado = video.publicado !== false;
-
-  return `
-    <div class="panel-card p-5 rounded-xl border border-lightbg flex flex-col bg-white shadow-sm">
-      <div class="flex items-start gap-4">
-        <img src="${miniatura}" alt="${video.titulo}" class="w-24 h-16 object-cover rounded border border-primary/20 shrink-0"
-             onerror="this.onerror=null;this.src='https://via.placeholder.com/120x80?text=Error'">
-        <div class="flex-1 min-w-0">
-          <h3 class="font-bold text-secondary text-base truncate">${video.titulo || 'Sin título'}</h3>
-          <p class="text-xs text-darktext/70 truncate">${video.descripcion || ''}</p>
-          <p class="text-[10px] text-darktext/50 mt-1">${fecha}</p>
-        </div>
-      </div>
-      <div class="flex items-center justify-between border-t border-lightbg pt-3 mt-3">
-        <span class="text-[10px] uppercase tracking-wider px-2 py-0.5 rounded ${estaPublicado ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'} font-bold">
-          ${estaPublicado ? 'Publicado' : 'Oculto'}
-        </span>
-        <div class="flex gap-2">
-          <button onclick="editarVideo('${video.id}')" class="px-3 py-1 bg-primary/10 text-primary hover:bg-primary hover:text-white rounded text-xs transition">Editar</button>
-          <button onclick="eliminarVideo('${video.id}')" class="px-3 py-1 bg-red-50 text-red-600 hover:bg-red-600 hover:text-white rounded text-xs transition"><i class="fa-solid fa-trash"></i></button>
-        </div>
-      </div>
-    </div>
-  `;
-}
-
-async function editarVideo(id) {
-  if (!id || id.trim() === '') { alert('ID inválido.'); return; }
-  if (!db) return;
-  try {
-    const doc = await db.collection('videos').doc(id).get();
-    if (!doc.exists) { alert('Video no encontrado.'); return; }
-    const video = doc.data();
-    const form = document.getElementById('formVideo');
-    if (!form) return;
-    form.classList.remove('hidden');
-
-    form.querySelector('input[name="id"]').value = id;
-    form.querySelector('[name="titulo"]').value = video.titulo || '';
-    form.querySelector('[name="descripcion"]').value = video.descripcion || '';
-    form.querySelector('[name="url"]').value = video.url || '';
-    form.querySelector('[name="fecha_publicacion"]').value = video.fecha_publicacion || '';
-    form.querySelector('[name="destacado"]').checked = video.destacado || false;
-    form.querySelector('[name="publicado"]').checked = video.publicado !== false;
-
-    document.getElementById('video-miniatura').value = '';
-
-    form.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  } catch (error) { console.error(error); alert('Error al cargar el video.'); }
-}
-
-async function eliminarVideo(id) {
-  if (!id || id.trim() === '') { alert('ID inválido.'); return; }
-  if (!confirm('¿Estás seguro de eliminar este video?')) return;
-  try {
-    const doc = await db.collection('videos').doc(id).get();
-    const video = doc.data();
-    if (video.miniatura && video.miniatura.includes('firebasestorage')) {
-      try {
-        const path = video.miniatura.split('/o/')[1].split('?')[0];
-        const decodedPath = decodeURIComponent(path);
-        await storage.ref(decodedPath).delete();
-      } catch (e) { console.warn('No se pudo borrar la miniatura:', e); }
-    }
-    await db.collection('videos').doc(id).delete();
-    alert('Video eliminado.');
-    cargarVideos();
-  } catch (error) { console.error(error); alert('Error al eliminar.'); }
-}
-
-document.getElementById('formVideo')?.addEventListener('submit', async (e) => {
-  e.preventDefault();
-  const form = e.target;
-  const btnGuardar = form.querySelector('button[type="submit"]');
-  const textoOriginal = btnGuardar.textContent;
-  btnGuardar.disabled = true;
-  btnGuardar.textContent = 'Guardando...';
-
-  try {
-    const inputId = form.querySelector('input[name="id"]');
-    const docId = inputId ? inputId.value.trim() : '';
-
-    const titulo = form.querySelector('[name="titulo"]')?.value?.trim() || '';
-    const descripcion = form.querySelector('[name="descripcion"]')?.value?.trim() || '';
-    const url = form.querySelector('[name="url"]')?.value?.trim() || '';
-    const fecha_publicacion = form.querySelector('[name="fecha_publicacion"]')?.value || '';
-    const destacado = form.querySelector('[name="destacado"]')?.checked || false;
-    const publicado = form.querySelector('[name="publicado"]')?.checked !== false;
-
-    let miniaturaUrl = '';
-    const miniaturaInput = document.getElementById('video-miniatura');
-    if (miniaturaInput && miniaturaInput.files && miniaturaInput.files.length > 0) {
-      btnGuardar.textContent = 'Subiendo miniatura...';
-      const archivo = miniaturaInput.files[0];
-      const storageRef = storage.ref(`videos/miniaturas/${Date.now()}_${archivo.name}`);
-      const snapshot = await storageRef.put(archivo);
-      miniaturaUrl = await snapshot.ref.getDownloadURL();
-    } else if (url) {
-      const videoId = url.match(/(?:embed\/|v\/|youtu.be\/|\/v\/|\/e\/|watch\?v=|\&v=)([^#\&\?]*).*/)?.[1];
-      if (videoId) {
-        miniaturaUrl = `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
-      }
-    }
-
-    const datosVideo = {
-      titulo,
-      descripcion,
-      url,
-      fecha_publicacion,
-      destacado,
-      publicado,
-      miniatura: miniaturaUrl || '',
-      usuario_id: usuarioActual ? usuarioActual.uid : '',
-      actualizado_en: firebase.firestore.FieldValue.serverTimestamp()
-    };
-
-    if (docId) {
-      await db.collection('videos').doc(docId).update(datosVideo);
-      alert('Video actualizado.');
-    } else {
-      datosVideo.fecha_creacion = firebase.firestore.FieldValue.serverTimestamp();
-      await db.collection('videos').add(datosVideo);
-      alert('Video creado.');
-    }
-
-    form.reset();
-    if (inputId) inputId.value = '';
-    form.classList.add('hidden');
-    cargarVideos();
-  } catch (error) {
-    console.error('Error al guardar video:', error);
-    alert('Error al guardar el video.');
-  } finally {
-    btnGuardar.disabled = false;
-    btnGuardar.textContent = textoOriginal;
-  }
-});
 
 // ================================================================
 // 7. GESTIÓN DE MENSAJES

@@ -491,50 +491,78 @@ function aplicarEfecto3D() {
     });
   });
 }
-
 // ================================================================
 // VIDEOS PÚBLICOS - CONEXIÓN CON FIRESTORE
 // ================================================================
 async function cargarVideosPublicos() {
   const grid = document.getElementById('videosGrid');
-  if (!grid) return;
+  if (!grid) {
+    console.warn('No se encontró #videosGrid');
+    return;
+  }
 
   const db = window.db || (typeof db !== 'undefined' ? db : null);
   if (!db) {
-    grid.innerHTML = '<div class="col-span-full text-center py-12 text-red-500">Error de conexión.</div>';
+    grid.innerHTML = '<div class="col-span-full text-center py-12 text-red-500">Error de conexión con la base de datos.</div>';
+    console.error('❌ db no disponible');
     return;
   }
 
   try {
+    // Intentamos obtener los videos
     const snapshot = await db.collection('videos').get();
+
+    // Si no hay documentos
     if (snapshot.empty) {
-      grid.innerHTML = '<div class="col-span-full text-center py-12 text-cremadark">Próximamente contenido multimedia.</div>';
+      grid.innerHTML = '<div class="col-span-full text-center py-12 text-cremadark">📹 Próximamente contenido multimedia.</div>';
+      console.log('📭 Colección videos vacía');
       return;
     }
 
-    let videos = snapshot.docs.map(doc => doc.data());
-    videos = videos.filter(video => video.publicado !== false);
+    // Procesar documentos
+    let videos = snapshot.docs.map(doc => {
+      const data = doc.data();
+      return {
+        id: doc.id,
+        ...data,
+        // Asegurar campos por defecto si faltan
+        titulo: data.titulo || 'Video sin título',
+        descripcion: data.descripcion || '',
+        url: data.url || '#',
+        miniatura: data.miniatura || 'https://via.placeholder.com/480x360?text=Sin+miniatura',
+        fecha_publicacion: data.fecha_publicacion || '',
+        destacado: data.destacado || false,
+        publicado: data.publicado !== false
+      };
+    });
+
+    // Filtrar solo publicados
+    videos = videos.filter(v => v.publicado === true);
+
+    if (videos.length === 0) {
+      grid.innerHTML = '<div class="col-span-full text-center py-12 text-cremadark">📹 No hay videos publicados aún.</div>';
+      return;
+    }
+
+    // Ordenar por fecha (más reciente primero)
     videos.sort((a, b) => {
       const fa = a.fecha_creacion ? a.fecha_creacion.toMillis() : 0;
       const fb = b.fecha_creacion ? b.fecha_creacion.toMillis() : 0;
       return fb - fa;
     });
 
-    if (videos.length === 0) {
-      grid.innerHTML = '<div class="col-span-full text-center py-12 text-cremadark">Próximamente contenido multimedia.</div>';
-      return;
-    }
-
+    // Generar HTML
     let html = '';
     videos.forEach((video, index) => {
       const miniatura = video.miniatura || 'https://via.placeholder.com/480x360?text=Sin+miniatura';
       const delay = index * 0.1;
       const revealClass = index % 3 === 0 ? 'reveal-up' : index % 3 === 1 ? 'reveal-left' : 'reveal-right';
       const fecha = video.fecha_publicacion || (video.fecha_creacion ? new Date(video.fecha_creacion.toMillis()).toLocaleDateString('es-CO') : '');
+      const videoUrl = video.url || '#';
 
       html += `
         <div class="video-card ${revealClass}" style="transition-delay: ${delay}s">
-          <div class="video-thumbnail" onclick="abrirVideo('${video.url}')">
+          <div class="video-thumbnail" onclick="abrirVideo('${videoUrl}')">
             <img src="${miniatura}" alt="${video.titulo}" loading="lazy" onerror="this.src='https://via.placeholder.com/480x360?text=Error'">
             <div class="play-icon">
               <i class="fa-solid fa-play"></i>
@@ -551,21 +579,21 @@ async function cargarVideosPublicos() {
     });
 
     grid.innerHTML = html;
+    // Activar animaciones
     document.querySelectorAll('#videosGrid .reveal-up, #videosGrid .reveal-left, #videosGrid .reveal-right')
       .forEach(el => observer.observe(el));
 
   } catch (error) {
-    console.error('Error cargando videos:', error);
-    grid.innerHTML = '<div class="col-span-full text-center py-12 text-dorado">Error al cargar los videos.</div>';
+    console.error('❌ Error detallado al cargar videos:', error);
+    // Mostrar mensaje más amigable
+    let mensaje = 'Error al cargar los videos.';
+    if (error.code === 'permission-denied') {
+      mensaje = 'No tienes permisos para leer videos. Verifica las reglas de Firestore.';
+    } else if (error.code === 'not-found') {
+      mensaje = 'La colección de videos no existe aún. Pronto habrá contenido.';
+    }
+    grid.innerHTML = `<div class="col-span-full text-center py-12 text-red-500">${mensaje}</div>`;
   }
-}
-
-function abrirVideo(url) {
-  window.open(url, '_blank');
-}
-// Función para abrir video (abre en nueva pestaña)
-function abrirVideo(url) {
-  window.open(url, '_blank');
 }
 
 // ================================================================
