@@ -96,8 +96,9 @@
           <a href="#servicios" class="nav-link">Servicios</a>
           <a href="#autores" class="nav-link">Autores</a>
           <a href="#libreria" class="nav-link">Librería</a>
+          <a href="#videos" class="nav-link">Videos</a>
           <a href="https://puntoycomaeyrtextos.blogspot.com/" class="nav-link">Blog</a>
-          <!-- El botón Contacto ahora abre el modal -->
+          <!-- El botón Contacto abre el modal -->
           <button onclick="abrirModalContacto()" class="border border-dorado text-dorado hover:bg-dorado hover:text-vinodark transition-colors px-5 py-2">Contacto</button>
         </div>
         <button id="mobile-menu-button" class="md:hidden text-crema hover:text-dorado text-2xl" aria-label="Abrir menú"><i class="fa-solid fa-bars"></i></button>
@@ -108,6 +109,7 @@
         <a href="#servicios" class="block">Servicios</a>
         <a href="#autores" class="block">Autores</a>
         <a href="#libreria" class="block">Librería</a>
+        <a href="#videos" class="block">Videos</a>
         <a href="https://puntoycomaeyrtextos.blogspot.com/" class="block">Blog</a>
         <button onclick="abrirModalContacto()" class="block text-dorado w-full text-center">Contacto</button>
       </div>
@@ -128,7 +130,7 @@
       </div>
     </section>
 
-    <!-- ==================== NOTICIAS ==================== -->
+    <!-- ==================== NOTICIAS (4 COLUMNAS) ==================== -->
     <section id="noticias" class="py-24 relative bg-vino/30 border-y border-dorado/10">
       <div class="max-w-7xl mx-auto px-6 lg:px-8">
         <div class="flex flex-col md:flex-row justify-between items-end mb-16 reveal reveal-up">
@@ -138,13 +140,14 @@
           </div>
           <a href="#contacto" class="hidden md:inline-flex items-center text-cremadark hover:text-dorado mt-4 pb-1 border-b border-dorado/30 hover:border-dorado">Conversemos <i class="fa-solid fa-arrow-right ml-2 text-sm"></i></a>
         </div>
-        <div id="newsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <!-- CAMBIO: lg:grid-cols-3 → lg:grid-cols-4 -->
+        <div id="newsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <div class="col-span-full text-center py-12 text-cremadark">Cargando noticias...</div>
         </div>
       </div>
     </section>
 
-    <!-- ==================== SERVICIOS (MEJORADOS) ==================== -->
+    <!-- ==================== SERVICIOS ==================== -->
     <section id="servicios" class="py-24 bg-vino/30 border-y border-dorado/10">
       <div class="max-w-7xl mx-auto px-6 lg:px-8">
         <div class="text-center max-w-3xl mx-auto mb-14 reveal reveal-up">
@@ -152,7 +155,6 @@
           <h2 class="section-title">Servicios <span>editoriales integrales</span></h2>
           <p class="section-copy">Del manuscrito a los lectores, construimos una publicación profesional, cuidada y capaz de llegar más lejos.</p>
         </div>
-
         <div class="service-grid reveal reveal-up">
           <div class="service-card">
             <div class="service-icon"><i class="fa-solid fa-file-pen"></i></div>
@@ -188,7 +190,6 @@
             <a href="#contacto" class="service-cta">Solicitar información <i class="fa-solid fa-arrow-right"></i></a>
           </div>
         </div>
-
         <div class="service-price reveal reveal-up">
           <p>Inversión referencial del programa editorial: <strong>$3.200.000</strong></p>
           <span class="price-badge">Incluye todos los servicios</span>
@@ -226,7 +227,7 @@
       </div>
     </section>
 
-    <!-- ==================== LIBRERÍA ==================== -->
+    <!-- ==================== LIBRERÍA (CON EFECTO 3D) ==================== -->
     <section id="libreria" class="py-24 bg-vino/30 border-y border-dorado/10">
       <div class="max-w-7xl mx-auto px-6 lg:px-8">
         <div class="text-center max-w-3xl mx-auto mb-14 reveal reveal-up">
@@ -236,6 +237,21 @@
         </div>
         <div id="librosGrid" class="book-grid reveal reveal-up">
           <div class="col-span-full text-center py-12 text-cremadark">Cargando libros...</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== VIDEOS (NUEVA SECCIÓN) ==================== -->
+    <section id="videos" class="py-24 bg-vino/10 border-y border-dorado/10">
+      <div class="max-w-7xl mx-auto px-6 lg:px-8">
+        <div class="text-center max-w-3xl mx-auto mb-14 reveal reveal-up">
+          <span class="text-dorado uppercase tracking-widest text-sm font-bold mb-2 block"><i class="fa-solid fa-video mr-2"></i>Multimedia</span>
+          <h2 class="font-serif text-4xl md:text-5xl">Nuestros <span class="italic text-dorado font-light">Videos</span></h2>
+          <p class="section-copy">Entrevistas, reseñas y contenido exclusivo de nuestros autores y libros.</p>
+        </div>
+        <div id="videosGrid" class="video-grid reveal reveal-up">
+          <!-- Se cargará dinámicamente con JavaScript -->
+          <div class="col-span-full text-center py-12 text-cremadark">Cargando videos...</div>
         </div>
       </div>
     </section>

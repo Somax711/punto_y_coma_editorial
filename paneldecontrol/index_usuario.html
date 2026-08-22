@@ -23,7 +23,6 @@
       }
     }
   </script>
-  <!-- Estilos adicionales para el panel -->
   <style>
     body { font-family: 'Lato', sans-serif; background: #FFF9F2; color: #3B2925; }
     .panel-card { background: #FFFFFF; border: 1px solid rgba(184,92,74,.18); box-shadow: 0 8px 24px rgba(59,41,37,.06); }
@@ -81,13 +80,12 @@
     }
     .loading { pointer-events: none; opacity: 0.6; }
 
-    /* Ajustes responsive del panel */
     @media screen and (max-width: 1024px) {
-      #listaNoticias, #listaAutores, #listaLibros {
+      #listaNoticias, #listaAutores, #listaLibros, #listaVideos {
         grid-template-columns: 1fr !important;
         gap: 1rem !important;
       }
-      #formAutor .grid, #formLibro .grid {
+      #formAutor .grid, #formLibro .grid, #formVideo .grid {
         grid-template-columns: 1fr !important;
       }
     }
@@ -95,6 +93,9 @@
       main { padding: 1rem !important; }
       .grid.sm\:grid-cols-2 { grid-template-columns: 1fr !important; }
     }
+    /* Mensajes */
+    .mensaje-leido { opacity: 0.6; }
+    .mensaje-no-leido { border-left: 4px solid #B85C4A; }
   </style>
 </head>
 <body>
@@ -171,7 +172,8 @@
         </a>
         <a href="#" data-section="autores" class="nav-link admin-nav-link flex items-center gap-3 px-4 py-3 rounded"><i class="fa-solid fa-feather-pointed w-5"></i><span class="font-medium">Autores</span></a>
         <a href="#" data-section="libros" class="nav-link admin-nav-link flex items-center gap-3 px-4 py-3 rounded"><i class="fa-solid fa-book w-5"></i><span class="font-medium">Librería digital</span></a>
-        <a href="#" data-section="mensajes" class="nav-link admin-nav-link flex items-center gap-3 px-4 py-3 rounded"><i class="fa-regular fa-envelope w-5"></i><span class="font-medium">Mensajes</span></a> 
+        <a href="#" data-section="videos" class="nav-link admin-nav-link flex items-center gap-3 px-4 py-3 rounded"><i class="fa-solid fa-video w-5"></i><span class="font-medium">Videos</span></a>
+        <a href="#" data-section="mensajes" class="nav-link admin-nav-link flex items-center gap-3 px-4 py-3 rounded"><i class="fa-regular fa-envelope w-5"></i><span class="font-medium">Mensajes</span></a>
         <p class="px-4 pt-6 pb-2 text-[10px] text-primary uppercase tracking-[.2em] font-bold">Cuenta</p>
         <a href="#" data-section="configuracion" class="nav-link admin-nav-link flex items-center gap-3 px-4 py-3 rounded">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -203,10 +205,11 @@
 
       <!-- DASHBOARD -->
       <div id="seccionDashboard" class="section-content">
-        <div class="grid sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-8">
+        <div class="grid sm:grid-cols-2 xl:grid-cols-5 gap-4 mb-8">
           <article class="panel-card p-5 rounded"><p class="text-darktext text-sm">Noticias publicadas</p><p class="font-serif text-4xl text-secondary mt-2" id="statNoticias">—</p><i class="fa-regular fa-newspaper text-primary"></i></article>
           <article class="panel-card p-5 rounded"><p class="text-darktext text-sm">Autores activos</p><p class="font-serif text-4xl text-secondary mt-2" id="statAutores">—</p><i class="fa-solid fa-feather-pointed text-primary"></i></article>
           <article class="panel-card p-5 rounded"><p class="text-darktext text-sm">Libros en catálogo</p><p class="font-serif text-4xl text-secondary mt-2" id="statLibros">—</p><i class="fa-solid fa-book text-primary"></i></article>
+          <article class="panel-card p-5 rounded"><p class="text-darktext text-sm">Videos publicados</p><p class="font-serif text-4xl text-secondary mt-2" id="statVideos">—</p><i class="fa-solid fa-video text-primary"></i></article>
           <article class="panel-card p-5 rounded"><p class="text-darktext text-sm">Mensajes nuevos</p><p class="font-serif text-4xl text-secondary mt-2" id="statMensajes">—</p><i class="fa-regular fa-envelope text-primary"></i></article>
         </div>
         <div class="grid lg:grid-cols-5 gap-6">
@@ -220,6 +223,7 @@
             <div class="space-y-3 text-sm">
               <a href="#" data-go="autores" class="quick-link flex justify-between border-b border-dorado/10 pb-3 text-darktext hover:text-primary">Gestionar autores <i class="fa-solid fa-arrow-right"></i></a>
               <a href="#" data-go="libros" class="quick-link flex justify-between border-b border-dorado/10 pb-3 text-darktext hover:text-primary">Agregar libro <i class="fa-solid fa-arrow-right"></i></a>
+              <a href="#" data-go="videos" class="quick-link flex justify-between border-b border-dorado/10 pb-3 text-darktext hover:text-primary">Gestionar videos <i class="fa-solid fa-arrow-right"></i></a>
               <a href="#" data-go="mensajes" class="quick-link flex justify-between text-darktext hover:text-primary">Revisar mensajes <i class="fa-solid fa-arrow-right"></i></a>
             </div>
           </section>
@@ -260,7 +264,7 @@
           <button id="btnNuevoAutor" class="bg-primary text-deepest px-5 py-3 rounded font-bold uppercase tracking-widest text-xs hover:bg-secondary transition">+ Nuevo autor</button>
         </div>
 
-        <!-- Formulario de autor (con subida de foto) -->
+        <!-- Formulario de autor -->
         <form id="formAutor" class="panel-card rounded p-6 mb-7 hidden">
           <input type="hidden" name="id">
           <div class="grid md:grid-cols-2 gap-4">
@@ -292,20 +296,17 @@
           <button id="btnNuevoLibro" class="bg-primary text-deepest px-5 py-3 rounded font-bold uppercase tracking-widest text-xs">+ Nuevo libro</button>
         </div>
 
-        <!-- Formulario de libro (con subida de portada) -->
         <form id="formLibro" class="panel-card rounded p-6 mb-7 hidden">
           <input type="hidden" name="id">
           <div class="grid md:grid-cols-2 gap-4">
             <input class="panel-input px-4 py-3 rounded border" name="titulo" required placeholder="Título del libro *">
             <input class="panel-input px-4 py-3 rounded border" name="autor" placeholder="Nombre del autor">
             <input class="panel-input px-4 py-3 rounded border" name="precio" placeholder="Precio, ej. $12.000">
-            <!-- Campo para subir portada (archivo) -->
             <div>
               <label class="block text-sm text-darktext mb-1 font-bold">Portada (Archivo)</label>
               <input type="file" id="portada-file" accept="image/*" class="panel-input px-4 py-3 rounded border w-full bg-white">
               <p class="text-xs text-darktext/50 mt-1">Sube una imagen para la portada. Si no, se usará la URL.</p>
             </div>
-            <!-- Campo URL de portada (alternativo) -->
             <input class="panel-input px-4 py-3 rounded border md:col-span-2" name="portada" placeholder="O URL de portada (alternativo)">
             <input class="panel-input px-4 py-3 rounded border md:col-span-2" name="enlace_compra" placeholder="URL de compra">
             <textarea class="panel-input px-4 py-3 rounded border md:col-span-2" name="sinopsis" rows="3" placeholder="Sinopsis"></textarea>
@@ -322,22 +323,78 @@
         <div id="listaLibros" class="grid md:grid-cols-2 xl:grid-cols-3 gap-5"></div>
       </div>
 
+      <!-- SECCIÓN VIDEOS -->
+      <div id="seccionVideos" class="section-content hidden">
+        <div class="flex items-center justify-between mb-6">
+          <div>
+            <h2 class="font-serif text-2xl text-secondary">Videos</h2>
+            <p class="text-darktext text-sm">Gestiona el contenido multimedia de la web.</p>
+          </div>
+          <button id="btnNuevoVideo" class="bg-primary text-deepest px-5 py-3 rounded font-bold uppercase tracking-widest text-xs hover:bg-secondary transition">
+            + Nuevo video
+          </button>
+        </div>
 
-<!-- SECCIÓN MENSAJES -->
-    <div id="seccionMensajes" class="section-content hidden">
-      <div class="flex items-center justify-between mb-6">
-       <div>
-        <h2 class="font-serif text-2xl text-secondary">Mensajes recibidos</h2>
-        <p class="text-darktext text-sm">Consultas del formulario de contacto.</p>
+        <form id="formVideo" class="panel-card rounded p-6 mb-7 hidden">
+          <input type="hidden" name="id">
+          <div class="grid md:grid-cols-2 gap-4">
+            <div class="md:col-span-2">
+              <label class="block text-sm font-bold text-darktext mb-1">Título *</label>
+              <input class="panel-input px-4 py-3 rounded border w-full" name="titulo" required placeholder="Título del video">
+            </div>
+            <div class="md:col-span-2">
+              <label class="block text-sm font-bold text-darktext mb-1">Descripción</label>
+              <textarea class="panel-input px-4 py-3 rounded border w-full" name="descripcion" rows="2" placeholder="Breve descripción"></textarea>
+            </div>
+            <div class="md:col-span-2">
+              <label class="block text-sm font-bold text-darktext mb-1">URL del video (embed de YouTube)</label>
+              <input class="panel-input px-4 py-3 rounded border w-full" name="url" placeholder="https://www.youtube.com/embed/VIDEO_ID">
+              <p class="text-xs text-darktext/50 mt-1">Ejemplo: https://www.youtube.com/embed/dQw4w9WgXcQ</p>
+            </div>
+            <div>
+              <label class="block text-sm font-bold text-darktext mb-1">Miniatura (opcional)</label>
+              <input type="file" id="video-miniatura" accept="image/*" class="panel-input px-4 py-3 rounded border w-full bg-white">
+              <p class="text-xs text-darktext/50 mt-1">Si no subes una, se usará la miniatura automática de YouTube.</p>
+            </div>
+            <div>
+              <label class="block text-sm font-bold text-darktext mb-1">Fecha (opcional)</label>
+              <input type="date" class="panel-input px-4 py-3 rounded border w-full" name="fecha_publicacion">
+            </div>
+            <div class="md:col-span-2 flex items-center gap-6">
+              <label class="flex items-center gap-2 text-darktext">
+                <input type="checkbox" name="destacado"> Destacado
+              </label>
+              <label class="flex items-center gap-2 text-darktext">
+                <input type="checkbox" name="publicado" checked> Publicado
+              </label>
+            </div>
+          </div>
+          <div class="flex gap-3 mt-5">
+            <button type="submit" class="bg-primary text-deepest px-5 py-3 rounded font-bold text-xs uppercase tracking-widest hover:bg-secondary transition">Guardar video</button>
+            <button type="button" class="cancel-form border border-primary text-primary px-5 py-3 rounded text-xs uppercase tracking-widest">Cancelar</button>
+          </div>
+        </form>
+
+        <div id="listaVideos" class="grid md:grid-cols-2 xl:grid-cols-3 gap-5">
+          <div class="col-span-full text-center py-12 text-darktext/50">Cargando videos...</div>
+        </div>
       </div>
-      <button id="btnRecargarMensajes" class="border border-primary text-primary px-4 py-2 rounded text-sm font-medium hover:bg-primary hover:text-white transition">
-        <i class="fa-solid fa-rotate mr-2"></i> Recargar
-      </button>
-    </div>
-    <div id="listaMensajes" class="space-y-4">
-    <!-- Aquí se cargarán los mensajes -->
-  </div>
-</div>
+
+      <!-- SECCIÓN MENSAJES -->
+      <div id="seccionMensajes" class="section-content hidden">
+        <div class="flex items-center justify-between mb-6">
+          <div>
+            <h2 class="font-serif text-2xl text-secondary">Mensajes recibidos</h2>
+            <p class="text-darktext text-sm">Consultas del formulario de contacto.</p>
+          </div>
+          <button id="btnRecargarMensajes" class="border border-primary text-primary px-4 py-2 rounded text-sm font-medium hover:bg-primary hover:text-white transition">
+            <i class="fa-solid fa-rotate mr-2"></i> Recargar
+          </button>
+        </div>
+        <div id="listaMensajes" class="space-y-4">
+          <!-- Aquí se cargarán los mensajes -->
+        </div>
+      </div>
 
       <!-- SECCIÓN CONFIGURACIÓN -->
       <div id="seccionConfiguracion" class="section-content hidden">
@@ -416,7 +473,6 @@
             <input type="checkbox" name="destacado" id="destacado" class="w-5 h-5 text-primary">
             <label for="destacado" class="text-sm font-bold text-darktext">Marcar como noticia destacada</label>
           </div>
-          <!-- Imágenes -->
           <div class="md:col-span-2 mt-4">
             <label class="block text-sm font-bold text-darktext mb-2">Imágenes de la noticia</label>
             <input type="file" id="inputImagenes" multiple accept="image/png, image/jpeg" class="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20 cursor-pointer">

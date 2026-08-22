@@ -102,6 +102,7 @@ document.addEventListener("DOMContentLoaded", () => {
     cargarNoticiasPublicas();
     cargarAutoresPublicos();
     cargarLibrosPublicos();
+    cargarVideosPublicos(); // 🔥 Nueva sección
   }, 500);
 });
 
@@ -136,7 +137,7 @@ window.cerrarModalContacto = function() {
   }, 250);
 };
 
-// Enviar mensaje de contacto (corregido)
+// Enviar mensaje de contacto
 document.getElementById('formContacto')?.addEventListener('submit', async (e) => {
   e.preventDefault();
   const btn = document.getElementById('btnEnviarContacto');
@@ -159,7 +160,6 @@ document.getElementById('formContacto')?.addEventListener('submit', async (e) =>
     return;
   }
 
-  // Verificar que la base de datos esté disponible
   const db = window.db || (typeof db !== 'undefined' ? db : null);
   if (!db) {
     respuesta.textContent = 'Error de conexión con el servidor. Intenta más tarde.';
@@ -171,7 +171,6 @@ document.getElementById('formContacto')?.addEventListener('submit', async (e) =>
   }
 
   try {
-    // Verificar que firebase y FieldValue están disponibles
     if (typeof firebase === 'undefined' || !firebase.firestore) {
       throw new Error('Firebase no está inicializado correctamente.');
     }
@@ -192,7 +191,7 @@ document.getElementById('formContacto')?.addEventListener('submit', async (e) =>
     document.getElementById('formContacto').reset();
     setTimeout(cerrarModalContacto, 3000);
   } catch (error) {
-    console.error('❌ Error detallado al enviar mensaje:', error);
+    console.error('❌ Error al enviar mensaje:', error);
     respuesta.textContent = `Error: ${error.message || 'No se pudo enviar el mensaje. Intenta nuevamente.'}`;
     respuesta.className = 'mt-4 text-red-600 text-sm font-medium block';
     respuesta.classList.remove('hidden');
@@ -228,7 +227,8 @@ async function cargarNoticiasPublicas() {
       const fechaB = b.fecha_creacion ? b.fecha_creacion.toMillis() : 0;
       return fechaB - fechaA;
     });
-    noticias = noticias.slice(0, 6);
+    // Mostramos máximo 8 noticias (4 columnas * 2 filas)
+    noticias = noticias.slice(0, 8);
 
     if (noticias.length === 0) {
       grid.innerHTML = '<div class="col-span-full text-center py-12 text-cremadark">No hay noticias públicas en este momento.</div>';
@@ -247,7 +247,7 @@ async function cargarNoticiasPublicas() {
       }
 
       const delay = index * 0.1;
-      const revealClass = index % 3 === 0 ? 'reveal-up' : index % 3 === 1 ? 'reveal-left' : 'reveal-right';
+      const revealClass = index % 4 === 0 ? 'reveal-up' : index % 4 === 1 ? 'reveal-left' : index % 4 === 2 ? 'reveal-right' : 'reveal-zoom';
       const noticiaSegura = btoa(unescape(encodeURIComponent(JSON.stringify(noticia))));
 
       html += `
@@ -276,7 +276,8 @@ async function cargarNoticiasPublicas() {
     });
 
     grid.innerHTML = html;
-    document.querySelectorAll('#newsGrid .reveal-up, #newsGrid .reveal-left, #newsGrid .reveal-right').forEach(el => observer.observe(el));
+    document.querySelectorAll('#newsGrid .reveal-up, #newsGrid .reveal-left, #newsGrid .reveal-right, #newsGrid .reveal-zoom')
+      .forEach(el => observer.observe(el));
 
   } catch (error) {
     console.error('Error cargando noticias:', error);
@@ -358,7 +359,8 @@ async function cargarAutoresPublicos() {
     });
 
     container.innerHTML = html;
-    document.querySelectorAll('#autoresGrid .reveal-up, #autoresGrid .reveal-left, #autoresGrid .reveal-right').forEach(el => observer.observe(el));
+    document.querySelectorAll('#autoresGrid .reveal-up, #autoresGrid .reveal-left, #autoresGrid .reveal-right')
+      .forEach(el => observer.observe(el));
 
     if (btnVerMas) {
       if (autoresData.length > 4) {
@@ -380,7 +382,7 @@ async function cargarAutoresPublicos() {
 }
 
 // ================================================================
-// LIBROS PÚBLICOS
+// LIBROS PÚBLICOS - CON EFECTO 3D
 // ================================================================
 async function cargarLibrosPublicos() {
   const grid = document.getElementById('librosGrid');
@@ -398,7 +400,18 @@ async function cargarLibrosPublicos() {
       return;
     }
 
-    let libros = snapshot.docs.map(doc => doc.data());
+    let libros = snapshot.docs.map(doc => {
+      const data = doc.data();
+      return {
+        ...data,
+        destacado: data.destacado || false,
+        precio: data.precio || '',
+        descripcion: data.descripcion || data.sinopsis || '',
+        enlace_compra: data.enlace_compra || '#',
+        autor: data.autor || 'Autor por definir'
+      };
+    });
+
     libros = libros.filter(libro => libro.publicado !== false);
     libros.sort((a, b) => {
       const fa = a.fecha_creacion ? a.fecha_creacion.toMillis() : 0;
@@ -413,30 +426,146 @@ async function cargarLibrosPublicos() {
 
     let html = '';
     libros.forEach((libro, index) => {
-      const portada = libro.portada || 'https://via.placeholder.com/300x400?text=Sin+portada';
+      const portada = libro.portada || 'https://via.placeholder.com/400x600?text=Sin+portada';
       const delay = index * 0.1;
       const revealClass = index % 3 === 0 ? 'reveal-up' : index % 3 === 1 ? 'reveal-left' : 'reveal-right';
+      const esDestacado = libro.destacado || false;
+      const precio = libro.precio ? `$${libro.precio}` : '';
 
       html += `
         <article class="book-card ${revealClass}" style="transition-delay: ${delay}s">
-          <img src="${portada}" alt="${libro.titulo}" class="w-full h-64 object-cover rounded-t-lg" onerror="this.src='https://via.placeholder.com/300x400?text=Error'">
-          <div class="p-4 bg-white rounded-b-lg border border-t-0 border-dorado/20">
-            <h3 class="font-serif text-xl">${libro.titulo}</h3>
-            <p class="text-dorado text-sm">${libro.autor || 'Editorial Punto y Coma'}</p>
-            <p class="text-cremadark text-sm line-clamp-2 mt-2">${libro.descripcion || ''}</p>
-            <a href="${libro.enlace_compra || '#'}" target="_blank" class="inline-block mt-3 border border-dorado text-dorado px-4 py-1 text-xs uppercase tracking-widest hover:bg-dorado hover:text-vinodark transition">Comprar</a>
+          <div class="book-image-wrapper">
+            <img src="${portada}" alt="${libro.titulo}" class="book-image" onerror="this.src='https://via.placeholder.com/400x600?text=Error'">
+            ${esDestacado ? `<span class="book-badge">Destacado</span>` : ''}
+          </div>
+          <div class="book-info">
+            <h3 class="book-title">${libro.titulo}</h3>
+            <p class="book-author">${libro.autor}</p>
+            ${precio ? `<p class="book-price">${precio}</p>` : ''}
+            <p class="book-description">${libro.descripcion}</p>
+            <a href="${libro.enlace_compra}" target="_blank" class="book-btn">Comprar ahora <i class="fa-solid fa-arrow-right"></i></a>
           </div>
         </article>
       `;
     });
 
     grid.innerHTML = html;
-    document.querySelectorAll('#librosGrid .reveal-up, #librosGrid .reveal-left, #librosGrid .reveal-right').forEach(el => observer.observe(el));
+    document.querySelectorAll('#librosGrid .reveal-up, #librosGrid .reveal-left, #librosGrid .reveal-right')
+      .forEach(el => observer.observe(el));
+
+    // Aplicar efecto 3D
+    aplicarEfecto3D();
 
   } catch (error) {
     console.error('Error cargando libros:', error);
-    grid.innerHTML = '<div class="col-span-full text-center py-12 text-dorado">Error al cargar los libros.</div>';
+    grid.innerHTML = '<div class="col-span-full text-center py-12 text-dorado">Error al cargar los libros. Recarga la página.</div>';
   }
+}
+
+// ================================================================
+// EFECTO 3D EN TARJETAS DE LIBROS
+// ================================================================
+function aplicarEfecto3D() {
+  const cards = document.querySelectorAll('.book-card');
+  
+  cards.forEach(card => {
+    if (card.dataset.has3d) return;
+    card.dataset.has3d = 'true';
+    
+    card.addEventListener('mousemove', (e) => {
+      const rect = card.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      
+      const centerX = rect.width / 2;
+      const centerY = rect.height / 2;
+      
+      const rotateX = ((y - centerY) / centerY) * -8;
+      const rotateY = ((x - centerX) / centerX) * 8;
+      
+      card.style.transform = `perspective(800px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateY(-6px)`;
+    });
+    
+    card.addEventListener('mouseleave', () => {
+      card.style.transform = 'perspective(800px) rotateX(0deg) rotateY(0deg) translateY(0px)';
+    });
+  });
+}
+
+// ================================================================
+// VIDEOS PÚBLICOS - CONEXIÓN CON FIRESTORE
+// ================================================================
+async function cargarVideosPublicos() {
+  const grid = document.getElementById('videosGrid');
+  if (!grid) return;
+
+  const db = window.db || (typeof db !== 'undefined' ? db : null);
+  if (!db) {
+    grid.innerHTML = '<div class="col-span-full text-center py-12 text-red-500">Error de conexión.</div>';
+    return;
+  }
+
+  try {
+    const snapshot = await db.collection('videos').get();
+    if (snapshot.empty) {
+      grid.innerHTML = '<div class="col-span-full text-center py-12 text-cremadark">Próximamente contenido multimedia.</div>';
+      return;
+    }
+
+    let videos = snapshot.docs.map(doc => doc.data());
+    videos = videos.filter(video => video.publicado !== false);
+    videos.sort((a, b) => {
+      const fa = a.fecha_creacion ? a.fecha_creacion.toMillis() : 0;
+      const fb = b.fecha_creacion ? b.fecha_creacion.toMillis() : 0;
+      return fb - fa;
+    });
+
+    if (videos.length === 0) {
+      grid.innerHTML = '<div class="col-span-full text-center py-12 text-cremadark">Próximamente contenido multimedia.</div>';
+      return;
+    }
+
+    let html = '';
+    videos.forEach((video, index) => {
+      const miniatura = video.miniatura || 'https://via.placeholder.com/480x360?text=Sin+miniatura';
+      const delay = index * 0.1;
+      const revealClass = index % 3 === 0 ? 'reveal-up' : index % 3 === 1 ? 'reveal-left' : 'reveal-right';
+      const fecha = video.fecha_publicacion || (video.fecha_creacion ? new Date(video.fecha_creacion.toMillis()).toLocaleDateString('es-CO') : '');
+
+      html += `
+        <div class="video-card ${revealClass}" style="transition-delay: ${delay}s">
+          <div class="video-thumbnail" onclick="abrirVideo('${video.url}')">
+            <img src="${miniatura}" alt="${video.titulo}" loading="lazy" onerror="this.src='https://via.placeholder.com/480x360?text=Error'">
+            <div class="play-icon">
+              <i class="fa-solid fa-play"></i>
+            </div>
+          </div>
+          <div class="video-info">
+            <h3>${video.titulo}</h3>
+            <p>${video.descripcion || ''}</p>
+            ${fecha ? `<span class="video-date"><i class="fa-regular fa-calendar mr-1"></i>${fecha}</span>` : ''}
+            ${video.destacado ? '<span class="video-badge">Destacado</span>' : ''}
+          </div>
+        </div>
+      `;
+    });
+
+    grid.innerHTML = html;
+    document.querySelectorAll('#videosGrid .reveal-up, #videosGrid .reveal-left, #videosGrid .reveal-right')
+      .forEach(el => observer.observe(el));
+
+  } catch (error) {
+    console.error('Error cargando videos:', error);
+    grid.innerHTML = '<div class="col-span-full text-center py-12 text-dorado">Error al cargar los videos.</div>';
+  }
+}
+
+function abrirVideo(url) {
+  window.open(url, '_blank');
+}
+// Función para abrir video (abre en nueva pestaña)
+function abrirVideo(url) {
+  window.open(url, '_blank');
 }
 
 // ================================================================
@@ -579,17 +708,6 @@ const observer = new IntersectionObserver((entries) => {
 }, { threshold: 0.15 });
 
 document.addEventListener('DOMContentLoaded', () => {
-  document.querySelectorAll('.reveal-up, .reveal-left, .reveal-right, .reveal-zoom').forEach(el => observer.observe(el));
-});
-
-
-// Dentro de la navegación
-document.querySelectorAll('.nav-link').forEach(link => {
-  link.addEventListener('click', (e) => {
-    // ... código existente ...
-    if (section === 'mensajes') {
-      cargarMensajes(); // Cargar mensajes al entrar
-    }
-    // ... resto ...
-  });
+  document.querySelectorAll('.reveal-up, .reveal-left, .reveal-right, .reveal-zoom')
+    .forEach(el => observer.observe(el));
 });
