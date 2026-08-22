@@ -1,7 +1,7 @@
 // ================================================================
 // PANEL DE CONTROL - EDITORIAL PUNTO Y COMA
 // Archivo: panel.js
-// Gestiona noticias, autores, libros, videos, mensajes, autenticación y perfil.
+// Gestiona noticias, autores, libros, mensajes, videos, autenticación y perfil.
 // ================================================================
 
 const auth = window.auth;
@@ -16,8 +16,23 @@ let imagenesExistentes = [];
 console.log('panel.js cargado. db:', db ? 'OK' : 'NO');
 
 // ================================================================
-// 1. AUTENTICACIÓN Y ROLES
+// 1. AUTENTICACIÓN Y ROLES (CORREGIDO)
 // ================================================================
+
+// Función para refrescar token antes de operaciones críticas
+async function asegurarTokenValido() {
+  if (auth && auth.currentUser) {
+    try {
+      await auth.currentUser.getIdToken(true);
+      console.log('✅ Token refrescado correctamente');
+      return true;
+    } catch (error) {
+      console.error('❌ Error al refrescar token:', error);
+      return false;
+    }
+  }
+  return false;
+}
 
 document.getElementById('loginForm')?.addEventListener('submit', async (e) => {
   e.preventDefault();
@@ -109,26 +124,35 @@ function mostrarPanel() {
   document.getElementById('panelScreen').classList.remove('hidden');
 }
 
+// CORREGIDO: Listener de autenticación con manejo de errores
 if (auth) {
   auth.onAuthStateChanged(async (user) => {
     if (user) {
       try {
-        if (!await esAdministrador(user)) { await auth.signOut(); mostrarErrorAcceso('Sin permisos de administración.'); return; }
+        // Verificar permisos
+        if (!await esAdministrador(user)) {
+          await auth.signOut();
+          mostrarErrorAcceso('Sin permisos de administración.');
+          return;
+        }
         usuarioActual = user;
         await cargarDatosUsuario(user);
         mostrarPanel();
+        // Cargar todos los datos
         cargarNoticiasUsuario();
         cargarResumen();
         cargarAutores();
         cargarLibros();
-        cargarVideos(); // 🔥 NUEVO
         cargarMensajes();
+        cargarVideos(); // NUEVO
       } catch (error) {
         console.error('Error al validar permisos:', error);
-        await auth.signOut();
-        mostrarErrorAcceso('No fue posible validar los permisos.');
+        // No cerrar sesión automáticamente, mostrar mensaje de error
+        mostrarErrorAcceso('Error al cargar los datos. Intenta recargar la página.');
       }
-    } else { mostrarLogin(); }
+    } else {
+      mostrarLogin();
+    }
   });
 } else {
   mostrarErrorAcceso('No se pudo inicializar la autenticación.');
@@ -163,6 +187,10 @@ document.querySelectorAll('.nav-link').forEach(link => {
       document.getElementById('seccionNoticias').classList.remove('hidden');
       if (sectionTitle) sectionTitle.textContent = 'Noticias';
       if (btnNuevaNoticia) btnNuevaNoticia.classList.remove('hidden');
+    } else if (section === 'videos') {
+      document.getElementById('seccionVideos').classList.remove('hidden');
+      if (sectionTitle) sectionTitle.textContent = 'Videos';
+      if (btnNuevaNoticia) btnNuevaNoticia.classList.add('hidden');
     } else if (section === 'configuracion') {
       document.getElementById('seccionConfiguracion').classList.remove('hidden');
       if (sectionTitle) sectionTitle.textContent = 'Configuración';
@@ -200,13 +228,13 @@ async function cargarResumen() {
     const totalLibros = snapLibros.docs.filter(doc => doc.data().publicado !== false).length;
     document.getElementById('statLibros').textContent = totalLibros;
 
-    const snapVideos = await db.collection('videos').get();
-    const totalVideos = snapVideos.docs.filter(doc => doc.data().publicado !== false).length;
-    document.getElementById('statVideos').textContent = totalVideos;
-
     const snapMensajes = await db.collection('mensajes').get();
     const noLeidos = snapMensajes.docs.filter(doc => !doc.data().leido).length;
     document.getElementById('statMensajes').textContent = noLeidos;
+
+    const snapVideos = await db.collection('videos').get();
+    const totalVideos = snapVideos.docs.filter(doc => doc.data().publicado !== false).length;
+    // Opcional: añadir estadística de videos
   } catch (error) { console.warn('No se pudo cargar el resumen:', error); }
 }
 
@@ -320,6 +348,9 @@ document.getElementById('formAutor')?.addEventListener('submit', async (e) => {
   btnGuardar.disabled = true;
   btnGuardar.textContent = 'Guardando...';
   try {
+    // Refrescar token antes de operaciones críticas
+    await asegurarTokenValido();
+
     const inputId = form.querySelector('input[name="id"]');
     const docId = inputId ? inputId.value.trim() : '';
     const nombre = form.querySelector('[name="nombre"]')?.value?.trim() || '';
@@ -410,6 +441,7 @@ document.getElementById('formLibro')?.addEventListener('submit', async (e) => {
   btnGuardar.disabled = true;
   btnGuardar.textContent = 'Guardando...';
   try {
+    await asegurarTokenValido();
     const id = form.querySelector('input[name="id"]')?.value || '';
     const titulo = form.querySelector('[name="titulo"]')?.value?.trim() || '';
     const autor = form.querySelector('[name="autor"]')?.value?.trim() || '';
@@ -635,6 +667,7 @@ document.getElementById('formNoticia')?.addEventListener('submit', async (e) => 
   btnGuardar.textContent = 'Guardando...';
   btnGuardar.disabled = true;
   try {
+    await asegurarTokenValido();
     const datos = {
       titulo: form.titulo.value.trim(),
       resumen: form.resumen.value.trim(),
@@ -670,43 +703,9 @@ document.getElementById('formNoticia')?.addEventListener('submit', async (e) => 
     btnGuardar.disabled = false;
   }
 });
-// ================================================================
-// GESTIÓN DE VIDEOS (PANEL)
-// ================================================================
-
-async function cargarVideos() {
-  const container = document.getElementById('listaVideos');
-  if (!container || !db) {
-    console.warn('No se puede cargar videos: container o db no disponibles');
-    return;
-  }
-
-  container.innerHTML = '<div class="col-span-full text-center py-8"><i class="fas fa-spinner fa-spin text-primary text-2xl"></i><p class="text-xs text-darktext/60 mt-2">Cargando videos...</p></div>';
-
-  try {
-    const snapshot = await db.collection('videos').get();
-
-    if (snapshot.empty) {
-      container.innerHTML = '<div class="col-span-full text-center py-8 text-darktext/50 text-sm">📹 No hay videos aún. Crea el primero.</div>';
-      return;
-    }
-
-    let videos = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    videos.sort((a, b) => {
-      const fa = a.fecha_creacion ? a.fecha_creacion.toMillis() : 0;
-      const fb = b.fecha_creacion ? b.fecha_creacion.toMillis() : 0;
-      return fb - fa;
-    });
-
-    container.innerHTML = videos.map(video => crearTarjetaVideoAdmin(video)).join('');
-  } catch (error) {
-    console.error('❌ Error al cargar videos:', error);
-    container.innerHTML = `<div class="col-span-full text-center py-8 text-red-500 text-sm">Error al cargar los videos: ${error.message}</div>`;
-  }
-}
 
 // ================================================================
-// 7. GESTIÓN DE MENSAJES
+// 6. GESTIÓN DE MENSAJES
 // ================================================================
 
 async function cargarMensajes() {
@@ -796,7 +795,188 @@ async function eliminarMensaje(id) {
 document.getElementById('btnRecargarMensajes')?.addEventListener('click', cargarMensajes);
 
 // ================================================================
-// 8. CONFIGURACIÓN DE PERFIL
+// 6. GESTIÓN DE VIDEOS (CORREGIDO)
+// ================================================================
+
+async function cargarVideos() {
+  const container = document.getElementById('listaVideos');
+  if (!container || !db) return;
+  container.innerHTML = '<div class="col-span-full text-center py-8"><i class="fas fa-spinner fa-spin text-primary text-2xl"></i><p class="text-xs text-darktext/60 mt-2">Cargando videos...</p></div>';
+
+  try {
+    // Asegurar token válido antes de leer
+    await asegurarTokenValido();
+    const snapshot = await db.collection('videos').get();
+    if (snapshot.empty) {
+      container.innerHTML = '<div class="col-span-full text-center py-8 text-darktext/50 text-sm">No hay videos aún.</div>';
+      return;
+    }
+
+    let videos = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    videos.sort((a, b) => {
+      const fa = a.fecha_creacion ? a.fecha_creacion.toMillis() : 0;
+      const fb = b.fecha_creacion ? b.fecha_creacion.toMillis() : 0;
+      return fb - fa;
+    });
+
+    container.innerHTML = videos.map(video => crearTarjetaVideoAdmin(video)).join('');
+  } catch (error) {
+    console.error('Error al cargar videos:', error);
+    container.innerHTML = '<div class="col-span-full text-center py-8 text-red-500 text-sm">Error al cargar los videos.</div>';
+  }
+}
+
+function crearTarjetaVideoAdmin(video) {
+  if (!video.id) return '';
+  const miniatura = video.miniatura || 'https://img.youtube.com/vi/default/hqdefault.jpg';
+  const fecha = video.fecha_publicacion || (video.fecha_creacion ? new Date(video.fecha_creacion.toMillis()).toLocaleDateString('es-CO') : '');
+  const estaPublicado = video.publicado !== false;
+
+  return `
+    <div class="panel-card p-5 rounded-xl border border-lightbg flex flex-col bg-white shadow-sm">
+      <div class="flex items-start gap-4">
+        <img src="${miniatura}" alt="${video.titulo}" class="w-24 h-16 object-cover rounded border border-primary/20 shrink-0"
+             onerror="this.onerror=null;this.src='https://via.placeholder.com/120x80?text=Error'">
+        <div class="flex-1 min-w-0">
+          <h3 class="font-bold text-secondary text-base truncate">${video.titulo || 'Sin título'}</h3>
+          <p class="text-xs text-darktext/70 truncate">${video.descripcion || ''}</p>
+          <p class="text-[10px] text-darktext/50 mt-1">${fecha}</p>
+        </div>
+      </div>
+      <div class="flex items-center justify-between border-t border-lightbg pt-3 mt-3">
+        <span class="text-[10px] uppercase tracking-wider px-2 py-0.5 rounded ${estaPublicado ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'} font-bold">
+          ${estaPublicado ? 'Publicado' : 'Oculto'}
+        </span>
+        <div class="flex gap-2">
+          <button onclick="editarVideo('${video.id}')" class="px-3 py-1 bg-primary/10 text-primary hover:bg-primary hover:text-white rounded text-xs transition">Editar</button>
+          <button onclick="eliminarVideo('${video.id}')" class="px-3 py-1 bg-red-50 text-red-600 hover:bg-red-600 hover:text-white rounded text-xs transition"><i class="fa-solid fa-trash"></i></button>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+async function editarVideo(id) {
+  if (!id || id.trim() === '') { alert('ID inválido.'); return; }
+  if (!db) return;
+  try {
+    await asegurarTokenValido();
+    const doc = await db.collection('videos').doc(id).get();
+    if (!doc.exists) { alert('Video no encontrado.'); return; }
+    const video = doc.data();
+    const form = document.getElementById('formVideo');
+    if (!form) return;
+    form.classList.remove('hidden');
+
+    form.querySelector('input[name="id"]').value = id;
+    form.querySelector('[name="titulo"]').value = video.titulo || '';
+    form.querySelector('[name="descripcion"]').value = video.descripcion || '';
+    form.querySelector('[name="url"]').value = video.url || '';
+    form.querySelector('[name="fecha_publicacion"]').value = video.fecha_publicacion || '';
+    form.querySelector('[name="destacado"]').checked = video.destacado || false;
+    form.querySelector('[name="publicado"]').checked = video.publicado !== false;
+
+    document.getElementById('video-miniatura').value = '';
+
+    form.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  } catch (error) { console.error(error); alert('Error al cargar el video.'); }
+}
+
+async function eliminarVideo(id) {
+  if (!id || id.trim() === '') { alert('ID inválido.'); return; }
+  if (!confirm('¿Estás seguro de eliminar este video?')) return;
+  try {
+    await asegurarTokenValido();
+    const doc = await db.collection('videos').doc(id).get();
+    const video = doc.data();
+    if (video.miniatura && video.miniatura.includes('firebasestorage')) {
+      try {
+        const path = video.miniatura.split('/o/')[1].split('?')[0];
+        const decodedPath = decodeURIComponent(path);
+        await storage.ref(decodedPath).delete();
+      } catch (e) { console.warn('No se pudo borrar la miniatura:', e); }
+    }
+    await db.collection('videos').doc(id).delete();
+    alert('Video eliminado.');
+    cargarVideos();
+  } catch (error) { console.error(error); alert('Error al eliminar.'); }
+}
+
+// Submit del formulario de video (CORREGIDO)
+document.getElementById('formVideo')?.addEventListener('submit', async (e) => {
+  e.preventDefault(); // Asegurar que no recarga la página
+  const form = e.target;
+  const btnGuardar = form.querySelector('button[type="submit"]');
+  const textoOriginal = btnGuardar.textContent;
+  btnGuardar.disabled = true;
+  btnGuardar.textContent = 'Guardando...';
+
+  try {
+    // Refrescar token antes de subir archivos
+    await asegurarTokenValido();
+
+    const inputId = form.querySelector('input[name="id"]');
+    const docId = inputId ? inputId.value.trim() : '';
+
+    const titulo = form.querySelector('[name="titulo"]')?.value?.trim() || '';
+    const descripcion = form.querySelector('[name="descripcion"]')?.value?.trim() || '';
+    const url = form.querySelector('[name="url"]')?.value?.trim() || '';
+    const fecha_publicacion = form.querySelector('[name="fecha_publicacion"]')?.value || '';
+    const destacado = form.querySelector('[name="destacado"]')?.checked || false;
+    const publicado = form.querySelector('[name="publicado"]')?.checked !== false;
+
+    let miniaturaUrl = '';
+    const miniaturaInput = document.getElementById('video-miniatura');
+    if (miniaturaInput && miniaturaInput.files && miniaturaInput.files.length > 0) {
+      btnGuardar.textContent = 'Subiendo miniatura...';
+      const archivo = miniaturaInput.files[0];
+      const storageRef = storage.ref(`videos/miniaturas/${Date.now()}_${archivo.name}`);
+      const snapshot = await storageRef.put(archivo);
+      miniaturaUrl = await snapshot.ref.getDownloadURL();
+    } else if (url) {
+      // Extraer ID de YouTube para usar miniatura automática
+      const videoId = url.match(/(?:embed\/|v\/|youtu.be\/|\/v\/|\/e\/|watch\?v=|\&v=)([^#\&\?]*).*/)?.[1];
+      if (videoId) {
+        miniaturaUrl = `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
+      }
+    }
+
+    const datosVideo = {
+      titulo,
+      descripcion,
+      url,
+      fecha_publicacion,
+      destacado,
+      publicado,
+      miniatura: miniaturaUrl || '',
+      usuario_id: usuarioActual ? usuarioActual.uid : '',
+      actualizado_en: firebase.firestore.FieldValue.serverTimestamp()
+    };
+
+    if (docId) {
+      await db.collection('videos').doc(docId).update(datosVideo);
+      alert('Video actualizado.');
+    } else {
+      datosVideo.fecha_creacion = firebase.firestore.FieldValue.serverTimestamp();
+      await db.collection('videos').add(datosVideo);
+      alert('Video creado.');
+    }
+
+    form.reset();
+    if (inputId) inputId.value = '';
+    form.classList.add('hidden');
+    cargarVideos();
+  } catch (error) {
+    console.error('Error al guardar video:', error);
+    alert('Error al guardar el video. Verifica tu conexión e intenta nuevamente.');
+  } finally {
+    btnGuardar.disabled = false;
+    btnGuardar.textContent = textoOriginal;
+  }
+});
+
+// ================================================================
+// 7. CONFIGURACIÓN DE PERFIL
 // ================================================================
 
 document.getElementById('btnActualizarPerfil')?.addEventListener('click', async () => {
@@ -804,6 +984,7 @@ document.getElementById('btnActualizarPerfil')?.addEventListener('click', async 
   const telefono = document.getElementById('inputTelefono').value.trim();
   if (!nombre) { alert('El nombre es obligatorio'); return; }
   try {
+    await asegurarTokenValido();
     if (auth && auth.currentUser) { await auth.currentUser.updateProfile({ displayName: nombre }); }
     await db.collection('usuarios').doc(usuarioActual.uid).set({ nombre, telefono, email: usuarioActual.email }, { merge: true });
     alert('Perfil actualizado.');
@@ -812,7 +993,7 @@ document.getElementById('btnActualizarPerfil')?.addEventListener('click', async 
 });
 
 // ================================================================
-// 9. FILTROS DE NOTICIAS
+// 8. FILTROS DE NOTICIAS
 // ================================================================
 
 document.getElementById('btnAplicarFiltros')?.addEventListener('click', async () => {
@@ -834,7 +1015,7 @@ document.getElementById('btnAplicarFiltros')?.addEventListener('click', async ()
 });
 
 // ================================================================
-// 10. UTILIDADES Y EXPOSICIÓN GLOBAL
+// 9. UTILIDADES Y EXPOSICIÓN GLOBAL
 // ================================================================
 
 function obtenerMensajeError(code) {
@@ -855,17 +1036,17 @@ window.editarLibro = editarLibro;
 window.eliminarLibro = eliminarLibro;
 window.editarNoticia = editarNoticia;
 window.eliminarNoticia = eliminarNoticia;
-window.editarVideo = editarVideo;
-window.eliminarVideo = eliminarVideo;
 window.abrirModalNueva = abrirModalNueva;
 window.eliminarImagenExistente = eliminarImagenExistente;
 window.eliminarImagenNueva = eliminarImagenNueva;
 window.cargarAutores = cargarAutores;
 window.cargarLibros = cargarLibros;
 window.cargarNoticiasUsuario = cargarNoticiasUsuario;
-window.cargarVideos = cargarVideos;
 window.cargarMensajes = cargarMensajes;
 window.marcarLeido = marcarLeido;
 window.eliminarMensaje = eliminarMensaje;
+window.cargarVideos = cargarVideos;
+window.editarVideo = editarVideo;
+window.eliminarVideo = eliminarVideo;
 
 console.log('✅ Funciones globales expuestas correctamente.');
