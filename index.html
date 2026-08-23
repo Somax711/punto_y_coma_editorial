@@ -7,13 +7,13 @@
   <meta name="description" content="Editorial Punto y Coma: te ayudamos a publicar tu libro, desde la edición hasta la distribución. Conoce a nuestros autores y novedades.">
   <meta name="keywords" content="editorial, publicar libro, corrección de estilo, diagramación, Amazon KDP, autores colombianos">
   <meta name="robots" content="index, follow">
-  <link rel="canonical" href="https://puntoycomaeditorial.com/">
+  <link rel="canonical" href="https://www.editorialpuntoycoma.com/">
 
   <!-- Open Graph -->
   <meta property="og:title" content="Editorial Punto y Coma | Publica tu libro">
   <meta property="og:description" content="Editorial Punto y Coma: edición, publicación y distribución de libros. Descubre nuestros autores y servicios.">
-  <meta property="og:image" content="https://puntoycomaeditorial.com/logovector.png">
-  <meta property="og:url" content="https://puntoycomaeditorial.com/">
+  <meta property="og:image" content="https://www.editorialpuntoycoma.com/logovector.png">
+  <meta property="og:url" content="https://www.editorialpuntoycoma.com/">
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="Editorial Punto y Coma">
 
@@ -21,7 +21,7 @@
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="Editorial Punto y Coma | Publica tu libro">
   <meta name="twitter:description" content="Edición, publicación y distribución de libros. Conoce a nuestros autores y servicios.">
-  <meta name="twitter:image" content="https://puntoycomaeditorial.com/logovector.png">
+  <meta name="twitter:image" content="https://www.editorialpuntoycoma.com/logovector.png">
 
   <!-- Schema.org Organization -->
   <script type="application/ld+json">
@@ -29,8 +29,8 @@
     "@context": "https://schema.org",
     "@type": "Organization",
     "name": "Editorial Punto y Coma",
-    "url": "https://puntoycomaeditorial.com/",
-    "logo": "https://puntoycomaeditorial.com/logovector.png",
+    "url": "https://www.editorialpuntoycoma.com/",
+    "logo": "https://www.editorialpuntoycoma.com/logovector.png",
     "description": "Editorial especializada en la publicación de libros, desde la edición hasta la distribución.",
     "address": {
       "@type": "PostalAddress",
@@ -48,6 +48,26 @@
     ]
   }
   </script>
+  <script>
+  (function() {
+    var version = new Date().toISOString().slice(0,10).replace(/-/g,'');
+    
+    // Para CSS y JS
+    var links = document.querySelectorAll('link[rel="stylesheet"]');
+    links.forEach(function(link) {
+      if (link.href && link.href.indexOf('style.css') !== -1) {
+        link.href = link.href.split('?')[0] + '?v=' + version;
+      }
+    });
+    
+    var scripts = document.querySelectorAll('script[src]');
+    scripts.forEach(function(script) {
+      if (script.src && (script.src.indexOf('scripts.js') !== -1 || script.src.indexOf('panel.js') !== -1)) {
+        script.src = script.src.split('?')[0] + '?v=' + version;
+      }
+    });
+  })();
+</script>
 
   <!-- Fuentes y Font Awesome -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -68,7 +88,7 @@
             cremadark: '#5B4540',
             cardbg: '#FFFFFF',
             secondary: '#3B2925',
-            salvia: '#7C8B78'
+            salvia: '#7C8B78'si pued
           },
           fontFamily: {
             serif: ['Playfair Display', 'serif'],
@@ -79,7 +99,7 @@
     };
   </script>
   <link rel="icon" type="image/png" href="logovector.png" />
-  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="style.css?v=20260822" />
 </head>
 
 <body class="font-sans antialiased overflow-x-hidden bg-vinodark text-crema selection:bg-dorado selection:text-vinodark">
@@ -378,6 +398,19 @@
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
   <script src="paneldecontrol/firebase-config.js"></script>
-  <script src="scripts.js"></script>
+  <script src="scripts.js?v=20260822"></script>
+
+  <!-- =============CODIGO PARA ACTUALIZAR LA WEB DE FORMA AUTOMATICA ================ -->
+
+<script>
+  fetch('version.json')
+    .then(res => res.json())
+    .then(data => {
+      document.querySelector('link[href="style.css"]').href = `style.css?v=${data.v}`;
+      document.querySelector('script[src="scripts.js"]').src = `scripts.js?v=${data.v}`;
+    });
+</script>
+</script>
+
 </body>
 </html>

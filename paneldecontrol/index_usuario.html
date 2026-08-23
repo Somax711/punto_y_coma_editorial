@@ -23,6 +23,24 @@
       }
     }
   </script>
+
+  <script>
+  (function() {
+    var version = new Date().toISOString().slice(0,10).replace(/-/g,'');
+    var links = document.querySelectorAll('link[rel="stylesheet"]');
+    links.forEach(function(link) {
+      if (link.href && link.href.indexOf('style.css') !== -1) {
+        link.href = link.href.split('?')[0] + '?v=' + version;
+      }
+    });
+    var scripts = document.querySelectorAll('script[src]');
+    scripts.forEach(function(script) {
+      if (script.src && (script.src.indexOf('panel.js') !== -1 || script.src.indexOf('firebase-config.js') !== -1)) {
+        script.src = script.src.split('?')[0] + '?v=' + version;
+      }
+    });
+  })();
+</script>
   <style>
     body { font-family: 'Lato', sans-serif; background: #FFF9F2; color: #3B2925; }
     .panel-card { background: #FFFFFF; border: 1px solid rgba(184,92,74,.18); box-shadow: 0 8px 24px rgba(59,41,37,.06); }
