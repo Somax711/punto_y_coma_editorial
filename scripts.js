@@ -16,6 +16,10 @@ function linkWhatsapp(mensaje) {
 // VARIABLES GLOBALES
 // ================================================================
 let autoresData = [];
+let todosLosLibros = [];
+let librosMostrados = 8;
+let todosLosVideos = [];
+let videosMostrados = 6;
 
 // ================================================================
 // AUTENTICACIÓN ANÓNIMA (para permitir escritura en mensajes)
@@ -97,12 +101,23 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
+  // Botones "Ver más"
+  const btnVerMasLibros = document.getElementById('btnVerMasLibros');
+  if (btnVerMasLibros) {
+    btnVerMasLibros.addEventListener('click', verMasLibros);
+  }
+
+  const btnVerMasVideos = document.getElementById('btnVerMasVideos');
+  if (btnVerMasVideos) {
+    btnVerMasVideos.addEventListener('click', verMasVideos);
+  }
+
   // Cargar datos
   setTimeout(() => {
     cargarNoticiasPublicas();
     cargarAutoresPublicos();
     cargarLibrosPublicos();
-    cargarVideosPublicos(); // 🔥 Nueva sección
+    cargarVideosPublicos();
   }, 500);
 });
 
@@ -110,7 +125,6 @@ document.addEventListener("DOMContentLoaded", () => {
 // CONTACTO - MODAL Y ENVÍO A FIRESTORE
 // ================================================================
 
-// Abrir modal de contacto
 window.abrirModalContacto = function() {
   const modal = document.getElementById('contacto-modal');
   if (!modal) return;
@@ -120,12 +134,10 @@ window.abrirModalContacto = function() {
     modal.classList.remove('opacity-0');
     modal.firstElementChild.classList.remove('scale-95');
   }, 10);
-  // Limpiar mensajes anteriores
   document.getElementById('contacto-respuesta').classList.add('hidden');
   document.getElementById('formContacto').reset();
 };
 
-// Cerrar modal de contacto
 window.cerrarModalContacto = function() {
   const modal = document.getElementById('contacto-modal');
   if (!modal) return;
@@ -137,7 +149,6 @@ window.cerrarModalContacto = function() {
   }, 250);
 };
 
-// Enviar mensaje de contacto
 document.getElementById('formContacto')?.addEventListener('submit', async (e) => {
   e.preventDefault();
   const btn = document.getElementById('btnEnviarContacto');
@@ -227,7 +238,6 @@ async function cargarNoticiasPublicas() {
       const fechaB = b.fecha_creacion ? b.fecha_creacion.toMillis() : 0;
       return fechaB - fechaA;
     });
-    // Mostramos máximo 8 noticias (4 columnas * 2 filas)
     noticias = noticias.slice(0, 8);
 
     if (noticias.length === 0) {
@@ -382,11 +392,42 @@ async function cargarAutoresPublicos() {
 }
 
 // ================================================================
-// LIBROS PÚBLICOS - CON EFECTO 3D
+// LIBROS PÚBLICOS - CON PAGINACIÓN Y DISEÑO MEJORADO
 // ================================================================
+
+function generarHTMLlibros(libros) {
+  let html = '';
+  libros.forEach((libro, index) => {
+    const portada = libro.portada || 'https://via.placeholder.com/400x600?text=Sin+portada';
+    const delay = index * 0.1;
+    const revealClass = index % 3 === 0 ? 'reveal-up' : index % 3 === 1 ? 'reveal-left' : 'reveal-right';
+    const esDestacado = libro.destacado || false;
+    const precio = libro.precio ? `$${libro.precio}` : '';
+
+    html += `
+      <article class="book-card ${revealClass}" style="transition-delay: ${delay}s">
+        <div class="book-image-wrapper">
+          <img src="${portada}" alt="${libro.titulo}" class="book-image" loading="lazy" onerror="this.src='https://via.placeholder.com/400x600?text=Error'">
+          ${esDestacado ? `<span class="book-badge">Destacado</span>` : ''}
+        </div>
+        <div class="book-info">
+          <h3 class="book-title">${libro.titulo}</h3>
+          <p class="book-author">${libro.autor}</p>
+          ${precio ? `<p class="book-price">${precio}</p>` : ''}
+          <p class="book-description">${libro.descripcion}</p>
+          <a href="${libro.enlace_compra}" target="_blank" class="book-btn">Comprar ahora <i class="fa-solid fa-arrow-right"></i></a>
+        </div>
+      </article>
+    `;
+  });
+  return html;
+}
+
 async function cargarLibrosPublicos() {
   const grid = document.getElementById('librosGrid');
+  const verMasContainer = document.getElementById('librosVerMasContainer');
   if (!grid) return;
+
   const db = window.db || (typeof db !== 'undefined' ? db : null);
   if (!db) {
     grid.innerHTML = '<div class="col-span-full text-center py-12 text-red-500">Error de conexión.</div>';
@@ -424,37 +465,24 @@ async function cargarLibrosPublicos() {
       return;
     }
 
-    let html = '';
-    libros.forEach((libro, index) => {
-      const portada = libro.portada || 'https://via.placeholder.com/400x600?text=Sin+portada';
-      const delay = index * 0.1;
-      const revealClass = index % 3 === 0 ? 'reveal-up' : index % 3 === 1 ? 'reveal-left' : 'reveal-right';
-      const esDestacado = libro.destacado || false;
-      const precio = libro.precio ? `$${libro.precio}` : '';
+    todosLosLibros = libros;
 
-      html += `
-        <article class="book-card ${revealClass}" style="transition-delay: ${delay}s">
-          <div class="book-image-wrapper">
-            <img src="${portada}" alt="${libro.titulo}" class="book-image" onerror="this.src='https://via.placeholder.com/400x600?text=Error'">
-            ${esDestacado ? `<span class="book-badge">Destacado</span>` : ''}
-          </div>
-          <div class="book-info">
-            <h3 class="book-title">${libro.titulo}</h3>
-            <p class="book-author">${libro.autor}</p>
-            ${precio ? `<p class="book-price">${precio}</p>` : ''}
-            <p class="book-description">${libro.descripcion}</p>
-            <a href="${libro.enlace_compra}" target="_blank" class="book-btn">Comprar ahora <i class="fa-solid fa-arrow-right"></i></a>
-          </div>
-        </article>
-      `;
-    });
+    const librosIniciales = libros.slice(0, librosMostrados);
+    grid.innerHTML = generarHTMLlibros(librosIniciales);
 
-    grid.innerHTML = html;
+    // Mostrar u ocultar botón "Ver más"
+    if (libros.length > librosMostrados) {
+      verMasContainer.classList.remove('hidden');
+    } else {
+      verMasContainer.classList.add('hidden');
+    }
+
+    // Aplicar efecto 3D a todas las tarjetas
+    aplicarEfecto3D();
+
+    // Activar observer para animaciones
     document.querySelectorAll('#librosGrid .reveal-up, #librosGrid .reveal-left, #librosGrid .reveal-right')
       .forEach(el => observer.observe(el));
-
-    // Aplicar efecto 3D
-    aplicarEfecto3D();
 
   } catch (error) {
     console.error('Error cargando libros:', error);
@@ -462,138 +490,175 @@ async function cargarLibrosPublicos() {
   }
 }
 
-// ================================================================
-// EFECTO 3D EN TARJETAS DE LIBROS
-// ================================================================
-function aplicarEfecto3D() {
-  const cards = document.querySelectorAll('.book-card');
-  
-  cards.forEach(card => {
-    if (card.dataset.has3d) return;
-    card.dataset.has3d = 'true';
-    
-    card.addEventListener('mousemove', (e) => {
-      const rect = card.getBoundingClientRect();
-      const x = e.clientX - rect.left;
-      const y = e.clientY - rect.top;
-      
-      const centerX = rect.width / 2;
-      const centerY = rect.height / 2;
-      
-      const rotateX = ((y - centerY) / centerY) * -8;
-      const rotateY = ((x - centerX) / centerX) * 8;
-      
-      card.style.transform = `perspective(800px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateY(-6px)`;
-    });
-    
-    card.addEventListener('mouseleave', () => {
-      card.style.transform = 'perspective(800px) rotateX(0deg) rotateY(0deg) translateY(0px)';
-    });
-  });
-}
-// ================================================================
-// VIDEOS PÚBLICOS - CONEXIÓN CON FIRESTORE
-// ================================================================
-async function cargarVideosPublicos() {
-  const grid = document.getElementById('videosGrid');
-  if (!grid) {
-    console.warn('No se encontró #videosGrid');
+function verMasLibros() {
+  const grid = document.getElementById('librosGrid');
+  const verMasContainer = document.getElementById('librosVerMasContainer');
+  if (!grid || !todosLosLibros.length) return;
+
+  const actuales = grid.querySelectorAll('.book-card').length;
+  const siguientes = todosLosLibros.slice(actuales, actuales + librosMostrados);
+  if (!siguientes.length) {
+    verMasContainer.classList.add('hidden');
     return;
   }
 
+  const nuevoHTML = generarHTMLlibros(siguientes);
+  grid.insertAdjacentHTML('beforeend', nuevoHTML);
+
+  // Aplicar efecto 3D a las nuevas tarjetas
+  aplicarEfecto3D();
+
+  // Activar observer para las nuevas
+  document.querySelectorAll('#librosGrid .book-card').forEach(el => observer.observe(el));
+
+  if (grid.querySelectorAll('.book-card').length >= todosLosLibros.length) {
+    verMasContainer.classList.add('hidden');
+  }
+}
+
+// ================================================================
+// VIDEOS PÚBLICOS - CON PAGINACIÓN
+// ================================================================
+
+function generarHTMLvideos(videos) {
+  let html = '';
+  videos.forEach((video, index) => {
+    const miniatura = video.miniatura || 'https://via.placeholder.com/480x360?text=Sin+miniatura';
+    const delay = index * 0.1;
+    const revealClass = index % 3 === 0 ? 'reveal-up' : index % 3 === 1 ? 'reveal-left' : 'reveal-right';
+    const fecha = video.fecha_publicacion || (video.fecha_creacion ? new Date(video.fecha_creacion.toMillis()).toLocaleDateString('es-CO') : '');
+
+    html += `
+      <div class="video-card ${revealClass}" style="transition-delay: ${delay}s">
+        <div class="video-thumbnail" onclick="abrirVideo('${video.url}')">
+          <img src="${miniatura}" alt="${video.titulo}" loading="lazy" onerror="this.src='https://via.placeholder.com/480x360?text=Error'">
+          <div class="play-icon">
+            <i class="fa-solid fa-play"></i>
+          </div>
+        </div>
+        <div class="video-info">
+          <h3>${video.titulo}</h3>
+          <p>${video.descripcion || ''}</p>
+          ${fecha ? `<span class="video-date"><i class="fa-regular fa-calendar mr-1"></i>${fecha}</span>` : ''}
+          ${video.destacado ? '<span class="video-badge">Destacado</span>' : ''}
+        </div>
+      </div>
+    `;
+  });
+  return html;
+}
+
+async function cargarVideosPublicos() {
+  const grid = document.getElementById('videosGrid');
+  const verMasContainer = document.getElementById('videosVerMasContainer');
+  if (!grid) return;
+
   const db = window.db || (typeof db !== 'undefined' ? db : null);
   if (!db) {
-    grid.innerHTML = '<div class="col-span-full text-center py-12 text-red-500">Error de conexión con la base de datos.</div>';
-    console.error('❌ db no disponible');
+    grid.innerHTML = '<div class="col-span-full text-center py-12 text-red-500">Error de conexión.</div>';
     return;
   }
 
   try {
-    // Intentamos obtener los videos
     const snapshot = await db.collection('videos').get();
-
-    // Si no hay documentos
     if (snapshot.empty) {
-      grid.innerHTML = '<div class="col-span-full text-center py-12 text-cremadark">📹 Próximamente contenido multimedia.</div>';
-      console.log('📭 Colección videos vacía');
+      grid.innerHTML = '<div class="col-span-full text-center py-12 text-cremadark">Próximamente contenido multimedia.</div>';
       return;
     }
 
-    // Procesar documentos
-    let videos = snapshot.docs.map(doc => {
-      const data = doc.data();
-      return {
-        id: doc.id,
-        ...data,
-        // Asegurar campos por defecto si faltan
-        titulo: data.titulo || 'Video sin título',
-        descripcion: data.descripcion || '',
-        url: data.url || '#',
-        miniatura: data.miniatura || 'https://via.placeholder.com/480x360?text=Sin+miniatura',
-        fecha_publicacion: data.fecha_publicacion || '',
-        destacado: data.destacado || false,
-        publicado: data.publicado !== false
-      };
-    });
-
-    // Filtrar solo publicados
-    videos = videos.filter(v => v.publicado === true);
-
-    if (videos.length === 0) {
-      grid.innerHTML = '<div class="col-span-full text-center py-12 text-cremadark">📹 No hay videos publicados aún.</div>';
-      return;
-    }
-
-    // Ordenar por fecha (más reciente primero)
+    let videos = snapshot.docs.map(doc => doc.data());
+    videos = videos.filter(video => video.publicado !== false);
     videos.sort((a, b) => {
       const fa = a.fecha_creacion ? a.fecha_creacion.toMillis() : 0;
       const fb = b.fecha_creacion ? b.fecha_creacion.toMillis() : 0;
       return fb - fa;
     });
 
-    // Generar HTML
-    let html = '';
-    videos.forEach((video, index) => {
-      const miniatura = video.miniatura || 'https://via.placeholder.com/480x360?text=Sin+miniatura';
-      const delay = index * 0.1;
-      const revealClass = index % 3 === 0 ? 'reveal-up' : index % 3 === 1 ? 'reveal-left' : 'reveal-right';
-      const fecha = video.fecha_publicacion || (video.fecha_creacion ? new Date(video.fecha_creacion.toMillis()).toLocaleDateString('es-CO') : '');
-      const videoUrl = video.url || '#';
+    if (videos.length === 0) {
+      grid.innerHTML = '<div class="col-span-full text-center py-12 text-cremadark">Próximamente contenido multimedia.</div>';
+      return;
+    }
 
-      html += `
-        <div class="video-card ${revealClass}" style="transition-delay: ${delay}s">
-          <div class="video-thumbnail" onclick="abrirVideo('${videoUrl}')">
-            <img src="${miniatura}" alt="${video.titulo}" loading="lazy" onerror="this.src='https://via.placeholder.com/480x360?text=Error'">
-            <div class="play-icon">
-              <i class="fa-solid fa-play"></i>
-            </div>
-          </div>
-          <div class="video-info">
-            <h3>${video.titulo}</h3>
-            <p>${video.descripcion || ''}</p>
-            ${fecha ? `<span class="video-date"><i class="fa-regular fa-calendar mr-1"></i>${fecha}</span>` : ''}
-            ${video.destacado ? '<span class="video-badge">Destacado</span>' : ''}
-          </div>
-        </div>
-      `;
-    });
+    todosLosVideos = videos;
 
-    grid.innerHTML = html;
-    // Activar animaciones
+    const videosIniciales = videos.slice(0, videosMostrados);
+    grid.innerHTML = generarHTMLvideos(videosIniciales);
+
+    if (videos.length > videosMostrados) {
+      verMasContainer.classList.remove('hidden');
+    } else {
+      verMasContainer.classList.add('hidden');
+    }
+
     document.querySelectorAll('#videosGrid .reveal-up, #videosGrid .reveal-left, #videosGrid .reveal-right')
       .forEach(el => observer.observe(el));
 
   } catch (error) {
-    console.error('❌ Error detallado al cargar videos:', error);
-    // Mostrar mensaje más amigable
-    let mensaje = 'Error al cargar los videos.';
-    if (error.code === 'permission-denied') {
-      mensaje = 'No tienes permisos para leer videos. Verifica las reglas de Firestore.';
-    } else if (error.code === 'not-found') {
-      mensaje = 'La colección de videos no existe aún. Pronto habrá contenido.';
-    }
-    grid.innerHTML = `<div class="col-span-full text-center py-12 text-red-500">${mensaje}</div>`;
+    console.error('Error cargando videos:', error);
+    grid.innerHTML = '<div class="col-span-full text-center py-12 text-dorado">Error al cargar los videos.</div>';
   }
+}
+
+function verMasVideos() {
+  const grid = document.getElementById('videosGrid');
+  const verMasContainer = document.getElementById('videosVerMasContainer');
+  if (!grid || !todosLosVideos.length) return;
+
+  const actuales = grid.querySelectorAll('.video-card').length;
+  const siguientes = todosLosVideos.slice(actuales, actuales + videosMostrados);
+  if (!siguientes.length) {
+    verMasContainer.classList.add('hidden');
+    return;
+  }
+
+  const nuevoHTML = generarHTMLvideos(siguientes);
+  grid.insertAdjacentHTML('beforeend', nuevoHTML);
+
+  document.querySelectorAll('#videosGrid .video-card').forEach(el => observer.observe(el));
+
+  if (grid.querySelectorAll('.video-card').length >= todosLosVideos.length) {
+    verMasContainer.classList.add('hidden');
+  }
+}
+
+// ================================================================
+// EFECTO 3D EN LIBROS (MEJORADO Y APLICADO A TODAS LAS TARJETAS)
+// ================================================================
+
+function aplicarEfecto3D() {
+  const cards = document.querySelectorAll('.book-card');
+  if (!cards.length) return;
+
+  cards.forEach(card => {
+    // Remover eventos antiguos para evitar duplicados
+    card.removeEventListener('mousemove', card._3dHandler);
+    card.removeEventListener('mouseleave', card._3dLeaveHandler);
+
+    // Definir handlers y guardarlos en el elemento para poder removerlos después
+    const handler = (e) => {
+      const rect = card.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      const centerX = rect.width / 2;
+      const centerY = rect.height / 2;
+      const rotateX = ((y - centerY) / centerY) * -12; // Aumentado a 12 grados para efecto más notorio
+      const rotateY = ((x - centerX) / centerX) * 12;
+      card.style.transform = `perspective(800px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateY(-8px) scale(1.02)`;
+      card.style.transition = 'transform 0.1s ease';
+    };
+
+    const leaveHandler = () => {
+      card.style.transform = 'perspective(800px) rotateX(0deg) rotateY(0deg) translateY(0px) scale(1)';
+      card.style.transition = 'transform 0.4s ease';
+    };
+
+    card.addEventListener('mousemove', handler);
+    card.addEventListener('mouseleave', leaveHandler);
+
+    // Guardar referencias para poder limpiar si se vuelve a llamar
+    card._3dHandler = handler;
+    card._3dLeaveHandler = leaveHandler;
+  });
 }
 
 // ================================================================
@@ -739,3 +804,10 @@ document.addEventListener('DOMContentLoaded', () => {
   document.querySelectorAll('.reveal-up, .reveal-left, .reveal-right, .reveal-zoom')
     .forEach(el => observer.observe(el));
 });
+
+// ================================================================
+// UTILIDADES
+// ================================================================
+function abrirVideo(url) {
+  window.open(url, '_blank');
+}

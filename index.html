@@ -7,13 +7,13 @@
   <meta name="description" content="Editorial Punto y Coma: te ayudamos a publicar tu libro, desde la edición hasta la distribución. Conoce a nuestros autores y novedades.">
   <meta name="keywords" content="editorial, publicar libro, corrección de estilo, diagramación, Amazon KDP, autores colombianos">
   <meta name="robots" content="index, follow">
-  <link rel="canonical" href="https://www.editorialpuntoycoma.com/">
+  <link rel="canonical" href="https://editorialpuntoycoma.com/">
 
   <!-- Open Graph -->
   <meta property="og:title" content="Editorial Punto y Coma | Publica tu libro">
   <meta property="og:description" content="Editorial Punto y Coma: edición, publicación y distribución de libros. Descubre nuestros autores y servicios.">
-  <meta property="og:image" content="https://www.editorialpuntoycoma.com/logovector.png">
-  <meta property="og:url" content="https://www.editorialpuntoycoma.com/">
+  <meta property="og:image" content="https://editorialpuntoycoma.com/logovector.png">
+  <meta property="og:url" content="https://editorialpuntoycoma.com/">
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="Editorial Punto y Coma">
 
@@ -21,7 +21,7 @@
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="Editorial Punto y Coma | Publica tu libro">
   <meta name="twitter:description" content="Edición, publicación y distribución de libros. Conoce a nuestros autores y servicios.">
-  <meta name="twitter:image" content="https://www.editorialpuntoycoma.com/logovector.png">
+  <meta name="twitter:image" content="https://editorialpuntoycoma.com/logovector.png">
 
   <!-- Schema.org Organization -->
   <script type="application/ld+json">
@@ -29,8 +29,8 @@
     "@context": "https://schema.org",
     "@type": "Organization",
     "name": "Editorial Punto y Coma",
-    "url": "https://www.editorialpuntoycoma.com/",
-    "logo": "https://www.editorialpuntoycoma.com/logovector.png",
+    "url": "https://editorialpuntoycoma.com/",
+    "logo": "https://editorialpuntoycoma.com/logovector.png",
     "description": "Editorial especializada en la publicación de libros, desde la edición hasta la distribución.",
     "address": {
       "@type": "PostalAddress",
@@ -48,32 +48,13 @@
     ]
   }
   </script>
-  <script>
-  (function() {
-    var version = new Date().toISOString().slice(0,10).replace(/-/g,'');
-    
-    // Para CSS y JS
-    var links = document.querySelectorAll('link[rel="stylesheet"]');
-    links.forEach(function(link) {
-      if (link.href && link.href.indexOf('style.css') !== -1) {
-        link.href = link.href.split('?')[0] + '?v=' + version;
-      }
-    });
-    
-    var scripts = document.querySelectorAll('script[src]');
-    scripts.forEach(function(script) {
-      if (script.src && (script.src.indexOf('scripts.js') !== -1 || script.src.indexOf('panel.js') !== -1)) {
-        script.src = script.src.split('?')[0] + '?v=' + version;
-      }
-    });
-  })();
-</script>
 
   <!-- Fuentes y Font Awesome -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+  
   <!-- Tailwind -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
@@ -88,7 +69,7 @@
             cremadark: '#5B4540',
             cardbg: '#FFFFFF',
             secondary: '#3B2925',
-            salvia: '#7C8B78'si pued
+            salvia: '#7C8B78'
           },
           fontFamily: {
             serif: ['Playfair Display', 'serif'],
@@ -118,7 +99,6 @@
           <a href="#libreria" class="nav-link">Librería</a>
           <a href="#videos" class="nav-link">Videos</a>
           <a href="https://puntoycomaeyrtextos.blogspot.com/" class="nav-link">Blog</a>
-          <!-- El botón Contacto abre el modal -->
           <button onclick="abrirModalContacto()" class="border border-dorado text-dorado hover:bg-dorado hover:text-vinodark transition-colors px-5 py-2">Contacto</button>
         </div>
         <button id="mobile-menu-button" class="md:hidden text-crema hover:text-dorado text-2xl" aria-label="Abrir menú"><i class="fa-solid fa-bars"></i></button>
@@ -146,11 +126,14 @@
           <span>Damos</span> <span class="text-dorado italic font-light">vida</span><br /><span>a tus historias.</span>
         </h1>
         <p class="mt-4 text-xl md:text-2xl text-cremadark font-light max-w-2xl mx-auto reveal reveal-up">Descubre nuestras historias, novedades literarias y a las mentes detrás de cada obra.</p>
-        <div class="mt-10 reveal reveal-up"><a href="#noticias" class="inline-flex items-center gap-3 bg-dorado text-vinodark px-8 py-4 font-semibold uppercase tracking-widest hover:bg-crema transition-colors shadow-lg btn-glow">Leer novedades <i class="fa-solid fa-arrow-down"></i></a></div>
+        <div class="mt-10 reveal reveal-up">
+          <!-- 🔥 BOTÓN DEL HERO CORREGIDO (colores originales) -->
+          <a href="#noticias" class="inline-flex items-center gap-3 bg-dorado text-vinodark px-8 py-4 font-semibold uppercase tracking-widest hover:bg-crema transition-colors shadow-lg btn-glow">Leer novedades <i class="fa-solid fa-arrow-down"></i></a>
+        </div>
       </div>
     </section>
 
-    <!-- ==================== NOTICIAS (4 COLUMNAS) ==================== -->
+    <!-- ==================== NOTICIAS ==================== -->
     <section id="noticias" class="py-24 relative bg-vino/30 border-y border-dorado/10">
       <div class="max-w-7xl mx-auto px-6 lg:px-8">
         <div class="flex flex-col md:flex-row justify-between items-end mb-16 reveal reveal-up">
@@ -160,7 +143,6 @@
           </div>
           <a href="#contacto" class="hidden md:inline-flex items-center text-cremadark hover:text-dorado mt-4 pb-1 border-b border-dorado/30 hover:border-dorado">Conversemos <i class="fa-solid fa-arrow-right ml-2 text-sm"></i></a>
         </div>
-        <!-- CAMBIO: lg:grid-cols-3 → lg:grid-cols-4 -->
         <div id="newsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <div class="col-span-full text-center py-12 text-cremadark">Cargando noticias...</div>
         </div>
@@ -247,7 +229,7 @@
       </div>
     </section>
 
-    <!-- ==================== LIBRERÍA (CON EFECTO 3D) ==================== -->
+    <!-- ==================== LIBRERÍA (CON PAGINACIÓN Y DISEÑO MEJORADO) ==================== -->
     <section id="libreria" class="py-24 bg-vino/30 border-y border-dorado/10">
       <div class="max-w-7xl mx-auto px-6 lg:px-8">
         <div class="text-center max-w-3xl mx-auto mb-14 reveal reveal-up">
@@ -258,10 +240,14 @@
         <div id="librosGrid" class="book-grid reveal reveal-up">
           <div class="col-span-full text-center py-12 text-cremadark">Cargando libros...</div>
         </div>
+        <!-- Botón Ver más libros -->
+        <div id="librosVerMasContainer" class="text-center mt-10 hidden">
+          <button id="btnVerMasLibros" class="border border-dorado text-dorado px-8 py-3 uppercase tracking-widest text-sm font-bold hover:bg-dorado hover:text-vinodark transition">Ver más libros</button>
+        </div>
       </div>
     </section>
 
-    <!-- ==================== VIDEOS (NUEVA SECCIÓN) ==================== -->
+    <!-- ==================== VIDEOS (CON PAGINACIÓN) ==================== -->
     <section id="videos" class="py-24 bg-vino/10 border-y border-dorado/10">
       <div class="max-w-7xl mx-auto px-6 lg:px-8">
         <div class="text-center max-w-3xl mx-auto mb-14 reveal reveal-up">
@@ -270,8 +256,11 @@
           <p class="section-copy">Entrevistas, reseñas y contenido exclusivo de nuestros autores y libros.</p>
         </div>
         <div id="videosGrid" class="video-grid reveal reveal-up">
-          <!-- Se cargará dinámicamente con JavaScript -->
           <div class="col-span-full text-center py-12 text-cremadark">Cargando videos...</div>
+        </div>
+        <!-- Botón Ver más videos -->
+        <div id="videosVerMasContainer" class="text-center mt-10 hidden">
+          <button id="btnVerMasVideos" class="border border-dorado text-dorado px-8 py-3 uppercase tracking-widest text-sm font-bold hover:bg-dorado hover:text-vinodark transition">Ver más videos</button>
         </div>
       </div>
     </section>
@@ -312,7 +301,8 @@
     <i class="fa-brands fa-whatsapp text-2xl"></i>
   </button>
 
-  <!-- ==================== MODAL DE CONTACTO ==================== -->
+  <!-- ==================== MODALES ==================== -->
+  <!-- Modal Contacto -->
   <div id="contacto-modal" class="fixed inset-0 z-[130] bg-secondary/80 hidden items-center justify-center p-4 opacity-0 transition-opacity">
     <div class="bg-cardbg border border-dorado/30 max-w-lg w-full max-h-[90vh] overflow-y-auto relative shadow-2xl scale-95 transition-transform rounded-xl">
       <button onclick="cerrarModalContacto()" class="absolute top-3 right-3 z-10 w-9 h-9 rounded-full bg-vinodark text-dorado border border-dorado/30 flex items-center justify-center">
@@ -349,7 +339,7 @@
     </div>
   </div>
 
-  <!-- ==================== MODAL NOTICIA ==================== -->
+  <!-- Modal Noticia -->
   <div id="news-modal" class="fixed inset-0 z-[100] bg-secondary/80 hidden items-center justify-center p-4 opacity-0 transition-opacity">
     <div class="bg-cardbg border border-dorado/30 max-w-3xl w-full max-h-[90vh] overflow-y-auto relative shadow-2xl scale-95 transition-transform">
       <button id="close-modal" class="absolute top-3 right-3 z-10 w-9 h-9 rounded-full bg-vinodark text-dorado border border-dorado/30">
@@ -359,7 +349,7 @@
     </div>
   </div>
 
-  <!-- ==================== MODAL AUTOR ==================== -->
+  <!-- Modal Autor -->
   <div id="author-modal" class="fixed inset-0 z-[120] bg-secondary/80 hidden items-center justify-center p-4 opacity-0 transition-opacity">
     <div class="bg-cardbg border border-dorado/30 max-w-4xl w-full max-h-[90vh] overflow-y-auto relative shadow-2xl scale-95 transition-transform rounded-lg">
       <button id="close-author-modal" class="absolute top-3 right-3 z-10 w-9 h-9 rounded-full bg-vinodark text-dorado border border-dorado/30">
@@ -380,7 +370,7 @@
     </div>
   </div>
 
-  <!-- ==================== MODAL QR ==================== -->
+  <!-- Modal QR -->
   <div id="qr-modal" class="fixed inset-0 z-[110] bg-secondary/80 hidden items-center justify-center p-4 opacity-0 transition-opacity">
     <div class="bg-cardbg border border-dorado/30 max-w-sm w-full p-8 text-center relative shadow-2xl scale-95 transition-transform">
       <button type="button" onclick="closeQRModal()" class="absolute top-3 right-3 text-dorado" aria-label="Cerrar">
@@ -399,18 +389,5 @@
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
   <script src="paneldecontrol/firebase-config.js"></script>
   <script src="scripts.js?v=20260822"></script>
-
-  <!-- =============CODIGO PARA ACTUALIZAR LA WEB DE FORMA AUTOMATICA ================ -->
-
-<script>
-  fetch('version.json')
-    .then(res => res.json())
-    .then(data => {
-      document.querySelector('link[href="style.css"]').href = `style.css?v=${data.v}`;
-      document.querySelector('script[src="scripts.js"]').src = `scripts.js?v=${data.v}`;
-    });
-</script>
-</script>
-
 </body>
 </html>
