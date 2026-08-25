@@ -1,7 +1,8 @@
 // ================================================================
 // PANEL DE CONTROL - EDITORIAL PUNTO Y COMA
 // Archivo: panel.js
-// Gestiona noticias, autores, libros, mensajes, videos, autenticación y perfil.
+// Gestiona noticias, autores, libros, mensajes, videos y perfil.
+// Incluye reintentos automáticos para subidas fallidas.
 // ================================================================
 
 const auth = window.auth;
@@ -13,30 +14,29 @@ let noticiaEnEdicion = null;
 let imagenesSeleccionadas = [];
 let imagenesExistentes = [];
 
-if (!window.auth || !window.db || !window.storage) {
-    alert('⚠️ Error de inicialización de Firebase. Recarga la página o contacta al administrador.');
-    console.error('❌ Firebase no está completamente inicializado.');
-}
 console.log('panel.js cargado. db:', db ? 'OK' : 'NO');
 
 // ================================================================
-// 1. AUTENTICACIÓN Y ROLES (CORREGIDO)
+// FUNCIÓN DE GUARDADO CON REINTENTOS (para redes inestables)
 // ================================================================
-
-// Función para refrescar token antes de operaciones críticas
-async function asegurarTokenValido() {
-  if (auth && auth.currentUser) {
+async function guardarConReintento(coleccion, datos, intentos = 3) {
+  for (let i = 0; i < intentos; i++) {
     try {
-      await auth.currentUser.getIdToken(true);
-      console.log('✅ Token refrescado correctamente');
-      return true;
+      const docRef = await db.collection(coleccion).add(datos);
+      console.log(`✅ Guardado exitoso en ${coleccion} (intento ${i+1})`);
+      return docRef;
     } catch (error) {
-      console.error('❌ Error al refrescar token:', error);
-      return false;
+      console.warn(`⚠️ Intento ${i+1}/${intentos} falló en ${coleccion}:`, error.message);
+      if (i === intentos - 1) throw error;
+      // Espera exponencial: 1s, 2s, 4s...
+      await new Promise(resolve => setTimeout(resolve, 1000 * Math.pow(2, i)));
     }
   }
-  return false;
 }
+
+// ================================================================
+// 1. AUTENTICACIÓN Y ROLES
+// ================================================================
 
 document.getElementById('loginForm')?.addEventListener('submit', async (e) => {
   e.preventDefault();
@@ -128,35 +128,26 @@ function mostrarPanel() {
   document.getElementById('panelScreen').classList.remove('hidden');
 }
 
-// CORREGIDO: Listener de autenticación con manejo de errores
 if (auth) {
   auth.onAuthStateChanged(async (user) => {
     if (user) {
       try {
-        // Verificar permisos
-        if (!await esAdministrador(user)) {
-          await auth.signOut();
-          mostrarErrorAcceso('Sin permisos de administración.');
-          return;
-        }
+        if (!await esAdministrador(user)) { await auth.signOut(); mostrarErrorAcceso('Sin permisos de administración.'); return; }
         usuarioActual = user;
         await cargarDatosUsuario(user);
         mostrarPanel();
-        // Cargar todos los datos
         cargarNoticiasUsuario();
         cargarResumen();
         cargarAutores();
         cargarLibros();
         cargarMensajes();
-        cargarVideos(); // NUEVO
+        cargarVideos();
       } catch (error) {
         console.error('Error al validar permisos:', error);
-        // No cerrar sesión automáticamente, mostrar mensaje de error
-        mostrarErrorAcceso('Error al cargar los datos. Intenta recargar la página.');
+        await auth.signOut();
+        mostrarErrorAcceso('No fue posible validar los permisos.');
       }
-    } else {
-      mostrarLogin();
-    }
+    } else { mostrarLogin(); }
   });
 } else {
   mostrarErrorAcceso('No se pudo inicializar la autenticación.');
@@ -191,13 +182,13 @@ document.querySelectorAll('.nav-link').forEach(link => {
       document.getElementById('seccionNoticias').classList.remove('hidden');
       if (sectionTitle) sectionTitle.textContent = 'Noticias';
       if (btnNuevaNoticia) btnNuevaNoticia.classList.remove('hidden');
-    } else if (section === 'videos') {
-      document.getElementById('seccionVideos').classList.remove('hidden');
-      if (sectionTitle) sectionTitle.textContent = 'Videos';
-      if (btnNuevaNoticia) btnNuevaNoticia.classList.add('hidden');
     } else if (section === 'configuracion') {
       document.getElementById('seccionConfiguracion').classList.remove('hidden');
       if (sectionTitle) sectionTitle.textContent = 'Configuración';
+      if (btnNuevaNoticia) btnNuevaNoticia.classList.add('hidden');
+    } else if (section === 'videos') {
+      document.getElementById('seccionVideos').classList.remove('hidden');
+      if (sectionTitle) sectionTitle.textContent = 'Videos';
       if (btnNuevaNoticia) btnNuevaNoticia.classList.add('hidden');
     } else {
       const sectionId = `seccion${section.charAt(0).toUpperCase() + section.slice(1)}`;
@@ -235,10 +226,6 @@ async function cargarResumen() {
     const snapMensajes = await db.collection('mensajes').get();
     const noLeidos = snapMensajes.docs.filter(doc => !doc.data().leido).length;
     document.getElementById('statMensajes').textContent = noLeidos;
-
-    const snapVideos = await db.collection('videos').get();
-    const totalVideos = snapVideos.docs.filter(doc => doc.data().publicado !== false).length;
-    // Opcional: añadir estadística de videos
   } catch (error) { console.warn('No se pudo cargar el resumen:', error); }
 }
 
@@ -352,9 +339,6 @@ document.getElementById('formAutor')?.addEventListener('submit', async (e) => {
   btnGuardar.disabled = true;
   btnGuardar.textContent = 'Guardando...';
   try {
-    // Refrescar token antes de operaciones críticas
-    await asegurarTokenValido();
-
     const inputId = form.querySelector('input[name="id"]');
     const docId = inputId ? inputId.value.trim() : '';
     const nombre = form.querySelector('[name="nombre"]')?.value?.trim() || '';
@@ -390,7 +374,8 @@ document.getElementById('formAutor')?.addEventListener('submit', async (e) => {
     } else {
       if (!fotoUrl) datosAutor.foto = 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?q=80&w=200&auto=format&fit=crop';
       datosAutor.creado_en = firebase.firestore.FieldValue.serverTimestamp();
-      await db.collection('autores').add(datosAutor);
+      // ✅ USAR REINTENTO
+      await guardarConReintento('autores', datosAutor);
       alert('Autor creado.');
     }
     form.reset();
@@ -445,7 +430,6 @@ document.getElementById('formLibro')?.addEventListener('submit', async (e) => {
   btnGuardar.disabled = true;
   btnGuardar.textContent = 'Guardando...';
   try {
-    await asegurarTokenValido();
     const id = form.querySelector('input[name="id"]')?.value || '';
     const titulo = form.querySelector('[name="titulo"]')?.value?.trim() || '';
     const autor = form.querySelector('[name="autor"]')?.value?.trim() || '';
@@ -464,20 +448,19 @@ document.getElementById('formLibro')?.addEventListener('submit', async (e) => {
     }
     const data = { titulo, autor, precio, enlace_compra, sinopsis, publicado, portada: portadaUrl, usuario_id: usuarioActual.uid, actualizado_en: firebase.firestore.FieldValue.serverTimestamp() };
     if (id) { await db.collection('libros').doc(id).update(data); alert('Libro actualizado.'); }
-    else { data.creado_en = firebase.firestore.FieldValue.serverTimestamp(); await db.collection('libros').add(data); alert('Libro creado.'); }
+    else { 
+      data.creado_en = firebase.firestore.FieldValue.serverTimestamp();
+      // ✅ USAR REINTENTO
+      await guardarConReintento('libros', data);
+      alert('Libro creado.');
+    }
     form.reset();
     form.classList.add('hidden');
     cargarLibros();
- } catch (error) {
-    console.error('❌ Error al guardar libro:', error);
-    if (error.code === 'permission-denied') {
-        alert('No tienes permisos para guardar. Asegúrate de haber iniciado sesión correctamente.');
-    } else if (error.code === 'unavailable' || error.message.includes('NETWORK')) {
-        alert('Error de conexión con el servidor. Verifica tu internet y vuelve a intentar.');
-    } else {
-        alert(`Error al guardar: ${error.message}`);
-    }
-}
+  } catch (error) { console.error(error); alert('Error al guardar.'); } finally {
+    btnGuardar.disabled = false;
+    btnGuardar.textContent = 'Guardar libro';
+  }
 });
 
 async function editarLibro(id) {
@@ -677,7 +660,6 @@ document.getElementById('formNoticia')?.addEventListener('submit', async (e) => 
   btnGuardar.textContent = 'Guardando...';
   btnGuardar.disabled = true;
   try {
-    await asegurarTokenValido();
     const datos = {
       titulo: form.titulo.value.trim(),
       resumen: form.resumen.value.trim(),
@@ -700,7 +682,8 @@ document.getElementById('formNoticia')?.addEventListener('submit', async (e) => 
       alert('Noticia actualizada.');
     } else {
       datos.fecha_creacion = firebase.firestore.FieldValue.serverTimestamp();
-      const docRef = await db.collection('noticias').add(datos);
+      // ✅ USAR REINTENTO
+      const docRef = await guardarConReintento('noticias', datos);
       docId = docRef.id;
       const imagenes = await subirImagenes(docId);
       await db.collection('noticias').doc(docId).update({ imagenes });
@@ -724,36 +707,28 @@ async function cargarMensajes() {
     console.warn('No se puede cargar mensajes: container o db no disponibles');
     return;
   }
-
   container.innerHTML = '<div class="text-center py-12 text-darktext/50">Cargando mensajes...</div>';
-
   try {
     const snapshot = await db.collection('mensajes').get();
-
     console.log('📬 Mensajes obtenidos de Firestore:', snapshot.size);
-
     if (snapshot.empty) {
-      container.innerHTML = '<div class="text-center py-12 text-darktext/50">No hay mensajes aún. Los mensajes del formulario de contacto aparecerán aquí.</div>';
+      container.innerHTML = '<div class="text-center py-12 text-darktext/50">No hay mensajes aún.</div>';
       document.getElementById('statMensajes').textContent = '0';
       return;
     }
-
     let mensajes = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
     mensajes.sort((a, b) => {
       const fechaA = a.fecha ? a.fecha.toMillis() : 0;
       const fechaB = b.fecha ? b.fecha.toMillis() : 0;
       return fechaB - fechaA;
     });
-
     const noLeidos = mensajes.filter(m => !m.leido).length;
     document.getElementById('statMensajes').textContent = noLeidos;
-
     let html = '';
     mensajes.forEach(msg => {
       const fecha = msg.fecha ? new Date(msg.fecha.toMillis()).toLocaleString('es-CO') : 'Fecha desconocida';
       const leido = msg.leido || false;
       const claseLeido = leido ? 'mensaje-leido' : 'mensaje-no-leido';
-
       html += `
         <div class="panel-card p-5 rounded-xl border border-lightbg ${claseLeido}">
           <div class="flex flex-col md:flex-row md:items-center justify-between gap-3">
@@ -771,9 +746,7 @@ async function cargarMensajes() {
         </div>
       `;
     });
-
     container.innerHTML = html;
-
   } catch (error) {
     console.error('❌ Error al cargar mensajes:', error);
     container.innerHTML = `<div class="text-center py-12 text-red-500">Error al cargar los mensajes: ${error.message || 'Intenta nuevamente.'}</div>`;
@@ -805,30 +778,25 @@ async function eliminarMensaje(id) {
 document.getElementById('btnRecargarMensajes')?.addEventListener('click', cargarMensajes);
 
 // ================================================================
-// 6. GESTIÓN DE VIDEOS (CORREGIDO)
+// 7. GESTIÓN DE VIDEOS
 // ================================================================
 
 async function cargarVideos() {
   const container = document.getElementById('listaVideos');
   if (!container || !db) return;
   container.innerHTML = '<div class="col-span-full text-center py-8"><i class="fas fa-spinner fa-spin text-primary text-2xl"></i><p class="text-xs text-darktext/60 mt-2">Cargando videos...</p></div>';
-
   try {
-    // Asegurar token válido antes de leer
-    await asegurarTokenValido();
     const snapshot = await db.collection('videos').get();
     if (snapshot.empty) {
       container.innerHTML = '<div class="col-span-full text-center py-8 text-darktext/50 text-sm">No hay videos aún.</div>';
       return;
     }
-
     let videos = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
     videos.sort((a, b) => {
       const fa = a.fecha_creacion ? a.fecha_creacion.toMillis() : 0;
       const fb = b.fecha_creacion ? b.fecha_creacion.toMillis() : 0;
       return fb - fa;
     });
-
     container.innerHTML = videos.map(video => crearTarjetaVideoAdmin(video)).join('');
   } catch (error) {
     console.error('Error al cargar videos:', error);
@@ -841,7 +809,6 @@ function crearTarjetaVideoAdmin(video) {
   const miniatura = video.miniatura || 'https://img.youtube.com/vi/default/hqdefault.jpg';
   const fecha = video.fecha_publicacion || (video.fecha_creacion ? new Date(video.fecha_creacion.toMillis()).toLocaleDateString('es-CO') : '');
   const estaPublicado = video.publicado !== false;
-
   return `
     <div class="panel-card p-5 rounded-xl border border-lightbg flex flex-col bg-white shadow-sm">
       <div class="flex items-start gap-4">
@@ -870,14 +837,12 @@ async function editarVideo(id) {
   if (!id || id.trim() === '') { alert('ID inválido.'); return; }
   if (!db) return;
   try {
-    await asegurarTokenValido();
     const doc = await db.collection('videos').doc(id).get();
     if (!doc.exists) { alert('Video no encontrado.'); return; }
     const video = doc.data();
     const form = document.getElementById('formVideo');
     if (!form) return;
     form.classList.remove('hidden');
-
     form.querySelector('input[name="id"]').value = id;
     form.querySelector('[name="titulo"]').value = video.titulo || '';
     form.querySelector('[name="descripcion"]').value = video.descripcion || '';
@@ -885,9 +850,7 @@ async function editarVideo(id) {
     form.querySelector('[name="fecha_publicacion"]').value = video.fecha_publicacion || '';
     form.querySelector('[name="destacado"]').checked = video.destacado || false;
     form.querySelector('[name="publicado"]').checked = video.publicado !== false;
-
     document.getElementById('video-miniatura').value = '';
-
     form.scrollIntoView({ behavior: 'smooth', block: 'start' });
   } catch (error) { console.error(error); alert('Error al cargar el video.'); }
 }
@@ -896,7 +859,6 @@ async function eliminarVideo(id) {
   if (!id || id.trim() === '') { alert('ID inválido.'); return; }
   if (!confirm('¿Estás seguro de eliminar este video?')) return;
   try {
-    await asegurarTokenValido();
     const doc = await db.collection('videos').doc(id).get();
     const video = doc.data();
     if (video.miniatura && video.miniatura.includes('firebasestorage')) {
@@ -912,29 +874,22 @@ async function eliminarVideo(id) {
   } catch (error) { console.error(error); alert('Error al eliminar.'); }
 }
 
-// Submit del formulario de video (CORREGIDO)
 document.getElementById('formVideo')?.addEventListener('submit', async (e) => {
-  e.preventDefault(); // Asegurar que no recarga la página
+  e.preventDefault();
   const form = e.target;
   const btnGuardar = form.querySelector('button[type="submit"]');
   const textoOriginal = btnGuardar.textContent;
   btnGuardar.disabled = true;
   btnGuardar.textContent = 'Guardando...';
-
   try {
-    // Refrescar token antes de subir archivos
-    await asegurarTokenValido();
-
     const inputId = form.querySelector('input[name="id"]');
     const docId = inputId ? inputId.value.trim() : '';
-
     const titulo = form.querySelector('[name="titulo"]')?.value?.trim() || '';
     const descripcion = form.querySelector('[name="descripcion"]')?.value?.trim() || '';
     const url = form.querySelector('[name="url"]')?.value?.trim() || '';
     const fecha_publicacion = form.querySelector('[name="fecha_publicacion"]')?.value || '';
     const destacado = form.querySelector('[name="destacado"]')?.checked || false;
     const publicado = form.querySelector('[name="publicado"]')?.checked !== false;
-
     let miniaturaUrl = '';
     const miniaturaInput = document.getElementById('video-miniatura');
     if (miniaturaInput && miniaturaInput.files && miniaturaInput.files.length > 0) {
@@ -944,41 +899,33 @@ document.getElementById('formVideo')?.addEventListener('submit', async (e) => {
       const snapshot = await storageRef.put(archivo);
       miniaturaUrl = await snapshot.ref.getDownloadURL();
     } else if (url) {
-      // Extraer ID de YouTube para usar miniatura automática
       const videoId = url.match(/(?:embed\/|v\/|youtu.be\/|\/v\/|\/e\/|watch\?v=|\&v=)([^#\&\?]*).*/)?.[1];
       if (videoId) {
         miniaturaUrl = `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
       }
     }
-
     const datosVideo = {
-      titulo,
-      descripcion,
-      url,
-      fecha_publicacion,
-      destacado,
-      publicado,
+      titulo, descripcion, url, fecha_publicacion, destacado, publicado,
       miniatura: miniaturaUrl || '',
       usuario_id: usuarioActual ? usuarioActual.uid : '',
       actualizado_en: firebase.firestore.FieldValue.serverTimestamp()
     };
-
     if (docId) {
       await db.collection('videos').doc(docId).update(datosVideo);
       alert('Video actualizado.');
     } else {
       datosVideo.fecha_creacion = firebase.firestore.FieldValue.serverTimestamp();
-      await db.collection('videos').add(datosVideo);
+      // ✅ USAR REINTENTO
+      await guardarConReintento('videos', datosVideo);
       alert('Video creado.');
     }
-
     form.reset();
     if (inputId) inputId.value = '';
     form.classList.add('hidden');
     cargarVideos();
   } catch (error) {
     console.error('Error al guardar video:', error);
-    alert('Error al guardar el video. Verifica tu conexión e intenta nuevamente.');
+    alert('Error al guardar el video.');
   } finally {
     btnGuardar.disabled = false;
     btnGuardar.textContent = textoOriginal;
@@ -986,7 +933,7 @@ document.getElementById('formVideo')?.addEventListener('submit', async (e) => {
 });
 
 // ================================================================
-// 7. CONFIGURACIÓN DE PERFIL
+// 8. CONFIGURACIÓN DE PERFIL
 // ================================================================
 
 document.getElementById('btnActualizarPerfil')?.addEventListener('click', async () => {
@@ -994,7 +941,6 @@ document.getElementById('btnActualizarPerfil')?.addEventListener('click', async 
   const telefono = document.getElementById('inputTelefono').value.trim();
   if (!nombre) { alert('El nombre es obligatorio'); return; }
   try {
-    await asegurarTokenValido();
     if (auth && auth.currentUser) { await auth.currentUser.updateProfile({ displayName: nombre }); }
     await db.collection('usuarios').doc(usuarioActual.uid).set({ nombre, telefono, email: usuarioActual.email }, { merge: true });
     alert('Perfil actualizado.');
@@ -1003,7 +949,7 @@ document.getElementById('btnActualizarPerfil')?.addEventListener('click', async 
 });
 
 // ================================================================
-// 8. FILTROS DE NOTICIAS
+// 9. FILTROS DE NOTICIAS
 // ================================================================
 
 document.getElementById('btnAplicarFiltros')?.addEventListener('click', async () => {
@@ -1025,7 +971,7 @@ document.getElementById('btnAplicarFiltros')?.addEventListener('click', async ()
 });
 
 // ================================================================
-// 9. UTILIDADES Y EXPOSICIÓN GLOBAL
+// 10. UTILIDADES Y EXPOSICIÓN GLOBAL
 // ================================================================
 
 function obtenerMensajeError(code) {
