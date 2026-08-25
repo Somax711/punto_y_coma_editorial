@@ -1,6 +1,5 @@
 // ================================================================
 // PANEL DE CONTROL - EDITORIAL PUNTO Y COMA
-// Archivo: panel.js
 // Gestiona noticias, autores, libros, mensajes, videos y perfil.
 // Incluye reintentos automáticos para subidas fallidas.
 // ================================================================
@@ -395,8 +394,7 @@ document.getElementById('formAutor')?.addEventListener('submit', async (e) => {
 async function cargarLibros() {
   const container = document.getElementById('listaLibros');
   if (!usuarioActual || !container || !db) return;
-  try {
-    const snapshot = await db.collection('libros').where('usuario_id', '==', usuarioActual.uid).get();
+  try {const snapshot = await db.collection('libros').get();
     if (snapshot.empty) { container.innerHTML = '<p class="text-darktext md:col-span-2 xl:col-span-3 py-5">Aún no has agregado libros al catálogo.</p>'; return; }
     container.innerHTML = snapshot.docs.map(doc => crearTarjetaLibro({ id: doc.id, ...doc.data() })).join('');
   } catch (error) { console.error(error); container.innerHTML = '<p class="text-red-400">No se pudieron cargar los libros.</p>'; }
@@ -450,9 +448,9 @@ document.getElementById('formLibro')?.addEventListener('submit', async (e) => {
     if (id) { await db.collection('libros').doc(id).update(data); alert('Libro actualizado.'); }
     else { 
       data.creado_en = firebase.firestore.FieldValue.serverTimestamp();
-      // ✅ USAR REINTENTO
-      await guardarConReintento('libros', data);
-      alert('Libro creado.');
+      //  USAR REINTENTO
+      await guardarConReintento('libros', data);  
+          alert('Libro creado.');
     }
     form.reset();
     form.classList.add('hidden');

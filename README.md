@@ -1,82 +1,190 @@
+#  Editorial Punto y Coma — Plataforma Editorial
 
-# Editorial Punto y Coma --Sitio Web 
+![Editorial Punto y Coma](https://www.editorialpuntoycoma.com/logovector.png)
 
-Sitio web oficial de Editorial Punto y Coma, desarrollado con una arquitectura ligera y moderna basada en HTML, Tailwind CSS (vía CDN) 
-y Firebase (Auth, Firestore y Storage). No requiere frameworks complejos ni procesos de compilación (build step).
-Cuenta con una galería de noticias interactiva y un panel de control administrativo completo para la gestión de contenidos.
+> ** AVISO IMPORTANTE:** Este repositorio es **exclusivamente para fines de demostración y portafolio**. No está permitido su uso, modificación, distribución o implementación sin autorización expresa del autor. El proyecto se presenta tal cual, como muestra de capacidades técnicas y de desarrollo.
 
-# Estructura del proyecto 
+---
 
-index.html                      → Sitio web público (landing page y sección de noticias)
-style.css                       → Estilos personalizados y paleta de colores corporativa
-scripts.js                      → Lógica de interacción general y modal de noticias
-tailwind.config.js              → Configuración de la paleta de colores en Tailwind
-paneldecontrol/
-  index_usuario.html            → Interfaz de autenticación (Login) y panel de administración
-  panel.js                      → Operaciones CRUD de noticias (crear, editar, eliminar)
-  noticias_firebase.js          → Carga y renderizado dinámico de la galería de noticias
-firestore.rules                 → Reglas de seguridad recomendadas para Firestore
-storage.rules                   → Reglas de seguridad recomendadas para Firebase Storage
-img/logo.png, favicon.png       → Recursos gráficos corporativos
+##  Descripción del Proyecto
 
+Plataforma web completa para la gestión editorial de **Editorial Punto y Coma**, una editorial independiente que ofrece servicios de edición, publicación y distribución de libros. El sistema incluye:
 
-#  Paleta de colores Corporativa 
+- **Sitio público** con diseño responsivo, animaciones, efecto 3D en libros, sección de noticias, autores, videos y catálogo de libros con filtros y modal de detalles.
+- **Panel de administración** seguro con autenticación, gestión de contenido (CRUD) para noticias, autores, libros, videos y mensajes de contacto.
+- **Backend en Firebase** (Firestore, Storage, Authentication) para almacenamiento de datos y archivos.
 
-Uso                                          Color              Hexadecimal
-"primary (Botones, CTA, acentos)"            Vino               #810B38
-"secondary (Textos principales, footer)"     Granate            #541A1A
-"accent(Detalles, badges, bordes)"           Arena              #DCC3AA
-"lightbg(Fondos suaves, tarjetas)"           Crema              #F1E2D1
+Este proyecto fue desarrollado como solución integral para una editorial real, demostrando habilidades en:
 
+- **Frontend**: HTML5, CSS3 (Tailwind + custom), JavaScript vanilla.
+- **Backend as a Service**: Firebase (Auth, Firestore, Storage).
+- **UX/UI**: Diseño atractivo, responsivo, con microinteracciones y efectos visuales.
+- **SEO**: Meta tags, Open Graph, Schema.org, sitemap.xml.
+- **Seguridad**: Autenticación, reglas de Firestore y Storage.
 
-1. Pasos para la Configuración y Publicación
+---
 
-  1. Configurar el Proyecto en Firebase Accede a Firebase Console y haz clic en Crear proyecto.
+##  Características Destacadas
 
-  2. Authentication: Ve a Compilación > Authentication, habilita el proveedor Correo/contraseña y añade un usuario en la pestaña Users (este será el administrador, ej. admin@editorialpuntoycoma.cl).
+| Área | Funcionalidad |
+|------|---------------|
+| **Página Pública** | Hero animado, noticias en grid de 4 columnas, servicios, autores con QR, libros con efecto 3D y paginación, videos, formulario de contacto con envío a Firestore. |
+| **Panel de Administración** | Gestión completa de noticias (con imágenes), autores (foto, redes), libros (portada, precio, sinopsis), videos (URL de YouTube, miniatura), mensajes (leído/no leído). |
+| **Interacciones** | Efecto 3D en tarjetas de libros (movimiento del mouse), modales para detalles de libros, autores y noticias, filtros de búsqueda y categoría. |
+| **SEO** | Meta tags personalizados, Open Graph, Twitter Cards, Schema.org (Organización), sitemap.xml y robots.txt. |
+| **Seguridad** | Autenticación con correo/contraseña (solo administradores autorizados), reglas de Firestore y Storage con permisos granulares. |
+| **Rendimiento** | Carga perezosa de imágenes (lazy loading), paginación de libros y videos, reintentos automáticos en subidas de archivos. |
+| **Pruebas** | Script de carga masiva de datos (libros, autores, noticias, videos) desde consola para pruebas de rendimiento. |
 
-  3. Firestore Database: Ve a Compilación > Firestore Database, crea la base de datos en modo producción y pega el contenido del archivo firestore.rules en la pestaña Reglas.
+---
 
-  4. Storage: Ve a Compilación > Storage, inicializa el servicio y pega el contenido del archivo storage.rules en la pestaña Reglas.
+## 🛠️ Stack Tecnológico
 
-  5. Credenciales: En Configuración del proyecto > General > Tus apps, añade una app web y copia el objeto firebaseConfig.
+| Tecnología | Propósito |
+|------------|-----------|
+| **Firebase** (Auth, Firestore, Storage) | Autenticación, base de datos NoSQL en tiempo real, almacenamiento de imágenes y archivos. |
+| **Tailwind CSS** | Estilos rápidos, responsivos y personalizables. |
+| **Font Awesome** | Iconografía vectorial. |
+| **Google Fonts** | Tipografías `Playfair Display` (serif) y `Lato` (sans-serif). |
+| **JavaScript Vanilla** | Lógica de frontend y administración (sin frameworks). |
+| **HTML5 / CSS3** | Estructura y estilos personalizados (animaciones, transiciones). |
+| **GitHub** | Control de versiones y repositorio. |
+| **Netlify / Vercel / Hosting** | Despliegue en producción (ejemplo: editorialpuntoycoma.com). |
 
-  6. Pega este objeto de configuración en:
-     - index.html (reemplazando el marcador REEMPLAZAR_API_KEY).
-     - paneldecontrol/index_usuario.html (en el bloque correspondiente de Firebase).
+---
 
+##  Estructura del Repositorio
 
-2. Configurar Datos de Contacto
-Actualiza las constantes de contacto al inicio del archivo scripts.js:
+```
+/
+├── index.html                      # Página pública principal
+├── style.css                       # Estilos personalizados (animaciones, efectos 3D)
+├── scripts.js                      # Lógica de la página pública (carga de datos, modales)
+├── logovector.png                  # Logo de la editorial
+├── sitemap.xml                     # Mapa del sitio para SEO
+├── robots.txt                      # Instrucciones para bots de búsqueda
+├── paneldecontrol/
+│   ├── index_usuario.html          # Panel de administración (interfaz)
+│   ├── firebase-config.js          # Configuración de Firebase (credenciales)
+│   └── panel.js                    # Lógica del panel (CRUD, autenticación, reintentos)
+├── README.md                       # Este archivo
+└── (otros assets y documentos)
+```
 
-const EDITORIAL_WHATSAPP = "56900000000"; // Número real con formato 569XXXXXXXX
-const EDITORIAL_EMAIL = "contacto@editorialpuntoycoma.cl"; // Correo electrónico real
-(Esto actualizará de forma automática los enlaces directos a WhatsApp y el correo visible en la sección de contacto.)
+---
 
-3. Actualizar Recursos Gráficos y Metadatos
-Logotipo: Reemplaza img/logo.png y favicon.png por los archivos oficiales de la editorial manteniendo los mismos nombres (o actualiza las rutas en index.html).
+##  Instalación y Configuración (para propósitos demostrativos)
 
-Dominio: Reemplaza la cadena provisional editorialpuntoycoma.cl por el dominio definitivo en index.html (etiquetas SEO y Schema.org), robots.txt y sitemap.xml.
+El proyecto está diseñado para ser desplegado en un entorno de producción, pero al ser un repositorio de muestra, **no se recomienda su uso directo**. A continuación, se describen los pasos generales de configuración para entender su funcionamiento:
 
-4. Gestión de Noticias
-Una vez completada la configuración de Firebase:
+### 1. Clonar el repositorio
+```bash
+git clone https://github.com/tu-usuario/editorial-puntoycoma.git
+cd editorial-puntoycoma
+```
 
-Ingresa al panel administrativo a través de paneldecontrol/index_usuario.html (o mediante el enlace de acceso en el pie de página).
+### 2. Configurar Firebase
+- Crear un proyecto en [Firebase Console](https://console.firebase.google.com/).
+- Habilitar **Authentication** (correo/contraseña) y **Autenticación anónima** (para el formulario de contacto).
+- Crear base de datos **Firestore** y **Storage**.
+- Obtener las credenciales del proyecto y reemplazarlas en `paneldecontrol/firebase-config.js`.
+- Agregar los correos de administradores en `FIREBASE_ADMIN_EMAILS`.
 
-Inicia sesión con las credenciales creadas en la consola de Firebase.
+### 3. Reglas de Firestore y Storage
+Configurar las reglas como se indica en la documentación interna del proyecto.
 
-Utiliza la opción + Nueva noticia para redactar títulos, resúmenes, contenido detallado, categorías y cargar imágenes asociadas.
+### 4. Despliegue
+Subir los archivos a un hosting (Netlify, Vercel, cPanel, etc.).
 
-Los cambios se reflejarán instantáneamente en la sección pública de noticias (index.html#noticias).
+---
 
-# Despliegue
-Al ser una aplicación web completamente estática, el despliegue es inmediato y flexible:
+##  Script de Prueba (Datos Masivos)
 
-Netlify: Arrastrando la carpeta del proyecto a Netlify Drop o conectando el repositorio de GitHub para despliegues automatizados.
+Para probar el rendimiento del sistema con grandes volúmenes de datos, se incluye un script que se ejecuta en la consola del navegador (dentro del panel de administración). Este script genera:
 
-Vercel / GitHub Pages: Compatible mediante integración directa con repositorio.
+- **20 autores** (con nombres, géneros, biografías, fotos)
+- **50 libros** (títulos, autores, precios, categorías, sinopsis, portadas)
+- **15 noticias** (titulares, resúmenes, contenido, imágenes)
+- **10 videos** (títulos, descripciones, URLs de YouTube, miniaturas)
 
-# Notas Técnicas
-Formulario de Contacto: Los mensajes enviados por los usuarios se almacenan de manera segura en la colección mensajes_contacto de Firestore, accesibles exclusivamente desde el panel de administración. Es posible integrar servicios de notificación por correo (como EmailJS) posteriormente si se requiere.
+```javascript
+// Script completo disponible en la documentación interna.
+// Ejecutar únicamente en entorno de prueba.
+```
 
-Contenido de Ejemplo: Las cifras estadísticas de la sección principal (autores publicados, obras en catálogo) y los testimonios son referenciales y deben actualizarse con información real de la editorial.
+---
+
+##  Funcionalidades del Panel de Administración
+
+| Módulo | Funciones |
+|--------|-----------|
+| **Noticias** | Crear, editar, eliminar, filtrar por título, categoría y estado. Subir imágenes (múltiples). |
+| **Autores** | Crear, editar, eliminar. Subir foto, redes sociales, enlace de venta. Generar código QR. |
+| **Libros** | Crear, editar, eliminar. Subir portada, precio, sinopsis, enlace de compra. Filtros y paginación. |
+| **Videos** | Crear, editar, eliminar. Pegar URL de YouTube (miniatura automática). |
+| **Mensajes** | Ver mensajes del formulario de contacto, marcar como leído, eliminar. |
+| **Configuración** | Actualizar nombre y teléfono del administrador. |
+
+---
+
+##  Diseño y Experiencia de Usuario
+
+- **Paleta de colores**: Tonos cálidos y terrosos (`#B85C4A`, `#FFF9F2`, `#3B2925`, `#D9A6A0`) que reflejan la identidad de la editorial.
+- **Tipografía**: Combinación de serif (`Playfair Display`) para títulos y sans-serif (`Lato`) para textos, logrando elegancia y legibilidad.
+- **Animaciones**: Efecto de revelado al hacer scroll, fondo animado en el hero, brillo en botones, efecto 3D en libros (movimiento del mouse), transiciones suaves en modales.
+- **Responsive**: Adaptación a todos los dispositivos (móvil, tablet, escritorio).
+- **Microinteracciones**: Botones con hover, tarjetas que se elevan, iconos con movimiento.
+
+---
+
+##  Seguridad y Control de Acceso
+
+- **Autenticación**: Solo usuarios con correo en `FIREBASE_ADMIN_EMAILS` pueden acceder al panel.
+- **Persistencia de sesión**: Configurable (por defecto, la sesión expira al cerrar el navegador).
+- **Reglas de Firestore**: Lectura pública, escritura solo para usuarios autenticados.
+- **Reglas de Storage**: Lectura pública, escritura solo para usuarios autenticados.
+- **Prevención de ataques**: Las reglas de Firebase evitan escrituras no autorizadas.
+
+---
+
+##  SEO y Optimización
+
+- **Meta tags** personalizadas (título, descripción, keywords).
+- **Open Graph** y **Twitter Cards** para compartir en redes sociales.
+- **Schema.org** (Organización) para mejorar el posicionamiento.
+- **Sitemap.xml** y **robots.txt** incluidos.
+- **Google Analytics** integrado (opcional, se puede agregar el ID de medición).
+
+---
+
+## 🧑‍💻 Sobre el Autor
+
+Este proyecto fue desarrollado como parte de un portafolio profesional, demostrando habilidades en desarrollo web full-stack, integración con Firebase, diseño UI/UX, y optimización SEO. Si deseas contactar al autor, puedes hacerlo a través de:
+
+- **Correo**: [puntoycoma.ediciontextos@gmail.com](mailto:puntoycoma.ediciontextos@gmail.com)
+- **WhatsApp**: [+57 3116060210](https://wa.me/573116060210)
+- **Web**: [https://www.editorialpuntoycoma.com](https://www.editorialpuntoycoma.com)
+
+---
+
+##  Licencia y Uso
+
+Este proyecto se comparte **exclusivamente con fines demostrativos y de portafolio**. No está permitido:
+
+- Copiar, modificar, distribuir o implementar el código sin autorización expresa del autor.
+- Utilizar el contenido (textos, imágenes, diseño) para fines comerciales.
+- Eliminar o modificar los créditos del autor.
+
+Si deseas utilizar este proyecto como base para tu propio desarrollo, por favor contacta al autor para obtener permiso.
+
+---
+
+##  Agradecimientos
+
+- A **Editorial Punto y Coma** por confiar en el desarrollo de esta plataforma.
+- A la comunidad de Firebase y Tailwind CSS por las excelentes herramientas.
+- A todos los que han contribuido con ideas y feedback durante el desarrollo.
+
+---
+
+**© 2026 Editorial Punto y Coma - Todos los derechos reservados.**

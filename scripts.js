@@ -46,13 +46,10 @@ const storage =
 // ================================================================
 
 let autoresData = [];
-
 let todosLosLibros = [];
 let librosFiltrados = [];
-
 let librosMostrados = 12;
 const LIBROS_POR_CARGA = 12;
-
 let todosLosVideos = [];
 let videosMostrados = 6;
 const VIDEOS_POR_CARGA = 6;
@@ -73,12 +70,6 @@ if (!firebaseDisponible()) {
 
 // ================================================================
 // AUTENTICACIÓN ANÓNIMA
-// ================================================================
-//
-// La página pública puede utilizar autenticación anónima si las
-// Rules de Firestore están configuradas para permitirla.
-//
-// Si ya existe una sesión, no hacemos nada.
 // ================================================================
 
 async function inicializarAutenticacionPublica() {
@@ -138,7 +129,6 @@ document.addEventListener("DOMContentLoaded", async () => {
   // Inicializamos autenticación pública
   await inicializarAutenticacionPublica();
 
-  // Esperamos un momento para asegurarnos de que Firebase esté listo
   setTimeout(() => {
 
     cargarNoticiasPublicas();
@@ -1576,7 +1566,7 @@ async function cargarLibrosPublicos() {
   try {
 
     console.log(
-      "📚 Cargando libros desde Firestore..."
+      " Cargando libros desde Firestore..."
     );
 
 
@@ -1587,7 +1577,7 @@ async function cargarLibrosPublicos() {
 
 
     console.log(
-      `📚 Libros encontrados en Firestore: ${snapshot.size}`
+      ` Libros encontrados en Firestore: ${snapshot.size}`
     );
 
 
@@ -1707,9 +1697,6 @@ async function cargarLibrosPublicos() {
       [...libros];
 
 
-    // IMPORTANTE:
-    // Siempre comenzamos mostrando 12
-
     librosMostrados =
       LIBROS_POR_CARGA;
 
@@ -1738,8 +1725,6 @@ async function cargarLibrosPublicos() {
     );
 
 
-    // Información especialmente útil para detectar
-    // problemas con las Rules de Firestore
 
     if (
       error.code ===
@@ -1753,7 +1738,7 @@ async function cargarLibrosPublicos() {
       `;
 
       console.error(
-        "🚨 FIRESTORE PERMISSION DENIED. Revisar las Rules de Firestore."
+        " FIRESTORE PERMISSION DENIED. Revisar las Rules de Firestore."
       );
 
     } else {
