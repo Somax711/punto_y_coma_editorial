@@ -16,10 +16,30 @@ if (firebase.apps.length === 0) {
     firebase.initializeApp(firebaseConfig);
 }
 
-// Exportar servicios globalmente
-window.db = firebase.firestore();
-window.storage = firebase.storage();
-window.auth = firebase.auth();
+// Verificar que firebase.auth sea una función antes de usarla
+if (typeof firebase.auth === 'function') {
+    window.auth = firebase.auth();
+} else {
+    console.error('❌ Firebase Auth no está disponible. Revisa la carga de scripts.');
+    window.auth = null;
+}
+
+if (typeof firebase.firestore === 'function') {
+    window.db = firebase.firestore();
+} else {
+    console.error('❌ Firestore no está disponible.');
+    window.db = null;
+}
+
+if (typeof firebase.storage === 'function') {
+    window.storage = firebase.storage();
+} else {
+    console.error('❌ Storage no está disponible.');
+    window.storage = null;
+}
 
 // Lista de correos con permisos de administrador
-window.FIREBASE_ADMIN_EMAILS = ['puntoycoma.ediciontextos@gmail.com'];
+window.FIREBASE_ADMIN_EMAILS = [
+    'puntoycoma.ediciontextos@gmail.com',
+    // Agrega aquí el correo de tu cliente
+];

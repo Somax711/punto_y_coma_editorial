@@ -31,6 +31,12 @@ if (firebase && firebase.auth) {
     .catch(error => console.warn('⚠️ Auth anónima falló:', error));
 }
 
+// Al inicio del archivo, después de obtener `auth`, `db`, `storage`
+if (!auth || !db || !storage) {
+    alert('Error de inicialización de Firebase. Recarga la página o contacta al administrador.');
+    console.error('❌ Firebase no está completamente inicializado.');
+}
+
 // ================================================================
 // DOMContentLoaded
 // ================================================================

@@ -13,6 +13,10 @@ let noticiaEnEdicion = null;
 let imagenesSeleccionadas = [];
 let imagenesExistentes = [];
 
+if (!window.auth || !window.db || !window.storage) {
+    alert('⚠️ Error de inicialización de Firebase. Recarga la página o contacta al administrador.');
+    console.error('❌ Firebase no está completamente inicializado.');
+}
 console.log('panel.js cargado. db:', db ? 'OK' : 'NO');
 
 // ================================================================
@@ -464,10 +468,16 @@ document.getElementById('formLibro')?.addEventListener('submit', async (e) => {
     form.reset();
     form.classList.add('hidden');
     cargarLibros();
-  } catch (error) { console.error(error); alert('Error al guardar.'); } finally {
-    btnGuardar.disabled = false;
-    btnGuardar.textContent = 'Guardar libro';
-  }
+ } catch (error) {
+    console.error('❌ Error al guardar libro:', error);
+    if (error.code === 'permission-denied') {
+        alert('No tienes permisos para guardar. Asegúrate de haber iniciado sesión correctamente.');
+    } else if (error.code === 'unavailable' || error.message.includes('NETWORK')) {
+        alert('Error de conexión con el servidor. Verifica tu internet y vuelve a intentar.');
+    } else {
+        alert(`Error al guardar: ${error.message}`);
+    }
+}
 });
 
 async function editarLibro(id) {
