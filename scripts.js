@@ -17,12 +17,13 @@ function linkWhatsapp(mensaje) {
 // ================================================================
 let autoresData = [];
 let todosLosLibros = [];
-let librosMostrados = 8;
+let librosFiltrados = [];
+let librosMostrados = 12; // 12 iniciales, luego +12 con "Ver más"
 let todosLosVideos = [];
 let videosMostrados = 6;
 
 // ================================================================
-// AUTENTICACIÓN ANÓNIMA (para permitir escritura en mensajes)
+// AUTENTICACIÓN ANÓNIMA
 // ================================================================
 if (firebase && firebase.auth) {
   firebase.auth().signInAnonymously()
@@ -31,7 +32,7 @@ if (firebase && firebase.auth) {
 }
 
 // ================================================================
-// DOMContentLoaded - Asignación de eventos y carga inicial
+// DOMContentLoaded
 // ================================================================
 document.addEventListener("DOMContentLoaded", () => {
   // Enlaces de WhatsApp
@@ -93,11 +94,36 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // Cerrar modal de contacto con clic fuera
   const contactoModal = document.getElementById('contacto-modal');
   if (contactoModal) {
     contactoModal.addEventListener('click', (e) => {
       if (e.target === contactoModal) cerrarModalContacto();
+    });
+  }
+
+  // Modal libro
+  const libroModal = document.getElementById('libro-modal');
+  const closeLibro = document.getElementById('close-libro-modal');
+  if (closeLibro) {
+    closeLibro.addEventListener('click', () => {
+      libroModal.classList.add('opacity-0');
+      libroModal.firstElementChild.classList.add('scale-95');
+      setTimeout(() => {
+        libroModal.classList.add('hidden');
+        libroModal.classList.remove('flex');
+      }, 250);
+    });
+  }
+  if (libroModal) {
+    libroModal.addEventListener('click', (e) => {
+      if (e.target === libroModal) {
+        libroModal.classList.add('opacity-0');
+        libroModal.firstElementChild.classList.add('scale-95');
+        setTimeout(() => {
+          libroModal.classList.add('hidden');
+          libroModal.classList.remove('flex');
+        }, 250);
+      }
     });
   }
 
@@ -112,6 +138,16 @@ document.addEventListener("DOMContentLoaded", () => {
     btnVerMasVideos.addEventListener('click', verMasVideos);
   }
 
+  // Filtros de libros
+  const filtroInput = document.getElementById('filtroLibros');
+  const filtroCategoria = document.getElementById('filtroCategoriaLibros');
+  if (filtroInput) {
+    filtroInput.addEventListener('input', aplicarFiltros);
+  }
+  if (filtroCategoria) {
+    filtroCategoria.addEventListener('change', aplicarFiltros);
+  }
+
   // Cargar datos
   setTimeout(() => {
     cargarNoticiasPublicas();
@@ -122,9 +158,8 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 // ================================================================
-// CONTACTO - MODAL Y ENVÍO A FIRESTORE
+// CONTACTO
 // ================================================================
-
 window.abrirModalContacto = function() {
   const modal = document.getElementById('contacto-modal');
   if (!modal) return;
@@ -213,7 +248,7 @@ document.getElementById('formContacto')?.addEventListener('submit', async (e) =>
 });
 
 // ================================================================
-// NOTICIAS PÚBLICAS
+// NOTICIAS
 // ================================================================
 async function cargarNoticiasPublicas() {
   const grid = document.getElementById('newsGrid');
@@ -296,7 +331,7 @@ async function cargarNoticiasPublicas() {
 }
 
 // ================================================================
-// AUTORES PÚBLICOS
+// AUTORES
 // ================================================================
 async function cargarAutoresPublicos() {
   const container = document.getElementById('autoresGrid');
@@ -392,10 +427,14 @@ async function cargarAutoresPublicos() {
 }
 
 // ================================================================
-// LIBROS PÚBLICOS - CON PAGINACIÓN Y DISEÑO MEJORADO
+// LIBROS (con filtros y modal)
 // ================================================================
 
 function generarHTMLlibros(libros) {
+  if (!libros || libros.length === 0) {
+    return '<div class="col-span-full text-center py-12 text-cremadark">No se encontraron libros.</div>';
+  }
+
   let html = '';
   libros.forEach((libro, index) => {
     const portada = libro.portada || 'https://via.placeholder.com/400x600?text=Sin+portada';
@@ -404,9 +443,11 @@ function generarHTMLlibros(libros) {
     const esDestacado = libro.destacado || false;
     const precio = libro.precio ? `$${libro.precio}` : '';
 
+    const libroData = encodeURIComponent(JSON.stringify(libro));
+
     html += `
-      <article class="book-card ${revealClass}" style="transition-delay: ${delay}s">
-        <div class="book-image-wrapper">
+      <article class="book-card ${revealClass}" style="transition-delay: ${delay}s" data-libro='${libroData}'>
+        <div class="book-image-wrapper" onclick="abrirModalLibro(JSON.parse(decodeURIComponent(this.parentElement.dataset.libro)))">
           <img src="${portada}" alt="${libro.titulo}" class="book-image" loading="lazy" onerror="this.src='https://via.placeholder.com/400x600?text=Error'">
           ${esDestacado ? `<span class="book-badge">Destacado</span>` : ''}
         </div>
@@ -415,7 +456,10 @@ function generarHTMLlibros(libros) {
           <p class="book-author">${libro.autor}</p>
           ${precio ? `<p class="book-price">${precio}</p>` : ''}
           <p class="book-description">${libro.descripcion}</p>
-          <a href="${libro.enlace_compra}" target="_blank" class="book-btn">Comprar ahora <i class="fa-solid fa-arrow-right"></i></a>
+          <div class="book-actions">
+            <button onclick="abrirModalLibro(JSON.parse(decodeURIComponent(this.closest('.book-card').dataset.libro)))" class="book-btn-detail">Ver detalles</button>
+            <a href="${libro.enlace_compra}" target="_blank" class="book-btn">Comprar ahora <i class="fa-solid fa-arrow-right"></i></a>
+          </div>
         </div>
       </article>
     `;
@@ -423,6 +467,7 @@ function generarHTMLlibros(libros) {
   return html;
 }
 
+// Cargar libros desde Firestore
 async function cargarLibrosPublicos() {
   const grid = document.getElementById('librosGrid');
   const verMasContainer = document.getElementById('librosVerMasContainer');
@@ -449,7 +494,8 @@ async function cargarLibrosPublicos() {
         precio: data.precio || '',
         descripcion: data.descripcion || data.sinopsis || '',
         enlace_compra: data.enlace_compra || '#',
-        autor: data.autor || 'Autor por definir'
+        autor: data.autor || 'Autor por definir',
+        categoria: data.categoria || '' // para filtros
       };
     });
 
@@ -466,23 +512,21 @@ async function cargarLibrosPublicos() {
     }
 
     todosLosLibros = libros;
+    librosFiltrados = [...libros];
+    aplicarFiltros(); // esto muestra los filtrados
 
-    const librosIniciales = libros.slice(0, librosMostrados);
-    grid.innerHTML = generarHTMLlibros(librosIniciales);
-
-    // Mostrar u ocultar botón "Ver más"
-    if (libros.length > librosMostrados) {
-      verMasContainer.classList.remove('hidden');
-    } else {
-      verMasContainer.classList.add('hidden');
+    // Inicializar el selector de categorías (si existe)
+    const filtroCategoria = document.getElementById('filtroCategoriaLibros');
+    if (filtroCategoria) {
+      // Obtener categorías únicas
+      const categorias = [...new Set(libros.map(l => l.categoria).filter(c => c))];
+      categorias.forEach(cat => {
+        const option = document.createElement('option');
+        option.value = cat;
+        option.textContent = cat;
+        filtroCategoria.appendChild(option);
+      });
     }
-
-    // Aplicar efecto 3D a todas las tarjetas
-    aplicarEfecto3D();
-
-    // Activar observer para animaciones
-    document.querySelectorAll('#librosGrid .reveal-up, #librosGrid .reveal-left, #librosGrid .reveal-right')
-      .forEach(el => observer.observe(el));
 
   } catch (error) {
     console.error('Error cargando libros:', error);
@@ -490,13 +534,53 @@ async function cargarLibrosPublicos() {
   }
 }
 
-function verMasLibros() {
+// Aplicar filtros de búsqueda y categoría
+function aplicarFiltros() {
   const grid = document.getElementById('librosGrid');
   const verMasContainer = document.getElementById('librosVerMasContainer');
   if (!grid || !todosLosLibros.length) return;
 
+  const filtroTexto = document.getElementById('filtroLibros')?.value.toLowerCase().trim() || '';
+  const filtroCategoria = document.getElementById('filtroCategoriaLibros')?.value || '';
+
+  // Filtrar
+  let filtrados = todosLosLibros.filter(libro => {
+    const coincideTexto = libro.titulo.toLowerCase().includes(filtroTexto) ||
+                          libro.autor.toLowerCase().includes(filtroTexto);
+    const coincideCategoria = filtroCategoria === '' || libro.categoria === filtroCategoria;
+    return coincideTexto && coincideCategoria;
+  });
+
+  librosFiltrados = filtrados;
+
+  // Mostrar primeros 12
+  const primeros = filtrados.slice(0, librosMostrados);
+  grid.innerHTML = generarHTMLlibros(primeros);
+
+  // Mostrar u ocultar "Ver más"
+  if (filtrados.length > librosMostrados) {
+    verMasContainer.classList.remove('hidden');
+  } else {
+    verMasContainer.classList.add('hidden');
+  }
+
+  // Aplicar efecto 3D
+  aplicarEfecto3D();
+
+  // Observer para las nuevas tarjetas
+  document.querySelectorAll('#librosGrid .book-card').forEach(el => observer.observe(el));
+
+  // Resetear el contador de "Ver más" para que funcione con los filtrados
+  // (la función verMasLibros usará librosFiltrados)
+}
+
+function verMasLibros() {
+  const grid = document.getElementById('librosGrid');
+  const verMasContainer = document.getElementById('librosVerMasContainer');
+  if (!grid || !librosFiltrados.length) return;
+
   const actuales = grid.querySelectorAll('.book-card').length;
-  const siguientes = todosLosLibros.slice(actuales, actuales + librosMostrados);
+  const siguientes = librosFiltrados.slice(actuales, actuales + librosMostrados);
   if (!siguientes.length) {
     verMasContainer.classList.add('hidden');
     return;
@@ -505,21 +589,56 @@ function verMasLibros() {
   const nuevoHTML = generarHTMLlibros(siguientes);
   grid.insertAdjacentHTML('beforeend', nuevoHTML);
 
-  // Aplicar efecto 3D a las nuevas tarjetas
   aplicarEfecto3D();
-
-  // Activar observer para las nuevas
   document.querySelectorAll('#librosGrid .book-card').forEach(el => observer.observe(el));
 
-  if (grid.querySelectorAll('.book-card').length >= todosLosLibros.length) {
+  if (grid.querySelectorAll('.book-card').length >= librosFiltrados.length) {
     verMasContainer.classList.add('hidden');
   }
 }
 
 // ================================================================
-// VIDEOS PÚBLICOS - CON PAGINACIÓN
+// MODAL LIBRO
 // ================================================================
+function abrirModalLibro(libro) {
+  const modal = document.getElementById('libro-modal');
+  const content = document.getElementById('libro-modal-content');
+  if (!modal || !content) return;
 
+  const portada = libro.portada || 'https://via.placeholder.com/400x600?text=Sin+portada';
+  const precio = libro.precio ? `$${libro.precio}` : 'Precio no disponible';
+  const enlace = libro.enlace_compra || '#';
+
+  content.innerHTML = `
+    <div class="flex flex-col md:flex-row gap-6">
+      <div class="md:w-1/3 flex justify-center">
+        <img src="${portada}" alt="${libro.titulo}" class="w-full max-w-xs rounded-lg shadow-lg" onerror="this.src='https://via.placeholder.com/400x600?text=Error'">
+      </div>
+      <div class="md:w-2/3">
+        <h2 class="font-serif text-3xl text-crema mb-2">${libro.titulo}</h2>
+        <p class="text-dorado text-lg italic mb-3">${libro.autor || 'Autor por definir'}</p>
+        <p class="text-2xl font-bold text-dorado mb-4">${precio}</p>
+        <div class="prose prose-sm max-w-none text-cremadark leading-relaxed mb-6">
+          ${libro.sinopsis || libro.descripcion || 'Sin sinopsis disponible.'}
+        </div>
+        <a href="${enlace}" target="_blank" class="inline-flex items-center gap-3 bg-dorado text-vinodark px-8 py-4 font-semibold uppercase tracking-widest hover:bg-crema transition-colors shadow-lg btn-glow">
+          Comprar ahora <i class="fa-solid fa-arrow-right"></i>
+        </a>
+      </div>
+    </div>
+  `;
+
+  modal.classList.remove('hidden');
+  modal.classList.add('flex');
+  setTimeout(() => {
+    modal.classList.remove('opacity-0');
+    modal.firstElementChild.classList.remove('scale-95');
+  }, 10);
+}
+
+// ================================================================
+// VIDEOS
+// ================================================================
 function generarHTMLvideos(videos) {
   let html = '';
   videos.forEach((video, index) => {
@@ -622,26 +741,23 @@ function verMasVideos() {
 }
 
 // ================================================================
-// EFECTO 3D EN LIBROS (MEJORADO Y APLICADO A TODAS LAS TARJETAS)
+// EFECTO 3D EN LIBROS
 // ================================================================
-
 function aplicarEfecto3D() {
   const cards = document.querySelectorAll('.book-card');
   if (!cards.length) return;
 
   cards.forEach(card => {
-    // Remover eventos antiguos para evitar duplicados
     card.removeEventListener('mousemove', card._3dHandler);
     card.removeEventListener('mouseleave', card._3dLeaveHandler);
 
-    // Definir handlers y guardarlos en el elemento para poder removerlos después
     const handler = (e) => {
       const rect = card.getBoundingClientRect();
       const x = e.clientX - rect.left;
       const y = e.clientY - rect.top;
       const centerX = rect.width / 2;
       const centerY = rect.height / 2;
-      const rotateX = ((y - centerY) / centerY) * -12; // Aumentado a 12 grados para efecto más notorio
+      const rotateX = ((y - centerY) / centerY) * -12;
       const rotateY = ((x - centerX) / centerX) * 12;
       card.style.transform = `perspective(800px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateY(-8px) scale(1.02)`;
       card.style.transition = 'transform 0.1s ease';
@@ -655,14 +771,13 @@ function aplicarEfecto3D() {
     card.addEventListener('mousemove', handler);
     card.addEventListener('mouseleave', leaveHandler);
 
-    // Guardar referencias para poder limpiar si se vuelve a llamar
     card._3dHandler = handler;
     card._3dLeaveHandler = leaveHandler;
   });
 }
 
 // ================================================================
-// MODAL AUTOR
+// MODALES (AUTOR, NOTICIA, QR)
 // ================================================================
 function openAuthorModal(index) {
   const autor = autoresData[index];
@@ -709,9 +824,6 @@ function closeAuthorModal() {
   }, 250);
 }
 
-// ================================================================
-// MODAL NOTICIA
-// ================================================================
 window.abrirNoticiaDesdeBase64 = function(base64Data) {
   try {
     const jsonString = decodeURIComponent(escape(atob(base64Data)));
@@ -759,9 +871,6 @@ function closeNewsModal() {
   }, 250);
 }
 
-// ================================================================
-// MODAL QR
-// ================================================================
 window.openQRModal = function(author, path) {
   const modal = document.getElementById('qr-modal');
   if (!modal) return;
@@ -789,6 +898,13 @@ window.closeQRModal = function() {
 };
 
 // ================================================================
+// UTILIDADES
+// ================================================================
+function abrirVideo(url) {
+  window.open(url, '_blank');
+}
+
+// ================================================================
 // INTERSECTION OBSERVER
 // ================================================================
 const observer = new IntersectionObserver((entries) => {
@@ -804,10 +920,3 @@ document.addEventListener('DOMContentLoaded', () => {
   document.querySelectorAll('.reveal-up, .reveal-left, .reveal-right, .reveal-zoom')
     .forEach(el => observer.observe(el));
 });
-
-// ================================================================
-// UTILIDADES
-// ================================================================
-function abrirVideo(url) {
-  window.open(url, '_blank');
-}

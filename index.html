@@ -236,6 +236,14 @@
           <h2 class="section-title">Tu próxima lectura <span>comienza hoy.</span></h2>
           <p class="section-copy">Un libro puede cambiar una tarde, una idea o incluso una vida. Explora nuestro catálogo y descubre nuevas voces: cada portada guarda una experiencia, una mirada y una historia lista para encontrarte.</p>
         </div>
+        <!-- Filtros -->
+     <div class="filtros-container mb-8 flex flex-wrap gap-4 items-center justify-center md:justify-start">
+      <input type="text" id="filtroLibros" placeholder="Buscar por título o autor..." class="px-4 py-2 border border-dorado/30 rounded-xl focus:ring-2 focus:ring-dorado outline-none bg-cardbg text-crema w-full md:w-64">
+      <select id="filtroCategoriaLibros" class="px-4 py-2 border border-dorado/30 rounded-xl focus:ring-2 focus:ring-dorado outline-none bg-cardbg text-crema">
+       <option value="">Todas las categorías</option>
+        <!-- Se llenará dinámicamente desde JavaScript -->
+       </select>
+         </div>
         <div id="librosGrid" class="book-grid reveal reveal-up">
           <div class="col-span-full text-center py-12 text-cremadark">Cargando libros...</div>
         </div>
@@ -381,6 +389,17 @@
       <div class="bg-crema inline-block p-3"><img id="qr-image" src="" alt="Código QR del autor" class="w-48 h-48" /></div>
     </div>
   </div>
+  <!-- ==================== MODAL LIBRO (DETALLE) ==================== -->
+<div id="libro-modal" class="fixed inset-0 z-[140] bg-secondary/80 hidden items-center justify-center p-4 opacity-0 transition-opacity">
+  <div class="bg-cardbg border border-dorado/30 max-w-4xl w-full max-h-[90vh] overflow-y-auto relative shadow-2xl scale-95 transition-transform rounded-xl">
+    <button id="close-libro-modal" class="absolute top-3 right-3 z-10 w-9 h-9 rounded-full bg-vinodark text-dorado border border-dorado/30 flex items-center justify-center">
+      <i class="fa-solid fa-xmark"></i>
+    </button>
+    <div id="libro-modal-content" class="p-6 md:p-10">
+      <!-- Contenido dinámico -->
+    </div>
+  </div>
+</div>
 
   <!-- ==================== SCRIPTS ==================== -->
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>

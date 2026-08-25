@@ -534,6 +534,65 @@ body {
 .book-btn:hover i {
   transform: translateX(4px);
 }
+/* Filtros */
+.filtros-container input,
+.filtros-container select {
+  background-color: #FFFFFF;
+  color: #3B2925;
+  border: 1px solid rgba(184, 92, 74, 0.2);
+  transition: all 0.3s ease;
+}
+.filtros-container input:focus,
+.filtros-container select:focus {
+  border-color: #B85C4A;
+  box-shadow: 0 0 0 3px rgba(184, 92, 74, 0.2);
+}
+
+/* Botón Ver detalles */
+.book-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+  flex-wrap: wrap;
+}
+.book-btn-detail {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem 1.2rem;
+  border: 1px solid #B85C4A;
+  color: #B85C4A;
+  background: transparent;
+  border-radius: 50px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  text-decoration: none;
+}
+.book-btn-detail:hover {
+  background: #B85C4A;
+  color: #FFFFFF;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(184, 92, 74, 0.3);
+}
+
+/* Modal libro */
+#libro-modal .prose {
+  color: #5B4540;
+}
+#libro-modal .prose p {
+  margin-bottom: 0.5rem;
+}
+#libro-modal .prose strong {
+  color: #3B2925;
+}
+#libro-modal img {
+  border-radius: 0.75rem;
+  box-shadow: 0 8px 30px rgba(59, 41, 37, 0.15);
+}
 
 /* ================================================================
    NOTICIAS - 4 COLUMNAS (Grid definido en HTML con Tailwind)
